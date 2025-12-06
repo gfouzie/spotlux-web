@@ -51,13 +51,15 @@ const getFullName = (firstName: string | null, lastName: string | null): string 
 };
 
 /**
- * Format birthday for display
+ * Format birthday for display (without timezone conversion)
  */
 const formatBirthday = (birthday: string | null): string => {
   if (!birthday) return "Not set";
 
   try {
-    const date = new Date(birthday);
+    // Parse date components directly to avoid timezone issues
+    const [year, month, day] = birthday.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   } catch {
     return "Not set";
@@ -65,26 +67,23 @@ const formatBirthday = (birthday: string | null): string => {
 };
 
 /**
- * Format height in cm to feet and inches
+ * Format height in inches to feet and inches display
  */
-const formatHeight = (heightCm: number | null): string => {
-  if (!heightCm) return "Not set";
+const formatHeight = (heightInches: number | null): string => {
+  if (!heightInches) return "Not set";
 
-  const totalInches = heightCm / 2.54;
-  const feet = Math.floor(totalInches / 12);
-  const inches = Math.round(totalInches % 12);
+  const feet = Math.floor(heightInches / 12);
+  const inches = heightInches % 12;
 
   return `${feet}'${inches}"`;
 };
 
 /**
- * Format weight in kg to lbs
+ * Format weight in lbs
  */
-const formatWeight = (weightKg: number | null): string => {
-  if (!weightKg) return "Not set";
-
-  const lbs = Math.round(weightKg * 2.20462);
-  return `${lbs} lbs`;
+const formatWeight = (weightLbs: number | null): string => {
+  if (!weightLbs) return "Not set";
+  return `${weightLbs} lbs`;
 };
 
 const formatHometown = (city: string | null, state: string | null, country: string | null): string => {
@@ -107,22 +106,23 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
 
   const initials = getUserInitials(firstName, lastName);
 
+  const loadProfile = async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      setLoading(true);
+      const data = await profileApi.getProfile();
+      setProfile(data);
+    } catch (err) {
+      console.error("Failed to load profile:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!isAuthenticated) return;
-
-      try {
-        setLoading(true);
-        const data = await profileApi.getProfile();
-        setProfile(data);
-      } catch (err) {
-        console.error("Failed to load profile:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   if (loading) {
@@ -224,6 +224,8 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
       <EditProfileModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
+        user={profile}
+        onSuccess={loadProfile}
       />
     </>
   );
