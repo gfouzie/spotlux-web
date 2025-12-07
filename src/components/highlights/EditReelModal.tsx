@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Modal from "@/components/common/Modal";
 import Select from "@/components/common/Select";
@@ -38,7 +38,7 @@ export default function EditReelModal({
   const [deletingHighlightId, setDeletingHighlightId] = useState<number | null>(null);
 
   // Load highlights for this reel
-  const loadHighlights = async () => {
+  const loadHighlights = useCallback(async () => {
     setIsLoadingHighlights(true);
     try {
       const highlights = await highlightsApi.getHighlightsByReel(reel.id);
@@ -49,7 +49,7 @@ export default function EditReelModal({
     } finally {
       setIsLoadingHighlights(false);
     }
-  };
+  }, [reel.id]);
 
   useEffect(() => {
     if (isOpen) {
@@ -58,7 +58,7 @@ export default function EditReelModal({
       setVisibility(reel.visibility);
       setShouldRemoveThumbnail(false);
     }
-  }, [isOpen, reel.id]);
+  }, [isOpen, loadHighlights, reel.thumbnailUrl, reel.visibility]);
 
   const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -159,8 +159,7 @@ export default function EditReelModal({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError(null);
     setIsSubmitting(true);
 
@@ -227,8 +226,14 @@ export default function EditReelModal({
       onClose={handleClose}
       title="Edit Highlight Reel"
       size="lg"
+      showFooter
+      confirmText="Save Changes"
+      cancelText="Cancel"
+      onConfirm={handleSubmit}
+      onCancel={handleClose}
+      confirmLoading={isSubmitting}
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-6">
         {error && (
           <Alert variant="error" onClose={() => setError(null)}>
             {error}
@@ -418,21 +423,7 @@ export default function EditReelModal({
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-2 pt-4">
-          <Button type="submit" isLoading={isSubmitting} className="flex-1">
-            Save Changes
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
+      </div>
     </Modal>
   );
 }

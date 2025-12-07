@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import Modal from "@/components/common/Modal";
 import Input from "@/components/common/Input";
-import Button from "@/components/common/Button";
 import Alert from "@/components/common/Alert";
 import { profileApi, UserProfile, ProfileUpdateRequest } from "@/api/profile";
+import { feetInchesToInches, inchesToFeetInches } from "@/lib/utils";
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -20,12 +20,14 @@ export default function EditProfileModal({
   user,
   onSuccess,
 }: EditProfileModalProps) {
+  const heightData = inchesToFeetInches(user?.height);
+  
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     birthday: user?.birthday || "",
-    heightFeet: user?.height ? Math.floor(user.height / 12).toString() : "",
-    heightInches: user?.height ? (user.height % 12).toString() : "",
+    heightFeet: heightData.feet,
+    heightInches: heightData.inches,
     weight: user?.weight?.toString() || "",
     hometownCity: user?.hometownCity || "",
     hometownState: user?.hometownState || "",
@@ -37,12 +39,14 @@ export default function EditProfileModal({
   // Update form when user prop changes
   useEffect(() => {
     if (user) {
+      const heightData = inchesToFeetInches(user.height);
+      
       setFormData({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         birthday: user.birthday || "",
-        heightFeet: user.height ? Math.floor(user.height / 12).toString() : "",
-        heightInches: user.height ? (user.height % 12).toString() : "",
+        heightFeet: heightData.feet,
+        heightInches: heightData.inches,
         weight: user.weight?.toString() || "",
         hometownCity: user.hometownCity || "",
         hometownState: user.hometownState || "",
@@ -51,25 +55,16 @@ export default function EditProfileModal({
     }
   }, [user]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError(null);
     setIsSubmitting(true);
 
     try {
-      // Calculate total inches from feet and inches
-      let totalInches: number | null = null;
-      if (formData.heightFeet || formData.heightInches) {
-        const feet = parseInt(formData.heightFeet) || 0;
-        const inches = parseInt(formData.heightInches) || 0;
-        totalInches = feet * 12 + inches;
-      }
-
       const updateRequest: ProfileUpdateRequest = {
         firstName: formData.firstName || null,
         lastName: formData.lastName || null,
         birthday: formData.birthday || null,
-        height: totalInches,
+        height: feetInchesToInches(formData.heightFeet, formData.heightInches),
         weight: formData.weight ? parseInt(formData.weight) : null,
         hometownCity: formData.hometownCity || null,
         hometownState: formData.hometownState || null,
@@ -98,8 +93,14 @@ export default function EditProfileModal({
       onClose={handleClose}
       title="Edit Profile"
       size="lg"
+      showFooter
+      confirmText="Save Changes"
+      cancelText="Cancel"
+      onConfirm={handleSubmit}
+      onCancel={handleClose}
+      confirmLoading={isSubmitting}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         {error && (
           <Alert variant="error" onClose={() => setError(null)}>
             {error}
@@ -143,7 +144,7 @@ export default function EditProfileModal({
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Height - Feet"
+              label="Height - feet"
               type="number"
               value={formData.heightFeet}
               onChange={(e) =>
@@ -154,7 +155,7 @@ export default function EditProfileModal({
               max={8}
             />
             <Input
-              label="Height - Inches"
+              label="Height - inches"
               type="number"
               value={formData.heightInches}
               onChange={(e) =>
@@ -166,7 +167,7 @@ export default function EditProfileModal({
             />
           </div>
           <Input
-            label="Weight (pounds)"
+            label="Weight - lbs"
             type="number"
             value={formData.weight}
             onChange={(e) =>
@@ -178,9 +179,8 @@ export default function EditProfileModal({
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-sm font-medium text-text-col">Hometown</h3>
           <Input
-            label="City"
+            label="Hometown City"
             value={formData.hometownCity}
             onChange={(e) =>
               setFormData({ ...formData, hometownCity: e.target.value })
@@ -189,7 +189,7 @@ export default function EditProfileModal({
             maxLength={100}
           />
           <Input
-            label="State"
+            label="Hometown State"
             value={formData.hometownState}
             onChange={(e) =>
               setFormData({ ...formData, hometownState: e.target.value })
@@ -198,7 +198,7 @@ export default function EditProfileModal({
             maxLength={100}
           />
           <Input
-            label="Country"
+            label="Hometown Country"
             value={formData.hometownCountry}
             onChange={(e) =>
               setFormData({ ...formData, hometownCountry: e.target.value })
@@ -208,20 +208,7 @@ export default function EditProfileModal({
           />
         </div>
 
-        <div className="flex gap-2 pt-4">
-          <Button type="submit" isLoading={isSubmitting} className="flex-1">
-            Save Changes
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
+      </div>
     </Modal>
   );
 }

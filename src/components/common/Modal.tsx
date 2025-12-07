@@ -3,6 +3,7 @@
 import { useEffect, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { Xmark } from "iconoir-react";
+import Button from "./Button";
 
 interface ModalProps {
   isOpen: boolean;
@@ -13,6 +14,18 @@ interface ModalProps {
   showCloseButton?: boolean;
   closeOnOverlayClick?: boolean;
   className?: string;
+  // Footer props
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  hideConfirm?: boolean;
+  hideCancel?: boolean;
+  confirmDisabled?: boolean;
+  cancelDisabled?: boolean;
+  confirmLoading?: boolean;
+  confirmVariant?: "primary" | "secondary" | "danger" | "success";
+  showFooter?: boolean;
 }
 
 const Modal = forwardRef<HTMLDivElement, ModalProps>(
@@ -26,9 +39,22 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
       showCloseButton = true,
       closeOnOverlayClick = true,
       className,
+      confirmText = "Confirm",
+      cancelText = "Cancel",
+      onConfirm,
+      onCancel,
+      hideConfirm = false,
+      hideCancel = false,
+      confirmDisabled = false,
+      cancelDisabled = false,
+      confirmLoading = false,
+      confirmVariant = "primary",
+      showFooter = false,
     },
     ref
   ) => {
+    // Use onCancel if provided, otherwise fall back to onClose
+    const handleCancel = onCancel || onClose;
     // Handle escape key
     useEffect(() => {
       const handleEscape = (e: KeyboardEvent) => {
@@ -112,6 +138,37 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
+
+          {/* Footer */}
+          {showFooter && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-bg-col/50">
+              <div className="flex-1">
+                {!hideCancel && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleCancel}
+                    disabled={cancelDisabled || confirmLoading}
+                  >
+                    {cancelText}
+                  </Button>
+                )}
+              </div>
+              <div className="flex-1 flex justify-end">
+                {!hideConfirm && onConfirm && (
+                  <Button
+                    type="button"
+                    variant={confirmVariant}
+                    onClick={onConfirm}
+                    disabled={confirmDisabled || confirmLoading}
+                    isLoading={confirmLoading}
+                  >
+                    {confirmText}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

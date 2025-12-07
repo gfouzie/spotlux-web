@@ -28,8 +28,7 @@ export default function CreateReelModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setError(null);
     setIsSubmitting(true);
 
@@ -66,8 +65,14 @@ export default function CreateReelModal({
       onClose={handleClose}
       title="Create New Highlight Reel"
       size="md"
+      showFooter
+      confirmText="Create Reel"
+      cancelText="Cancel"
+      onConfirm={handleSubmit}
+      onCancel={handleClose}
+      confirmLoading={isSubmitting}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         {error && (
           <Alert variant="error" onClose={() => setError(null)}>
             {error}
@@ -106,20 +111,7 @@ export default function CreateReelModal({
           </p>
         </div>
 
-        <div className="flex gap-2 pt-4">
-          <Button type="submit" isLoading={isSubmitting} className="flex-1">
-            Create Reel
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-        </div>
-      </form>
+      </div>
     </Modal>
   );
 }

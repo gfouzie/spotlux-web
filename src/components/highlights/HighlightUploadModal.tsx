@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Modal from "@/components/common/Modal";
 import Select from "@/components/common/Select";
-import Button from "@/components/common/Button";
 import Alert from "@/components/common/Alert";
 import { Upload, Xmark, Check } from "iconoir-react";
 import { highlightsApi, HighlightCreateRequest } from "@/api/highlights";
@@ -242,6 +241,13 @@ export default function HighlightUploadModal({
       onClose={handleClose}
       title="Upload Highlight Clips"
       size="lg"
+      showFooter
+      confirmText={`Upload${files?.length ? ` (${files?.length})` : ""}`}
+      cancelText="Cancel"
+      onConfirm={handleUpload}
+      onCancel={handleClose}
+      confirmLoading={isUploading}
+      confirmDisabled={files?.length === 0}
     >
       <div className="space-y-4">
         {error && (
@@ -379,25 +385,6 @@ export default function HighlightUploadModal({
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-2 pt-4">
-          <Button
-            onClick={handleUpload}
-            isLoading={isUploading}
-            disabled={files?.length === 0}
-            className="flex-1"
-          >
-            Upload {files?.length && `(${files?.length})`}
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClose}
-            disabled={isUploading}
-          >
-            Cancel
-          </Button>
-        </div>
       </div>
     </Modal>
   );
