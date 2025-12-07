@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import ProfilePictureSection from "@/components/profile/ProfilePictureSection";
-import FriendsPreview from "@/components/friends/FriendsPreview";
 import UserSportsManager from "@/components/profile/UserSportsManager";
 import SportTabContent from "@/components/highlights/SportTabContent";
 import { Tab, TabList, TabPanel } from "@/components/common/Tabs";
@@ -94,10 +93,6 @@ const ProfilePage: React.FC = () => {
 
               {/* Sports Manager */}
               <UserSportsManager onSportsUpdate={handleSportsUpdate} />
-
-              {user && (
-                <FriendsPreview userId={user.id} isOwnProfile={true} />
-              )}
 
               {/* Highlights Section */}
               {user && userSports?.length > 0 && (
