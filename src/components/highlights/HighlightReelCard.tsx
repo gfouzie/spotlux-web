@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { HighlightReel } from "@/api/highlightReels";
 import { cn } from "@/lib/utils";
 import { VideoCamera, Lock, Group, Settings } from "iconoir-react";
@@ -31,7 +32,7 @@ export default function HighlightReelCard({
       <div className="relative">
         {/* Gradient Border Ring (like Instagram stories) */}
         <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-accent-col via-accent-col/70 to-accent-col/40 p-0.5 relative z-0">
-          <div className="w-full h-full rounded-full bg-bg-col p-0.5">
+          <div className="relative w-full h-full rounded-full bg-bg-col p-0.5 overflow-hidden">
             {reel.thumbnailUrl ? (
               reel.thumbnailUrl.match(/\.(mp4|mov|webm)$/i) ? (
                 <video
@@ -42,10 +43,12 @@ export default function HighlightReelCard({
                   playsInline
                 />
               ) : (
-                <img
+                <Image
                   src={reel.thumbnailUrl}
                   alt={reel.name}
-                  className="w-full h-full rounded-full object-cover"
+                  fill
+                  sizes="80px"
+                  className="rounded-full object-cover"
                 />
               )
             ) : (

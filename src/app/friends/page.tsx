@@ -9,6 +9,7 @@ import Button from "@/components/common/Button";
 import Alert from "@/components/common/Alert";
 import Input from "@/components/common/Input";
 import Link from "next/link";
+import Image from "next/image";
 
 type TabType = "friends" | "received" | "sent";
 
@@ -207,13 +208,19 @@ export default function FriendsPage() {
                       href={`/profile/${friend.username}`}
                       className="flex items-center gap-3 flex-1"
                     >
-                      <div className="w-12 h-12 rounded-full bg-bg-col overflow-hidden">
-                        {friend.profileImageUrl && (
-                          <img
+                      <div className="relative w-12 h-12 rounded-full bg-bg-col overflow-hidden">
+                        {friend.profileImageUrl ? (
+                          <Image
                             src={friend.profileImageUrl}
-                            alt={friend.username}
-                            className="w-full h-full object-cover"
+                            alt={`${friend.username}'s profile`}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
                           />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-text-col/40">
+                            {friend.firstName?.charAt(0) || friend.username.charAt(0)}
+                          </div>
                         )}
                       </div>
                       <div>

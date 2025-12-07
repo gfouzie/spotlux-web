@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Modal from "@/components/common/Modal";
 import Select from "@/components/common/Select";
 import Button from "@/components/common/Button";
@@ -278,11 +279,21 @@ export default function EditReelModal({
                   className="w-full h-full object-cover"
                   preload="metadata"
                 />
-              ) : (
+              ) : thumbnailPreview.startsWith("blob:") ? (
+                // Use regular img for blob URLs (locally selected files)
                 <img
                   src={thumbnailPreview}
                   alt="Thumbnail preview"
                   className="w-full h-full object-cover"
+                />
+              ) : (
+                // Use Next.js Image for remote URLs (S3, etc.)
+                <Image
+                  src={thumbnailPreview}
+                  alt="Thumbnail preview"
+                  fill
+                  sizes="128px"
+                  className="object-cover"
                 />
               )}
               <button

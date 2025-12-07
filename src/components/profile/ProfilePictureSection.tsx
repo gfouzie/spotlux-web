@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { EditPencil } from "iconoir-react";
 import { UserProfile } from "@/api/profile";
 import { profileApi } from "@/api/profile";
@@ -153,12 +154,14 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
           <div className="flex items-center gap-6">
             {/* Left: Profile Picture and Friends Link */}
             <div className="flex flex-col flex-shrink-0">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-component-col mb-3">
+              <div className="relative w-20 h-20 rounded-full overflow-hidden bg-component-col mb-3">
                 {profileImageUrl ? (
-                  <img
+                  <Image
                     src={profileImageUrl}
                     alt="Profile"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="80px"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-accent-col/20">

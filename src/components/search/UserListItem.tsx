@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { User } from "@/api/user";
 import FriendButton from "@/components/friends/FriendButton";
 
@@ -21,13 +22,19 @@ export default function UserListItem({
         href={`/profile/${user.username}`}
         className="flex items-center gap-3 flex-1"
       >
-        <div className="w-12 h-12 rounded-full bg-bg-col overflow-hidden flex-shrink-0">
-          {user.profileImageUrl && (
-            <img
+        <div className="relative w-12 h-12 rounded-full bg-bg-col overflow-hidden flex-shrink-0">
+          {user.profileImageUrl ? (
+            <Image
               src={user.profileImageUrl}
-              alt={user.username}
-              className="w-full h-full object-cover"
+              alt={`${user.username}'s profile`}
+              fill
+              sizes="48px"
+              className="object-cover"
             />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-text-col/40">
+              {user.firstName?.charAt(0) || user.username.charAt(0)}
+            </div>
           )}
         </div>
         <div className="flex-1 min-w-0">

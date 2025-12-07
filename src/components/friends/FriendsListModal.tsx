@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Xmark } from "iconoir-react";
 import { friendshipsApi } from "@/api/friendships";
 import { UserProfile } from "@/api/profile";
 import Link from "next/link";
+import Image from "next/image";
 
 interface FriendsListModalProps {
   isOpen: boolean;
@@ -23,13 +24,7 @@ export default function FriendsListModal({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadAllFriends();
-    }
-  }, [isOpen, userId]);
-
-  const loadAllFriends = async () => {
+  const loadAllFriends = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -45,7 +40,13 @@ export default function FriendsListModal({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isOwnProfile, userId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadAllFriends();
+    }
+  }, [isOpen, loadAllFriends]);
 
   if (!isOpen) return null;
 
@@ -87,12 +88,14 @@ export default function FriendsListModal({
                   onClick={onClose}
                   className="flex items-center space-x-4 p-4 rounded-lg bg-component-col/30 hover:bg-component-col/50 transition-colors"
                 >
-                  <div className="w-12 h-12 rounded-full bg-component-col overflow-hidden flex-shrink-0">
+                  <div className="relative w-12 h-12 rounded-full bg-component-col overflow-hidden flex-shrink-0">
                     {friend?.profileImageUrl ? (
-                      <img
+                      <Image
                         src={friend.profileImageUrl}
-                        alt={friend.username}
-                        className="w-full h-full object-cover"
+                        alt={`${friend.username}'s profile`}
+                        fill
+                        sizes="48px"
+                        className="object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-accent-col/20">
