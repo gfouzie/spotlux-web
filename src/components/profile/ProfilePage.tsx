@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 import ProfilePictureSection from '@/components/profile/ProfilePictureSection';
 import ProfileSportSelector from '@/components/profile/ProfileSportSelector';
-import SportTabContent from '@/components/highlights/SportTabContent';
 import { profileApi } from '@/api/profile';
 import { useUser } from '@/contexts/UserContext';
 import {
   ProfileSportProvider,
   useProfileSport,
 } from '@/contexts/ProfileSportContext';
+import HighlightProfileContent from '@/components/highlights/HighlightProfileContent';
 
 function ProfileContent() {
   const { user } = useUser();
@@ -75,7 +75,10 @@ function ProfileContent() {
                   <h2 className="text-2xl font-bold text-text-col mb-6">
                     Highlights
                   </h2>
-                  <SportTabContent sport={selectedSport} isOwner={true} />
+                  <HighlightProfileContent
+                    sport={selectedSport}
+                    isOwner={true}
+                  />
                 </div>
               )}
 

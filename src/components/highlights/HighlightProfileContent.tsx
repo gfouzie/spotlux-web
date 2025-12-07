@@ -13,15 +13,15 @@ import Button from '@/components/common/Button';
 import Alert from '@/components/common/Alert';
 import LoadingState from '@/components/common/LoadingState';
 
-interface SportTabContentProps {
+interface HighlightProfileContentProps {
   sport: string;
   isOwner: boolean;
 }
 
-export default function SportTabContent({
+export default function HighlightProfileContent({
   sport,
   isOwner,
-}: SportTabContentProps) {
+}: HighlightProfileContentProps) {
   const [reels, setReels] = useState<HighlightReel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
