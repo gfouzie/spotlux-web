@@ -75,6 +75,15 @@ function ProfileContent() {
                   />
                 </div>
               )}
+
+              {/*User Team Section*/}
+              {user && (
+                <div className="bg-card-col rounded-lg p-6">
+                  <h2 className="text-2xl font-bold text-text-col mb-6">
+                    Teams
+                  </h2>
+                </div>
+              )}
             </div>
           )}
         </div>
