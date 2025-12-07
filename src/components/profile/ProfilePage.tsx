@@ -3,69 +3,36 @@
 import React, { useState, useEffect } from "react";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import ProfilePictureSection from "@/components/profile/ProfilePictureSection";
-import UserSportsManager from "@/components/profile/UserSportsManager";
+import ProfileSportSelector from "@/components/profile/ProfileSportSelector";
 import SportTabContent from "@/components/highlights/SportTabContent";
-import { Tab, TabList, TabPanel } from "@/components/common/Tabs";
 import { profileApi } from "@/api/profile";
-import { userSportsApi, UserSport } from "@/api/userSports";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUser } from "@/contexts/UserContext";
+import { ProfileSportProvider, useProfileSport } from "@/contexts/ProfileSportContext";
 
-const ProfilePage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+function ProfileContent() {
   const { user } = useUser();
+  const { userSports, selectedSport, isLoading: sportsLoading } = useProfileSport();
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [userSports, setUserSports] = useState<UserSport[]>([]);
-  const [activeSportTab, setActiveSportTab] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!isAuthenticated || !user) return;
-
       try {
-        setLoading(true);
-        const [profileData, sportsData] = await Promise.all([
-          profileApi.getProfile(),
-          userSportsApi.getUserSports(),
-        ]);
-
+        setProfileLoading(true);
+        const profileData = await profileApi.getProfile();
         setProfileImageUrl(profileData.profileImageUrl);
-        setUserSports(sportsData);
-
-        // Set first sport as active tab if available
-        if (sportsData?.length > 0 && !activeSportTab) {
-          setActiveSportTab(sportsData[0].sport);
-        }
       } catch (err) {
         console.error("Failed to load profile:", err);
       } finally {
-        setLoading(false);
+        setProfileLoading(false);
       }
     };
 
     loadProfile();
-  }, [isAuthenticated, user]);
+  }, []);
 
-  const handleSportsUpdate = async () => {
-    // Reload user sports when they're updated
-    try {
-      const sportsData = await userSportsApi.getUserSports();
-      setUserSports(sportsData);
-
-      // Update active tab if needed
-      if (sportsData?.length > 0 && !activeSportTab) {
-        setActiveSportTab(sportsData[0].sport);
-      } else if (sportsData?.length === 0) {
-        setActiveSportTab(null);
-      } else if (activeSportTab && !sportsData?.find(s => s.sport === activeSportTab)) {
-        // If current active tab was removed, switch to first available
-        setActiveSportTab(sportsData[0].sport);
-      }
-    } catch (err) {
-      console.error("Failed to reload sports:", err);
-    }
-  };
+  const loading = profileLoading || sportsLoading;
 
   return (
     <AuthenticatedLayout>
@@ -91,42 +58,21 @@ const ProfilePage: React.FC = () => {
                 isOwnProfile={true}
               />
 
-              {/* Sports Manager */}
-              <UserSportsManager onSportsUpdate={handleSportsUpdate} />
+              {/* Sport Selector - Shared across all sections */}
+              {userSports.length > 0 && (
+                  <ProfileSportSelector />
+              )}
 
               {/* Highlights Section */}
-              {user && userSports?.length > 0 && (
+              {user && selectedSport && (
                 <div className="bg-card-col rounded-lg p-6">
                   <h2 className="text-2xl font-bold text-text-col mb-6">
                     Highlights
                   </h2>
-
-                  {/* Sport Tabs */}
-                  <TabList className="mb-6">
-                    {userSports?.map((userSport) => (
-                      <Tab
-                        key={userSport.sport}
-                        isActive={activeSportTab === userSport.sport}
-                        onClick={() => setActiveSportTab(userSport.sport)}
-                      >
-                        {userSport.sport.charAt(0).toUpperCase() +
-                          userSport.sport.slice(1)}
-                      </Tab>
-                    ))}
-                  </TabList>
-
-                  {/* Tab Panels */}
-                  {userSports.map((userSport) => (
-                    <TabPanel
-                      key={userSport.sport}
-                      isActive={activeSportTab === userSport.sport}
-                    >
-                      <SportTabContent
-                        sport={userSport.sport}
-                        isOwner={true}
-                      />
-                    </TabPanel>
-                  ))}
+                  <SportTabContent
+                    sport={selectedSport}
+                    isOwner={true}
+                  />
                 </div>
               )}
             </div>
@@ -134,6 +80,14 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
     </AuthenticatedLayout>
+  );
+}
+
+const ProfilePage: React.FC = () => {
+  return (
+    <ProfileSportProvider>
+      <ProfileContent />
+    </ProfileSportProvider>
   );
 };
 

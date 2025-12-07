@@ -19,12 +19,12 @@ export const userTeamsApi = {
   },
 
   /**
-   * Get all teams for the current authenticated user with full team, league, and position objects
-   * This endpoint returns complete team information in a single API call, avoiding the need
-   * for multiple requests to fetch team and league details separately.
+   * Get all teams for the current authenticated user with full team, league, and position objects.
+   * Returns teams grouped by sport (sorted by created_at of first team, oldest first),
+   * with teams within each sport sorted by year_joined (newest first).
    */
-  getUserTeamsFull: async (): Promise<UserTeamFull[]> => {
-    return authRequest<UserTeamFull[]>(
+  getUserTeamsFull: async (): Promise<Record<string, UserTeamFull[]>> => {
+    return authRequest<Record<string, UserTeamFull[]>>(
       `${config.apiBaseUrl}/api/v1/user/teams/full`
     );
   },
@@ -39,12 +39,12 @@ export const userTeamsApi = {
   },
 
   /**
-   * Get all teams for a specific user by user ID with full team, league, and position objects
-   * This endpoint returns complete team information in a single API call, avoiding the need
-   * for multiple requests to fetch team and league details separately.
+   * Get all teams for a specific user by user ID with full team, league, and position objects.
+   * Returns teams grouped by sport (sorted by created_at of first team, oldest first),
+   * with teams within each sport sorted by year_joined (newest first).
    */
-  getUserTeamsByUserIdFull: async (userId: number): Promise<UserTeamFull[]> => {
-    return authRequest<UserTeamFull[]>(
+  getUserTeamsByUserIdFull: async (userId: number): Promise<Record<string, UserTeamFull[]>> => {
+    return authRequest<Record<string, UserTeamFull[]>>(
       `${config.apiBaseUrl}/api/v1/users/${userId}/teams/full`
     );
   },

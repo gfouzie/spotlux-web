@@ -35,23 +35,6 @@ const getUserInitials = (firstName: string | null, lastName: string | null): str
 };
 
 /**
- * Get full name for display
- */
-const getFullName = (firstName: string | null, lastName: string | null): string => {
-  const first = firstName?.trim() || "";
-  const last = lastName?.trim() || "";
-
-  if (first && last) {
-    return `${first} ${last}`;
-  } else if (first) {
-    return first;
-  } else if (last) {
-    return last;
-  }
-  return "User";
-};
-
-/**
  * Format birthday for display (without timezone conversion)
  */
 const formatBirthday = (birthday: string | null): string => {
@@ -123,7 +106,6 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
 
   useEffect(() => {
     loadProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   if (loading) {
@@ -161,7 +143,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
                     alt="Profile"
                     fill
                     sizes="80px"
-                    className="object-cover"
+                    className="object-cover border-2 border-accent-col rounded-full"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-accent-col/20">

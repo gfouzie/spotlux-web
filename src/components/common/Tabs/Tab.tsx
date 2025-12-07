@@ -16,11 +16,11 @@ const Tab = forwardRef<HTMLButtonElement, TabProps>(
         role="tab"
         aria-selected={isActive}
         className={cn(
-          "inline-flex cursor-pointer items-center justify-center px-4 py-3 text-sm font-medium transition-colors duration-200",
-          "border-b-2 focus:outline-none focus:ring-2 focus:ring-accent-col/50",
+          "inline-flex cursor-pointer items-center justify-center px-12 py-3 text-sm font-medium transition-colors duration-200",
+          "border-t-4 rounded-t-lg hover:text-text-col hover:font-semibold",
           isActive
-            ? "border-accent-col text-text-col"
-            : "border-transparent text-text-col/60 hover:text-text-col hover:border-text-col/30",
+            ? "border-accent-col text-text-col font-semibold"
+            : "border-transparent text-text-col/60",
           className
         )}
         {...props}

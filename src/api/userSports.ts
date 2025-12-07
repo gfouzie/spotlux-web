@@ -4,11 +4,11 @@ import { authRequest } from "./shared";
 /**
  * User sport interface
  * Uses camelCase (automatically converted from snake_case by API middleware)
+ * Sports are automatically ordered by created_at (oldest first)
  */
 export interface UserSport {
   userId: number;
   sport: string;
-  isPrimary: boolean;
   createdAt: string;
   updatedAt?: string;
 }
@@ -18,7 +18,6 @@ export interface UserSport {
  */
 export interface UserSportCreateRequest {
   sport: string;
-  isPrimary?: boolean;
 }
 
 export const userSportsApi = {
@@ -61,19 +60,6 @@ export const userSportsApi = {
       `${config.apiBaseUrl}/api/v1/user/sports/${sport}`,
       {
         method: "DELETE",
-      }
-    );
-  },
-
-  /**
-   * Set a sport as primary
-   */
-  setPrimarySport: async (sport: string): Promise<UserSport> => {
-    return authRequest<UserSport>(
-      `${config.apiBaseUrl}/api/v1/user/sports/${sport}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify({ isPrimary: true }),
       }
     );
   },

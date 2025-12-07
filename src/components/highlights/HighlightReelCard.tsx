@@ -30,8 +30,7 @@ export default function HighlightReelCard({
     >
       {/* Thumbnail Circle */}
       <div className="relative">
-        {/* Gradient Border Ring (like Instagram stories) */}
-        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-accent-col via-accent-col/70 to-accent-col/40 p-0.5 relative z-0">
+        <div className="w-20 h-20 rounded-full border-2 border-accent-col relative z-0">
           <div className="relative w-full h-full rounded-full bg-bg-col p-0.5 overflow-hidden">
             {reel.thumbnailUrl ? (
               reel.thumbnailUrl.match(/\.(mp4|mov|webm)$/i) ? (
