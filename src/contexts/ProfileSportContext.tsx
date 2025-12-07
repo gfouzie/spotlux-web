@@ -9,6 +9,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { userSportsApi, UserSport } from '@/api/userSports';
+import { useUser } from '@/contexts/UserContext';
 
 interface ProfileSportContextType {
   userSports: UserSport[];
@@ -27,11 +28,17 @@ interface ProfileSportProviderProps {
 }
 
 export function ProfileSportProvider({ children }: ProfileSportProviderProps) {
+  const { user } = useUser();
   const [userSports, setUserSports] = useState<UserSport[]>([]);
   const [selectedSport, setSelectedSport] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadSports = useCallback(async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const sportsData = await userSportsApi.getUserSports();
@@ -54,7 +61,7 @@ export function ProfileSportProvider({ children }: ProfileSportProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedSport]);
+  }, [user, selectedSport]);
 
   const refreshSports = useCallback(async () => {
     await loadSports();
@@ -62,7 +69,7 @@ export function ProfileSportProvider({ children }: ProfileSportProviderProps) {
 
   useEffect(() => {
     loadSports();
-  }, []);
+  }, [loadSports]);
 
   return (
     <ProfileSportContext.Provider

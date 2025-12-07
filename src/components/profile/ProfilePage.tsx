@@ -10,7 +10,8 @@ import {
   ProfileSportProvider,
   useProfileSport,
 } from '@/contexts/ProfileSportContext';
-import HighlightProfileContent from '@/components/highlights/HighlightProfileContent';
+import HighlightProfileContent from '@/components/profile/highlights';
+import UserTeamsProfileContent from '@/components/profile/user-teams';
 
 function ProfileContent() {
   const { user } = useUser();
@@ -24,6 +25,11 @@ function ProfileContent() {
 
   useEffect(() => {
     const loadProfile = async () => {
+      if (!user) {
+        setProfileLoading(false);
+        return;
+      }
+
       try {
         setProfileLoading(true);
         const profileData = await profileApi.getProfile();
@@ -36,7 +42,7 @@ function ProfileContent() {
     };
 
     loadProfile();
-  }, []);
+  }, [user]);
 
   const loading = profileLoading || sportsLoading;
 
@@ -88,6 +94,7 @@ function ProfileContent() {
                   <h2 className="text-2xl font-bold text-text-col mb-6">
                     Teams
                   </h2>
+                  <UserTeamsProfileContent />
                 </div>
               )}
             </div>
