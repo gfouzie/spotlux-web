@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import Modal from "@/components/common/Modal";
-import Select from "@/components/common/Select";
-import Alert from "@/components/common/Alert";
-import { Upload, Xmark, Check } from "iconoir-react";
-import { highlightsApi, HighlightCreateRequest } from "@/api/highlights";
-import { uploadApi } from "@/api/upload";
-import { promptsApi, Prompt } from "@/api/prompts";
-import { cn } from "@/lib/utils";
-import { compressVideo, validateVideoFile } from "@/lib/compression";
+import { useState, useEffect, useCallback } from 'react';
+import Modal from '@/components/common/Modal';
+import Select from '@/components/common/Select';
+import Alert from '@/components/common/Alert';
+import { Upload, Xmark, Check } from 'iconoir-react';
+import { highlightsApi, HighlightCreateRequest } from '@/api/highlights';
+import { uploadApi } from '@/api/upload';
+import { promptsApi, Prompt } from '@/api/prompts';
+import { cn } from '@/lib/utils';
+import { compressVideo, validateVideoFile } from '@/lib/compression';
 
 interface HighlightUploadModalProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ interface FileWithPreview {
   preview: string;
   uploadProgress: number;
   compressionProgress: number;
-  uploadStatus: "pending" | "compressing" | "uploading" | "success" | "error";
+  uploadStatus: 'pending' | 'compressing' | 'uploading' | 'success' | 'error';
   errorMessage?: string;
   originalSize?: number;
   compressedSize?: number;
@@ -42,8 +42,12 @@ export default function HighlightUploadModal({
 }: HighlightUploadModalProps) {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [selectedReelId, setSelectedReelId] = useState<number | undefined>(reelId);
-  const [selectedPromptId, setSelectedPromptId] = useState<number | undefined>(undefined);
+  const [selectedReelId, setSelectedReelId] = useState<number | undefined>(
+    reelId
+  );
+  const [selectedPromptId, setSelectedPromptId] = useState<number | undefined>(
+    undefined
+  );
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +59,7 @@ export default function HighlightUploadModal({
       const prompts = await promptsApi.getPrompts({ sport, limit: 100 });
       setPrompts(prompts);
     } catch (err) {
-      console.error("Failed to load prompts:", err);
+      console.error('Failed to load prompts:', err);
     } finally {
       setIsLoadingPrompts(false);
     }
@@ -97,19 +101,19 @@ export default function HighlightUploadModal({
         preview: URL.createObjectURL(file),
         uploadProgress: 0,
         compressionProgress: 0,
-        uploadStatus: "pending",
+        uploadStatus: 'pending',
         originalSize: file.size,
       });
     });
 
     if (errors?.length > 0) {
-      setError(errors.join(", "));
+      setError(errors.join(', '));
     }
 
     setFiles((prev) => [...prev, ...validFiles]);
 
     // Reset input
-    e.target.value = "";
+    e.target.value = '';
   };
 
   const removeFile = (index: number) => {
@@ -124,7 +128,7 @@ export default function HighlightUploadModal({
   const handleUpload = async () => {
     if (files?.length === 0) return;
     if (!selectedReelId) {
-      setError("Please select a reel");
+      setError('Please select a reel');
       return;
     }
 
@@ -143,7 +147,7 @@ export default function HighlightUploadModal({
           // Step 1: Compress the video
           setFiles((prev) => {
             const updated = [...prev];
-            updated[i].uploadStatus = "compressing";
+            updated[i].uploadStatus = 'compressing';
             return updated;
           });
 
@@ -161,9 +165,13 @@ export default function HighlightUploadModal({
           );
 
           // Convert blob to file
-          const compressedFile = new File([compressedBlob], fileWithPreview.file.name, {
-            type: "video/mp4",
-          });
+          const compressedFile = new File(
+            [compressedBlob],
+            fileWithPreview.file.name,
+            {
+              type: 'video/mp4',
+            }
+          );
 
           // Update with compressed file info
           setFiles((prev) => {
@@ -176,11 +184,14 @@ export default function HighlightUploadModal({
           // Step 2: Upload compressed video to S3
           setFiles((prev) => {
             const updated = [...prev];
-            updated[i].uploadStatus = "uploading";
+            updated[i].uploadStatus = 'uploading';
             return updated;
           });
 
-          const { fileUrl } = await uploadApi.uploadHighlightVideo(selectedReelId, compressedFile);
+          const { fileUrl } = await uploadApi.uploadHighlightVideo(
+            selectedReelId,
+            compressedFile
+          );
 
           // Create highlight record
           const createRequest: HighlightCreateRequest = {
@@ -194,7 +205,7 @@ export default function HighlightUploadModal({
           // Update status to success
           setFiles((prev) => {
             const updated = [...prev];
-            updated[i].uploadStatus = "success";
+            updated[i].uploadStatus = 'success';
             updated[i].uploadProgress = 100;
             return updated;
           });
@@ -202,8 +213,9 @@ export default function HighlightUploadModal({
           // Update status to error
           setFiles((prev) => {
             const updated = [...prev];
-            updated[i].uploadStatus = "error";
-            updated[i].errorMessage = err instanceof Error ? err.message : "Upload failed";
+            updated[i].uploadStatus = 'error';
+            updated[i].errorMessage =
+              err instanceof Error ? err.message : 'Upload failed';
             return updated;
           });
 
@@ -216,10 +228,10 @@ export default function HighlightUploadModal({
         onSuccess();
         handleClose();
       } else {
-        setError("Some uploads failed. Please retry the failed uploads.");
+        setError('Some uploads failed. Please retry the failed uploads.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setIsUploading(false);
     }
@@ -242,7 +254,7 @@ export default function HighlightUploadModal({
       title="Upload Highlight Clips"
       size="lg"
       showFooter
-      confirmText={`Upload${files?.length ? ` (${files?.length})` : ""}`}
+      confirmText={`Upload${files?.length ? ` (${files?.length})` : ''}`}
       cancelText="Cancel"
       onConfirm={handleUpload}
       onCancel={handleClose}
@@ -259,9 +271,11 @@ export default function HighlightUploadModal({
         {/* Reel Selection */}
         <Select
           label="Highlight Reel"
-          value={selectedReelId?.toString() || ""}
+          value={selectedReelId?.toString() || ''}
           onChange={(e) =>
-            setSelectedReelId(e.target.value ? parseInt(e.target.value) : undefined)
+            setSelectedReelId(
+              e.target.value ? parseInt(e.target.value) : undefined
+            )
           }
           options={reels?.map((reel) => ({
             value: reel.id.toString(),
@@ -273,15 +287,17 @@ export default function HighlightUploadModal({
         {/* Prompt Selection */}
         <Select
           label="Prompt (optional)"
-          value={selectedPromptId?.toString() || ""}
+          value={selectedPromptId?.toString() || ''}
           onChange={(e) =>
-            setSelectedPromptId(e.target.value ? parseInt(e.target.value) : undefined)
+            setSelectedPromptId(
+              e.target.value ? parseInt(e.target.value) : undefined
+            )
           }
           options={
             isLoadingPrompts
-              ? [{ value: "", label: "Loading prompts..." }]
+              ? [{ value: '', label: 'Loading prompts...' }]
               : [
-                  { value: "", label: "No prompt" },
+                  { value: '', label: 'No prompt' },
                   ...prompts?.map((prompt) => ({
                     value: prompt.id.toString(),
                     label: prompt.promptCategoryName
@@ -306,8 +322,8 @@ export default function HighlightUploadModal({
           <label
             htmlFor="video-upload"
             className={cn(
-              "cursor-pointer flex flex-col items-center gap-2",
-              isUploading && "opacity-50 cursor-not-allowed"
+              'cursor-pointer flex flex-col items-center gap-2',
+              isUploading && 'opacity-50 cursor-not-allowed'
             )}
           >
             <Upload className="w-12 h-12 text-text-col/40" />
@@ -344,26 +360,26 @@ export default function HighlightUploadModal({
                   </p>
 
                   {/* Status */}
-                  {fileWithPreview.uploadStatus === "compressing" && (
+                  {fileWithPreview.uploadStatus === 'compressing' && (
                     <p className="text-xs text-accent-col">
                       Compressing... {fileWithPreview.compressionProgress}%
                     </p>
                   )}
-                  {fileWithPreview.uploadStatus === "uploading" && (
+                  {fileWithPreview.uploadStatus === 'uploading' && (
                     <p className="text-xs text-accent-col">Uploading...</p>
                   )}
-                  {fileWithPreview.uploadStatus === "success" && (
-                      <p className="text-xs text-green-600">Uploaded</p>
+                  {fileWithPreview.uploadStatus === 'success' && (
+                    <p className="text-xs text-green-600">Uploaded</p>
                   )}
-                  {fileWithPreview.uploadStatus === "error" && (
+                  {fileWithPreview.uploadStatus === 'error' && (
                     <p className="text-xs text-red-600">
-                      {fileWithPreview.errorMessage || "Failed"}
+                      {fileWithPreview.errorMessage || 'Failed'}
                     </p>
                   )}
                 </div>
 
                 {/* Remove Button */}
-                {fileWithPreview.uploadStatus === "pending" && !isUploading && (
+                {fileWithPreview.uploadStatus === 'pending' && !isUploading && (
                   <button
                     type="button"
                     onClick={() => removeFile(index)}
@@ -374,17 +390,16 @@ export default function HighlightUploadModal({
                 )}
 
                 {/* Status Icon */}
-                {fileWithPreview.uploadStatus === "success" && (
+                {fileWithPreview.uploadStatus === 'success' && (
                   <Check className="w-5 h-5 text-green-600" />
                 )}
-                {fileWithPreview.uploadStatus === "error" && (
+                {fileWithPreview.uploadStatus === 'error' && (
                   <Xmark className="w-5 h-5 text-red-600" />
                 )}
               </div>
             ))}
           </div>
         )}
-
       </div>
     </Modal>
   );

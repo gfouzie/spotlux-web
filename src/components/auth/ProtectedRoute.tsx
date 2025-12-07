@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect, ReactNode } from "react";
-import LoadingState from "@/components/common/LoadingState";
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect, ReactNode } from 'react';
+import LoadingState from '@/components/common/LoadingState';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({
   children,
-  redirectTo = "/login",
+  redirectTo = '/login',
 }: ProtectedRouteProps) => {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -41,7 +41,7 @@ interface PublicRouteProps {
 
 export const PublicRoute = ({
   children,
-  redirectTo = "/",
+  redirectTo = '/',
 }: PublicRouteProps) => {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();

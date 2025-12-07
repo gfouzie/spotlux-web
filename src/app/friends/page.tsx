@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { friendshipsApi, type Friendship } from "@/api/friendships";
-import { UserProfile } from "@/api/profile";
-import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import Button from "@/components/common/Button";
-import Alert from "@/components/common/Alert";
-import Input from "@/components/common/Input";
-import Link from "next/link";
-import Image from "next/image";
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { friendshipsApi, type Friendship } from '@/api/friendships';
+import { UserProfile } from '@/api/profile';
+import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
+import Button from '@/components/common/Button';
+import Alert from '@/components/common/Alert';
+import Input from '@/components/common/Input';
+import Link from 'next/link';
+import Image from 'next/image';
 
-type TabType = "friends" | "received" | "sent";
+type TabType = 'friends' | 'received' | 'sent';
 
 export default function FriendsPage() {
   const { isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>("friends");
+  const [activeTab, setActiveTab] = useState<TabType>('friends');
   const [friends, setFriends] = useState<UserProfile[]>([]);
   const [receivedRequests, setReceivedRequests] = useState<Friendship[]>([]);
   const [sentRequests, setSentRequests] = useState<Friendship[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +32,7 @@ export default function FriendsPage() {
       const friends = await friendshipsApi.getMyFriends(0, 100);
       setFriends(friends);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load friends");
+      setError(err instanceof Error ? err.message : 'Failed to load friends');
     } finally {
       setIsLoading(false);
     }
@@ -47,7 +47,7 @@ export default function FriendsPage() {
       const requests = await friendshipsApi.getReceivedRequests(0, 100);
       setReceivedRequests(requests);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load requests");
+      setError(err instanceof Error ? err.message : 'Failed to load requests');
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +63,7 @@ export default function FriendsPage() {
       setSentRequests(requests);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to load sent requests"
+        err instanceof Error ? err.message : 'Failed to load sent requests'
       );
     } finally {
       setIsLoading(false);
@@ -73,13 +73,13 @@ export default function FriendsPage() {
   useEffect(() => {
     if (isAuthenticated) {
       switch (activeTab) {
-        case "friends":
+        case 'friends':
           loadFriends();
           break;
-        case "received":
+        case 'received':
           loadReceivedRequests();
           break;
-        case "sent":
+        case 'sent':
           loadSentRequests();
           break;
       }
@@ -99,7 +99,7 @@ export default function FriendsPage() {
       await friendshipsApi.acceptFriendRequest(friendshipId);
       await loadReceivedRequests();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to accept request");
+      setError(err instanceof Error ? err.message : 'Failed to accept request');
     }
   };
 
@@ -110,19 +110,19 @@ export default function FriendsPage() {
       await friendshipsApi.rejectFriendRequest(friendshipId);
       await loadReceivedRequests();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reject request");
+      setError(err instanceof Error ? err.message : 'Failed to reject request');
     }
   };
 
   const handleUnfriend = async (userId: number) => {
     if (!isAuthenticated) return;
-    if (!confirm("Are you sure you want to unfriend this user?")) return;
+    if (!confirm('Are you sure you want to unfriend this user?')) return;
 
     try {
       await friendshipsApi.unfriend(userId);
       await loadFriends();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to unfriend user");
+      setError(err instanceof Error ? err.message : 'Failed to unfriend user');
     }
   };
 
@@ -146,31 +146,31 @@ export default function FriendsPage() {
         {/* Tabs */}
         <div className="flex gap-4 mb-6 border-b border-bg-col">
           <button
-            onClick={() => setActiveTab("friends")}
+            onClick={() => setActiveTab('friends')}
             className={`pb-2 px-4 ${
-              activeTab === "friends"
-                ? "border-b-2 border-accent-col text-text-col"
-                : "text-text-col/60 hover:text-text-col"
+              activeTab === 'friends'
+                ? 'border-b-2 border-accent-col text-text-col'
+                : 'text-text-col/60 hover:text-text-col'
             }`}
           >
             Friends ({friends?.length})
           </button>
           <button
-            onClick={() => setActiveTab("received")}
+            onClick={() => setActiveTab('received')}
             className={`pb-2 px-4 ${
-              activeTab === "received"
-                ? "border-b-2 border-accent-col text-text-col"
-                : "text-text-col/60 hover:text-text-col"
+              activeTab === 'received'
+                ? 'border-b-2 border-accent-col text-text-col'
+                : 'text-text-col/60 hover:text-text-col'
             }`}
           >
             Requests ({receivedRequests?.length})
           </button>
           <button
-            onClick={() => setActiveTab("sent")}
+            onClick={() => setActiveTab('sent')}
             className={`pb-2 px-4 ${
-              activeTab === "sent"
-                ? "border-b-2 border-accent-col text-text-col"
-                : "text-text-col/60 hover:text-text-col"
+              activeTab === 'sent'
+                ? 'border-b-2 border-accent-col text-text-col'
+                : 'text-text-col/60 hover:text-text-col'
             }`}
           >
             Sent ({sentRequests?.length})
@@ -178,7 +178,7 @@ export default function FriendsPage() {
         </div>
 
         {/* Friends Tab */}
-        {activeTab === "friends" && (
+        {activeTab === 'friends' && (
           <div>
             <Input
               placeholder="Search friends..."
@@ -194,8 +194,8 @@ export default function FriendsPage() {
             ) : filteredFriends?.length === 0 ? (
               <div className="text-center text-text-col/50">
                 {searchQuery
-                  ? "No friends found matching your search"
-                  : "You have no friends yet"}
+                  ? 'No friends found matching your search'
+                  : 'You have no friends yet'}
               </div>
             ) : (
               <div className="space-y-2">
@@ -219,7 +219,8 @@ export default function FriendsPage() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-text-col/40">
-                            {friend.firstName?.charAt(0) || friend.username.charAt(0)}
+                            {friend.firstName?.charAt(0) ||
+                              friend.username.charAt(0)}
                           </div>
                         )}
                       </div>
@@ -247,7 +248,7 @@ export default function FriendsPage() {
         )}
 
         {/* Received Requests Tab */}
-        {activeTab === "received" && (
+        {activeTab === 'received' && (
           <div>
             {isLoading ? (
               <div className="text-center text-text-col">
@@ -295,7 +296,7 @@ export default function FriendsPage() {
         )}
 
         {/* Sent Requests Tab */}
-        {activeTab === "sent" && (
+        {activeTab === 'sent' && (
           <div>
             {isLoading ? (
               <div className="text-center text-text-col">

@@ -1,8 +1,14 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Highlight } from "@/api/highlights";
-import { Xmark, NavArrowLeft, NavArrowRight, SoundOff, SoundHigh } from "iconoir-react";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Highlight } from '@/api/highlights';
+import {
+  Xmark,
+  NavArrowLeft,
+  NavArrowRight,
+  SoundOff,
+  SoundHigh,
+} from 'iconoir-react';
 interface StoryViewerProps {
   highlights: Highlight[];
   initialIndex?: number;
@@ -45,17 +51,17 @@ export default function StoryViewer({
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") {
+      if (e.key === 'ArrowRight') {
         goToNext();
-      } else if (e.key === "ArrowLeft") {
+      } else if (e.key === 'ArrowLeft') {
         goToPrevious();
-      } else if (e.key === "Escape") {
+      } else if (e.key === 'Escape') {
         onClose();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [goToNext, goToPrevious, onClose, isFirst]);
 
   // Touch/swipe navigation
@@ -83,12 +89,12 @@ export default function StoryViewer({
       }
     };
 
-    window.addEventListener("touchstart", handleTouchStart);
-    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchend', handleTouchEnd);
 
     return () => {
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [goToNext, goToPrevious]);
 
@@ -108,29 +114,29 @@ export default function StoryViewer({
 
     const handleLoadedMetadata = () => {
       video.play().catch((err) => {
-        console.error("Failed to autoplay:", err);
+        console.error('Failed to autoplay:', err);
       });
     };
 
-    video.addEventListener("ended", handleEnded);
-    video.addEventListener("timeupdate", handleTimeUpdate);
-    video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener('ended', handleEnded);
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
 
     // Reset and play when video changes
     video.load();
 
     return () => {
-      video.removeEventListener("ended", handleEnded);
-      video.removeEventListener("timeupdate", handleTimeUpdate);
-      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
   }, [currentIndex, goToNext]);
 
   // Prevent body scroll
   useEffect(() => {
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = 'unset';
     };
   }, []);
 
@@ -155,10 +161,10 @@ export default function StoryViewer({
               style={{
                 width:
                   index < currentIndex
-                    ? "100%"
+                    ? '100%'
                     : index === currentIndex
-                    ? `${progress}%`
-                    : "0%",
+                      ? `${progress}%`
+                      : '0%',
               }}
             />
           </div>
@@ -180,9 +186,13 @@ export default function StoryViewer({
             type="button"
             onClick={toggleMute}
             className="cursor-pointer p-2 rounded-full hover:bg-white/20 transition-colors"
-            aria-label={isMuted ? "Unmute" : "Mute"}
+            aria-label={isMuted ? 'Unmute' : 'Mute'}
           >
-            {isMuted ? <SoundOff className="w-5 h-5 text-white" /> : <SoundHigh className="w-5 h-5 text-white" />}
+            {isMuted ? (
+              <SoundOff className="w-5 h-5 text-white" />
+            ) : (
+              <SoundHigh className="w-5 h-5 text-white" />
+            )}
           </button>
 
           {/* Close Button */}
@@ -249,7 +259,7 @@ export default function StoryViewer({
         <div
           className="flex-1 cursor-pointer"
           onClick={goToPrevious}
-          style={{ visibility: isFirst ? "hidden" : "visible" }}
+          style={{ visibility: isFirst ? 'hidden' : 'visible' }}
         />
         <div className="flex-1 cursor-pointer" onClick={goToNext} />
       </div>

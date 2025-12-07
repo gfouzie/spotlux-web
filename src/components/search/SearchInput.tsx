@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Search, Xmark } from "iconoir-react";
+import { useState, useEffect } from 'react';
+import { Search, Xmark } from 'iconoir-react';
 
 interface SearchInputProps {
   value: string;
@@ -15,7 +15,7 @@ export default function SearchInput({
   value,
   onChange,
   onDebouncedChange,
-  placeholder = "Search by name or username...",
+  placeholder = 'Search by name or username...',
   debounceMs = 300,
 }: SearchInputProps) {
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
@@ -42,7 +42,7 @@ export default function SearchInput({
   }, [value, debounceMs]);
 
   const handleClear = () => {
-    onChange("");
+    onChange('');
   };
 
   return (

@@ -1,6 +1,6 @@
-import { config } from "@/lib/config";
-import { apiRequest, authRequest } from "./shared";
-import { type LoginResponse } from "./auth";
+import { config } from '@/lib/config';
+import { apiRequest, authRequest } from './shared';
+import { type LoginResponse } from './auth';
 
 /**
  * User registration data interface
@@ -52,7 +52,7 @@ export const userApi = {
    */
   register: async (userData: RegisterUserData): Promise<LoginResponse> => {
     return apiRequest<LoginResponse>(`${config.apiBaseUrl}/api/v1/user`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(userData),
     });
   },
@@ -92,11 +92,13 @@ export const userApi = {
   getUsers: async (params?: GetUsersParams): Promise<User[]> => {
     const queryParams = new URLSearchParams();
 
-    if (params?.offset !== undefined) queryParams.append("offset", params.offset.toString());
-    if (params?.limit !== undefined) queryParams.append("limit", params.limit.toString());
-    if (params?.search) queryParams.append("search", params.search);
+    if (params?.offset !== undefined)
+      queryParams.append('offset', params.offset.toString());
+    if (params?.limit !== undefined)
+      queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
 
-    const url = `${config.apiBaseUrl}/api/v1/users${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+    const url = `${config.apiBaseUrl}/api/v1/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<User[]>(url);
   },
 };

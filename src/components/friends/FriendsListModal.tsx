@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { friendshipsApi } from "@/api/friendships";
-import { UserProfile } from "@/api/profile";
-import Link from "next/link";
-import Image from "next/image";
-import Modal from "@/components/common/Modal";
+import { useState, useEffect, useCallback } from 'react';
+import { friendshipsApi } from '@/api/friendships';
+import { UserProfile } from '@/api/profile';
+import Link from 'next/link';
+import Image from 'next/image';
+import Modal from '@/components/common/Modal';
 
 interface FriendsListModalProps {
   isOpen: boolean;
@@ -36,7 +36,7 @@ export default function FriendsListModal({
 
       setFriends(friendsList);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load friends");
+      setError(err instanceof Error ? err.message : 'Failed to load friends');
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +52,7 @@ export default function FriendsListModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Friends${friends?.length > 0 ? ` (${friends?.length})` : ""}`}
+      title={`Friends${friends?.length > 0 ? ` (${friends?.length})` : ''}`}
       size="lg"
     >
       {isLoading ? (
@@ -63,7 +63,7 @@ export default function FriendsListModal({
         <div className="text-center text-red-500 py-8">{error}</div>
       ) : friends?.length === 0 ? (
         <div className="text-center text-text-col opacity-70 py-8">
-          {isOwnProfile ? "You have no friends yet" : "No friends to show"}
+          {isOwnProfile ? 'You have no friends yet' : 'No friends to show'}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -86,7 +86,8 @@ export default function FriendsListModal({
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-accent-col/20">
                     <span className="text-lg font-semibold text-text-col">
-                      {friend.firstName?.[0]}{friend.lastName?.[0]}
+                      {friend.firstName?.[0]}
+                      {friend.lastName?.[0]}
                     </span>
                   </div>
                 )}

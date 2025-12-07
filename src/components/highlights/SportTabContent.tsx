@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { HighlightReel, highlightReelsApi } from "@/api/highlightReels";
-import { Highlight, highlightsApi } from "@/api/highlights";
-import HighlightReelGrid from "./HighlightReelGrid";
-import CreateReelModal from "./CreateReelModal";
-import EditReelModal from "./EditReelModal";
-import HighlightUploadModal from "./HighlightUploadModal";
-import StoryViewer from "./StoryViewer";
-import HighlightClipManager from "./HighlightClipManager";
-import  Button  from "@/components/common/Button";
-import Alert from "@/components/common/Alert";
-import LoadingState from "@/components/common/LoadingState";
+import { useState, useEffect, useCallback } from 'react';
+import { HighlightReel, highlightReelsApi } from '@/api/highlightReels';
+import { Highlight, highlightsApi } from '@/api/highlights';
+import HighlightReelGrid from './HighlightReelGrid';
+import CreateReelModal from './CreateReelModal';
+import EditReelModal from './EditReelModal';
+import HighlightUploadModal from './HighlightUploadModal';
+import StoryViewer from './StoryViewer';
+import HighlightClipManager from './HighlightClipManager';
+import Button from '@/components/common/Button';
+import Alert from '@/components/common/Alert';
+import LoadingState from '@/components/common/LoadingState';
 
 interface SportTabContentProps {
   sport: string;
@@ -48,7 +48,9 @@ export default function SportTabContent({
       const sorted = reels?.sort((a, b) => a.orderRanking - b.orderRanking);
       setReels(sorted);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load highlight reels");
+      setError(
+        err instanceof Error ? err.message : 'Failed to load highlight reels'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +71,7 @@ export default function SportTabContent({
           setSelectedReel(reel);
           setShowClipManager(true);
         } else {
-          setError("This reel has no clips yet");
+          setError('This reel has no clips yet');
         }
       } else {
         // Show story viewer
@@ -78,7 +80,9 @@ export default function SportTabContent({
         setShowStoryViewer(true);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load highlights");
+      setError(
+        err instanceof Error ? err.message : 'Failed to load highlights'
+      );
     }
   };
 
@@ -137,7 +141,9 @@ export default function SportTabContent({
         <HighlightReelGrid
           reels={reels}
           onReelClick={handleReelClick}
-          onCreateReel={isOwner ? () => setShowCreateReelModal(true) : undefined}
+          onCreateReel={
+            isOwner ? () => setShowCreateReelModal(true) : undefined
+          }
           onEditReel={isOwner ? handleEditReel : undefined}
           isOwner={isOwner}
         />
@@ -190,7 +196,7 @@ export default function SportTabContent({
         onClose={() => setShowUploadModal(false)}
         onSuccess={handleUploadSuccess}
         reelId={selectedReel?.id}
-        reels={reels?.map(r => ({ id: r.id, name: r.name }))}
+        reels={reels?.map((r) => ({ id: r.id, name: r.name }))}
         sport={sport}
       />
 

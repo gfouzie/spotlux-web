@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
 
 /**
  * Highlight reel interface
@@ -11,7 +11,7 @@ export interface HighlightReel {
   name: string;
   sport: string;
   orderRanking: number;
-  visibility: "private" | "public" | "friends_only";
+  visibility: 'private' | 'public' | 'friends_only';
   thumbnailUrl?: string;
   createdAt: string;
   updatedAt?: string;
@@ -23,7 +23,7 @@ export interface HighlightReel {
 export interface HighlightReelCreateRequest {
   name: string;
   sport: string;
-  visibility?: "private" | "public" | "friends_only";
+  visibility?: 'private' | 'public' | 'friends_only';
   thumbnailUrl?: string;
 }
 
@@ -34,7 +34,7 @@ export interface HighlightReelUpdateRequest {
   name?: string;
   sport?: string;
   orderRanking?: number;
-  visibility?: "private" | "public" | "friends_only";
+  visibility?: 'private' | 'public' | 'friends_only';
   thumbnailUrl?: string | null;
 }
 
@@ -46,7 +46,7 @@ export interface GetHighlightReelsParams {
   limit?: number;
   userId?: number;
   sport?: string;
-  visibility?: "private" | "public" | "friends_only";
+  visibility?: 'private' | 'public' | 'friends_only';
   searchText?: string;
 }
 
@@ -59,14 +59,17 @@ export const highlightReelsApi = {
   ): Promise<HighlightReel[]> => {
     const queryParams = new URLSearchParams();
 
-    if (params?.offset !== undefined) queryParams.append("offset", params.offset.toString());
-    if (params?.limit !== undefined) queryParams.append("limit", params.limit.toString());
-    if (params?.userId !== undefined) queryParams.append("user_id", params.userId.toString());
-    if (params?.sport) queryParams.append("sport", params.sport);
-    if (params?.visibility) queryParams.append("visibility", params.visibility);
-    if (params?.searchText) queryParams.append("searchText", params.searchText);
+    if (params?.offset !== undefined)
+      queryParams.append('offset', params.offset.toString());
+    if (params?.limit !== undefined)
+      queryParams.append('limit', params.limit.toString());
+    if (params?.userId !== undefined)
+      queryParams.append('user_id', params.userId.toString());
+    if (params?.sport) queryParams.append('sport', params.sport);
+    if (params?.visibility) queryParams.append('visibility', params.visibility);
+    if (params?.searchText) queryParams.append('searchText', params.searchText);
 
-    const url = `${config.apiBaseUrl}/api/v1/highlight_reels${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+    const url = `${config.apiBaseUrl}/api/v1/highlight_reels${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<HighlightReel[]>(url);
   },
 
@@ -88,7 +91,7 @@ export const highlightReelsApi = {
     return authRequest<HighlightReel>(
       `${config.apiBaseUrl}/api/v1/highlight_reels`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(data),
       }
     );
@@ -104,7 +107,7 @@ export const highlightReelsApi = {
     return authRequest<HighlightReel>(
       `${config.apiBaseUrl}/api/v1/highlight_reels/${id}`,
       {
-        method: "PATCH",
+        method: 'PATCH',
         body: JSON.stringify(data),
       }
     );
@@ -117,7 +120,7 @@ export const highlightReelsApi = {
     return authRequest<void>(
       `${config.apiBaseUrl}/api/v1/highlight_reels/${id}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
   },

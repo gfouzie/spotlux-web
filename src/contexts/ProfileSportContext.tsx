@@ -1,7 +1,14 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
-import { userSportsApi, UserSport } from "@/api/userSports";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
+import { userSportsApi, UserSport } from '@/api/userSports';
 
 interface ProfileSportContextType {
   userSports: UserSport[];
@@ -11,7 +18,9 @@ interface ProfileSportContextType {
   refreshSports: () => Promise<void>;
 }
 
-const ProfileSportContext = createContext<ProfileSportContextType | undefined>(undefined);
+const ProfileSportContext = createContext<ProfileSportContextType | undefined>(
+  undefined
+);
 
 interface ProfileSportProviderProps {
   children: ReactNode;
@@ -33,12 +42,15 @@ export function ProfileSportProvider({ children }: ProfileSportProviderProps) {
         setSelectedSport(sportsData[0].sport);
       } else if (sportsData?.length === 0) {
         setSelectedSport(null);
-      } else if (selectedSport && !sportsData?.find(s => s.sport === selectedSport)) {
+      } else if (
+        selectedSport &&
+        !sportsData?.find((s) => s.sport === selectedSport)
+      ) {
         // If current selected sport was removed, switch to first available
         setSelectedSport(sportsData[0]?.sport || null);
       }
     } catch (err) {
-      console.error("Failed to load user sports:", err);
+      console.error('Failed to load user sports:', err);
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +82,9 @@ export function ProfileSportProvider({ children }: ProfileSportProviderProps) {
 export function useProfileSport() {
   const context = useContext(ProfileSportContext);
   if (context === undefined) {
-    throw new Error("useProfileSport must be used within a ProfileSportProvider");
+    throw new Error(
+      'useProfileSport must be used within a ProfileSportProvider'
+    );
   }
   return context;
 }

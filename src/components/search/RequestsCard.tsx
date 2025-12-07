@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { friendshipsApi, type Friendship } from "@/api/friendships";
-import Button from "@/components/common/Button";
-import Alert from "@/components/common/Alert";
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { friendshipsApi, type Friendship } from '@/api/friendships';
+import Button from '@/components/common/Button';
+import Alert from '@/components/common/Alert';
 
 export default function RequestsCard() {
   const { isAuthenticated } = useAuth();
@@ -25,7 +25,7 @@ export default function RequestsCard() {
       const requests = await friendshipsApi.getReceivedRequests(0, 100);
       setRequests(requests);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load requests");
+      setError(err instanceof Error ? err.message : 'Failed to load requests');
     } finally {
       setIsLoading(false);
     }
@@ -35,12 +35,10 @@ export default function RequestsCard() {
     if (!isAuthenticated) return;
 
     try {
-      await friendshipsApi.acceptFriendRequest(
-        friendshipId
-      );
+      await friendshipsApi.acceptFriendRequest(friendshipId);
       await loadRequests();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to accept request");
+      setError(err instanceof Error ? err.message : 'Failed to accept request');
     }
   };
 
@@ -48,12 +46,10 @@ export default function RequestsCard() {
     if (!isAuthenticated) return;
 
     try {
-      await friendshipsApi.rejectFriendRequest(
-        friendshipId
-      );
+      await friendshipsApi.rejectFriendRequest(friendshipId);
       await loadRequests();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reject request");
+      setError(err instanceof Error ? err.message : 'Failed to reject request');
     }
   };
 

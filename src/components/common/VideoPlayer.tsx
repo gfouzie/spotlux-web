@@ -1,10 +1,13 @@
-"use client";
+'use client';
 
-import { useRef, useState, useEffect, forwardRef } from "react";
-import { cn } from "@/lib/utils";
-import { Play, Pause, SoundOff, SoundHigh } from "iconoir-react";
+import { useRef, useState, useEffect, forwardRef } from 'react';
+import { cn } from '@/lib/utils';
+import { Play, Pause, SoundOff, SoundHigh } from 'iconoir-react';
 
-interface VideoPlayerProps extends Omit<React.VideoHTMLAttributes<HTMLVideoElement>, 'onEnded' | 'onTimeUpdate'> {
+interface VideoPlayerProps extends Omit<
+  React.VideoHTMLAttributes<HTMLVideoElement>,
+  'onEnded' | 'onTimeUpdate'
+> {
   src: string;
   poster?: string;
   autoPlay?: boolean;
@@ -42,7 +45,7 @@ const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       if (!video) return;
 
       // Set ref if provided
-      if (typeof ref === "function") {
+      if (typeof ref === 'function') {
         ref(video);
       } else if (ref) {
         ref.current = video;
@@ -70,16 +73,16 @@ const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         }
       };
 
-      video.addEventListener("play", handlePlay);
-      video.addEventListener("pause", handlePause);
-      video.addEventListener("ended", handleEnded);
-      video.addEventListener("timeupdate", handleTimeUpdate);
+      video.addEventListener('play', handlePlay);
+      video.addEventListener('pause', handlePause);
+      video.addEventListener('ended', handleEnded);
+      video.addEventListener('timeupdate', handleTimeUpdate);
 
       return () => {
-        video.removeEventListener("play", handlePlay);
-        video.removeEventListener("pause", handlePause);
-        video.removeEventListener("ended", handleEnded);
-        video.removeEventListener("timeupdate", handleTimeUpdate);
+        video.removeEventListener('play', handlePlay);
+        video.removeEventListener('pause', handlePause);
+        video.removeEventListener('ended', handleEnded);
+        video.removeEventListener('timeupdate', handleTimeUpdate);
       };
     }, [ref, onEnded, onTimeUpdate]);
 
@@ -104,7 +107,7 @@ const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     };
 
     return (
-      <div className={cn("relative w-full h-full bg-black group", className)}>
+      <div className={cn('relative w-full h-full bg-black group', className)}>
         <video
           ref={videoRef}
           src={src}
@@ -126,7 +129,7 @@ const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 type="button"
                 onClick={togglePlay}
                 className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity group-hover:opacity-100 cursor-pointer"
-                aria-label={isPlaying ? "Pause video" : "Play video"}
+                aria-label={isPlaying ? 'Pause video' : 'Play video'}
               >
                 <div className="bg-black/60 rounded-full p-4">
                   {isPlaying ? (
@@ -146,7 +149,7 @@ const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   type="button"
                   onClick={togglePlay}
                   className="cursor-pointer p-2 rounded-full hover:bg-white/20 transition-colors"
-                  aria-label={isPlaying ? "Pause" : "Play"}
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
                 >
                   {isPlaying ? (
                     <Pause className="w-5 h-5 text-white" />
@@ -160,7 +163,7 @@ const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   type="button"
                   onClick={toggleMute}
                   className="cursor-pointer p-2 rounded-full hover:bg-white/20 transition-colors"
-                  aria-label={isMuted ? "Unmute" : "Mute"}
+                  aria-label={isMuted ? 'Unmute' : 'Mute'}
                 >
                   {isMuted ? (
                     <SoundOff className="w-5 h-5 text-white" />
@@ -177,6 +180,6 @@ const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
   }
 );
 
-VideoPlayer.displayName = "VideoPlayer";
+VideoPlayer.displayName = 'VideoPlayer';
 
 export default VideoPlayer;

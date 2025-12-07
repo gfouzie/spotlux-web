@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import Image from "next/image";
-import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
-import Button from "@/components/common/Button";
-import { useState } from "react";
+import Link from 'next/link';
+import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import Button from '@/components/common/Button';
+import { useState } from 'react';
 
 export default function LoggedInHeader() {
   const { logout } = useAuth();
@@ -13,9 +13,7 @@ export default function LoggedInHeader() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const logoSrc =
-    theme === "light"
-      ? "/spotlux_logo_light.png"
-      : "/spotlux_logo_dark.png";
+    theme === 'light' ? '/spotlux_logo_light.png' : '/spotlux_logo_dark.png';
 
   const handleLogout = async () => {
     setIsLoggingOut(true);

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useUser } from "@/contexts/UserContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useUser } from '@/contexts/UserContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function InternalToolsLayout({
   children,
@@ -14,7 +14,7 @@ export default function InternalToolsLayout({
 
   useEffect(() => {
     if (!userLoading && !isSuperuser) {
-      router.push("/");
+      router.push('/');
     }
   }, [userLoading, isSuperuser, router]);
 
@@ -35,6 +35,3 @@ export default function InternalToolsLayout({
   // Render children if user is a superuser
   return <>{children}</>;
 }
-
-
-

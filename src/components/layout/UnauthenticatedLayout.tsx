@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import LoggedOutHeader from "@/components/header/LoggedOutHeader";
-import Footer from "@/components/footer";
-import LoadingState from "@/components/common/LoadingState";
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import LoggedOutHeader from '@/components/header/LoggedOutHeader';
+import Footer from '@/components/footer';
+import LoadingState from '@/components/common/LoadingState';
 
 interface UnauthenticatedLayoutProps {
   children: React.ReactNode;
@@ -17,7 +17,7 @@ const UnauthenticatedLayout = ({ children }: UnauthenticatedLayoutProps) => {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push("/");
+      router.push('/');
     }
   }, [isLoading, isAuthenticated, router]);
 

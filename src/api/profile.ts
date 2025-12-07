@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
 
 /**
  * User profile interface
@@ -50,7 +50,7 @@ export const profileApi = {
     return authRequest<{ message: string }>(
       `${config.apiBaseUrl}/api/v1/user/me`,
       {
-        method: "PATCH",
+        method: 'PATCH',
         body: JSON.stringify(updateData),
       }
     );

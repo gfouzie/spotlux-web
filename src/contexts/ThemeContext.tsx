@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, {
   createContext,
@@ -7,9 +7,9 @@ import React, {
   useLayoutEffect,
   useState,
   ReactNode,
-} from "react";
+} from 'react';
 
-type Theme = "light" | "dark";
+type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
   theme: Theme;
@@ -26,15 +26,15 @@ interface ThemeProviderProps {
 
 export const ThemeProvider = ({
   children,
-  defaultTheme = "light", // Default to light mode
+  defaultTheme = 'light', // Default to light mode
 }: ThemeProviderProps) => {
   // Initialize theme from DOM data-theme attribute (set by inline script)
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return defaultTheme;
+    if (typeof window === 'undefined') return defaultTheme;
     const domTheme = document.documentElement.getAttribute(
-      "data-theme"
+      'data-theme'
     ) as Theme;
-    return domTheme === "light" || domTheme === "dark"
+    return domTheme === 'light' || domTheme === 'dark'
       ? domTheme
       : defaultTheme;
   });
@@ -44,10 +44,10 @@ export const ThemeProvider = ({
   useLayoutEffect(() => {
     const root = document.documentElement;
 
-    if (theme === "light") {
-      root.setAttribute("data-theme", "light");
+    if (theme === 'light') {
+      root.setAttribute('data-theme', 'light');
     } else {
-      root.setAttribute("data-theme", "dark");
+      root.setAttribute('data-theme', 'dark');
     }
   }, [theme]);
 
@@ -59,12 +59,12 @@ export const ThemeProvider = ({
   // Save theme to localStorage when it changes (only after hydration)
   useEffect(() => {
     if (isHydrated) {
-      localStorage.setItem("spotlux-theme", theme);
+      localStorage.setItem('spotlux-theme', theme);
     }
   }, [theme, isHydrated]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
   return (
@@ -77,7 +77,7 @@ export const ThemeProvider = ({
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
 };

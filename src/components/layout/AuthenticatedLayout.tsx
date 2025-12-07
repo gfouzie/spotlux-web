@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import Sidebar from "@/components/navigation/Sidebar";
-import MobileNav from "@/components/navigation/MobileNav";
-import LoadingState from "@/components/common/LoadingState";
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import Sidebar from '@/components/navigation/Sidebar';
+import MobileNav from '@/components/navigation/MobileNav';
+import LoadingState from '@/components/common/LoadingState';
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
@@ -17,7 +17,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.push('/login');
     }
   }, [isLoading, isAuthenticated, router]);
 

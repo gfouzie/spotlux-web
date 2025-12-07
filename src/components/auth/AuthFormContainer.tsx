@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useTheme } from "@/contexts/ThemeContext";
+import Image from 'next/image';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface AuthFormContainerProps {
   children: React.ReactNode;
@@ -18,9 +18,7 @@ export default function AuthFormContainer({
 }: AuthFormContainerProps) {
   const { theme } = useTheme();
   const logoSrc =
-    theme === "light"
-      ? "/spotlux_logo_light.png"
-      : "/spotlux_logo_dark.png";
+    theme === 'light' ? '/spotlux_logo_light.png' : '/spotlux_logo_dark.png';
 
   return (
     <div className="flex items-center justify-center py-16">
@@ -51,7 +49,7 @@ export default function AuthFormContainer({
         {footerText && footerLinkText && footerLinkHref && (
           <div className="mt-6 text-center">
             <p className="text-text-col/70">
-              {footerText}{" "}
+              {footerText}{' '}
               <a
                 href={footerLinkHref}
                 className="text-accent-col hover:text-accent-col/80 font-medium transition-colors"

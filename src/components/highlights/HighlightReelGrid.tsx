@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { HighlightReel } from "@/api/highlightReels";
-import HighlightReelCard from "./HighlightReelCard";
-import { Plus } from "iconoir-react";
-import { cn } from "@/lib/utils";
+import { HighlightReel } from '@/api/highlightReels';
+import HighlightReelCard from './HighlightReelCard';
+import { Plus } from 'iconoir-react';
+import { cn } from '@/lib/utils';
 
 interface HighlightReelGridProps {
   reels: HighlightReel[];
@@ -27,7 +27,7 @@ export default function HighlightReelGrid({
   }
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn('w-full', className)}>
       <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide pt-3 pb-2 px-1">
         {/* Create New Reel Button (only for owner) */}
         {isOwner && onCreateReel && (
@@ -38,9 +38,7 @@ export default function HighlightReelGrid({
             >
               <Plus className="w-8 h-8 text-text-col/40 group-hover:text-accent-col transition-colors" />
             </button>
-            <p className="text-xs text-text-col/60 font-medium">
-              New Reel
-            </p>
+            <p className="text-xs text-text-col/60 font-medium">New Reel</p>
           </div>
         )}
 

@@ -1,40 +1,38 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { useTheme } from "@/contexts/ThemeContext";
-import { Settings, LogOut } from "iconoir-react";
-import { navigationItems } from "@/constants/navigation";
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Settings, LogOut } from 'iconoir-react';
+import { navigationItems } from '@/constants/navigation';
 
 interface MobileNavProps {
   className?: string;
 }
 
-const MobileNav = ({ className = "" }: MobileNavProps) => {
+const MobileNav = ({ className = '' }: MobileNavProps) => {
   const { isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { theme } = useTheme();
 
   const logoSrc =
-    theme === "light"
-      ? "/spotlux_logo_light.png"
-      : "/spotlux_logo_dark.png";
+    theme === 'light' ? '/spotlux_logo_light.png' : '/spotlux_logo_dark.png';
 
   const handleLogout = async () => {
     try {
       await logout();
-      router.push("/");
+      router.push('/');
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error('Logout failed:', error);
     }
   };
 
   const isActive = (href: string) => {
-    if (href === "/") {
-      return pathname === "/";
+    if (href === '/') {
+      return pathname === '/';
     }
     return pathname.startsWith(href);
   };
@@ -66,9 +64,9 @@ const MobileNav = ({ className = "" }: MobileNavProps) => {
             <Link
               href="/settings"
               className={`p-2 rounded-lg transition-colors ${
-                isActive("/settings")
-                  ? "bg-accent-col/20 text-accent-col"
-                  : "text-text-col hover:bg-bg-col/50"
+                isActive('/settings')
+                  ? 'bg-accent-col/20 text-accent-col'
+                  : 'text-text-col hover:bg-bg-col/50'
               }`}
               title="Settings"
             >
@@ -98,8 +96,8 @@ const MobileNav = ({ className = "" }: MobileNavProps) => {
                 href={item.href}
                 className={`flex flex-col items-center px-3 py-2 rounded-lg transition-colors relative ${
                   isActive(item.href)
-                    ? "text-text-col"
-                    : "text-text-col hover:text-accent-col/70"
+                    ? 'text-text-col'
+                    : 'text-text-col hover:text-accent-col/70'
                 }`}
               >
                 {isActive(item.href) && (

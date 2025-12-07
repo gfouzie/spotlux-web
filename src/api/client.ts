@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
-import { keysToCamel, keysToSnake } from "@/lib/caseConversion";
+import { config } from '@/lib/config';
+import { keysToCamel, keysToSnake } from '@/lib/caseConversion';
 
 /**
  * API Error class for handling backend errors
@@ -11,7 +11,7 @@ export class ApiError extends Error {
     public data?: Record<string, unknown>
   ) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
   }
 }
 
@@ -51,7 +51,7 @@ const baseApiRequest = async <T>(
 
   // Convert request body from camelCase to snake_case if present
   const processedOptions: RequestInit = { ...options };
-  if (options.body && typeof options.body === "string") {
+  if (options.body && typeof options.body === 'string') {
     try {
       const bodyObj = JSON.parse(options.body);
       const snakeCaseBody = keysToSnake(bodyObj);
@@ -67,7 +67,7 @@ const baseApiRequest = async <T>(
       ...processedOptions,
       signal: controller.signal,
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...options.headers,
       },
     });
@@ -98,12 +98,12 @@ const baseApiRequest = async <T>(
       throw error;
     }
 
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new ApiError("Request timeout", 408);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new ApiError('Request timeout', 408);
     }
 
     throw new ApiError(
-      error instanceof Error ? error.message : "Network error",
+      error instanceof Error ? error.message : 'Network error',
       0
     );
   }
@@ -138,19 +138,19 @@ export const authRequest = async <T>(
 ): Promise<T> => {
   if (!getAccessToken) {
     throw new ApiError(
-      "Authentication not initialized. Token provider not set.",
+      'Authentication not initialized. Token provider not set.',
       500
     );
   }
 
   const token = getAccessToken();
   if (!token) {
-    throw new ApiError("Not authenticated. Please log in.", 401);
+    throw new ApiError('Not authenticated. Please log in.', 401);
   }
 
   return baseApiRequest<T>(url, {
     // Default to no caching unless explicitly requested
-    ...(useCache ? {} : { cache: "no-store" }),
+    ...(useCache ? {} : { cache: 'no-store' }),
     ...options,
     headers: {
       ...options.headers,

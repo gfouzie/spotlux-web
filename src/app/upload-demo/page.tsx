@@ -1,5 +1,5 @@
-import SimpleUpload from "@/components/SimpleUpload";
-import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
+import SimpleUpload from '@/components/SimpleUpload';
+import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 
 const UploadDemoPage = () => {
   return (

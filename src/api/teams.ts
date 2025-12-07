@@ -1,6 +1,6 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
-import { Team } from "@/types/team";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
+import { Team } from '@/types/team';
 
 /**
  * Team creation data interface
@@ -63,7 +63,7 @@ export const teamsApi = {
    */
   createTeam: async (data: CreateTeamData): Promise<Team> => {
     return authRequest<Team>(`${config.apiBaseUrl}/api/v1/teams`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(data),
     });
   },
@@ -80,7 +80,7 @@ export const teamsApi = {
    */
   updateTeam: async (teamId: number, data: UpdateTeamData): Promise<Team> => {
     return authRequest<Team>(`${config.apiBaseUrl}/api/v1/teams/${teamId}`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
@@ -90,7 +90,7 @@ export const teamsApi = {
    */
   deleteTeam: async (teamId: number): Promise<void> => {
     return authRequest<void>(`${config.apiBaseUrl}/api/v1/teams/${teamId}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
   },
 
@@ -100,14 +100,17 @@ export const teamsApi = {
   getTeams: async (params?: GetTeamsParams): Promise<Team[]> => {
     const queryParams = new URLSearchParams();
 
-    if (params?.sport) queryParams.append("sport", params.sport);
-    if (params?.country) queryParams.append("country", params.country);
-    if (params?.offset !== undefined) queryParams.append("offset", params.offset.toString());
-    if (params?.limit !== undefined) queryParams.append("limit", params.limit.toString());
-    if (params?.leagueId) queryParams.append("league_id", params.leagueId.toString());
-    if (params?.searchText) queryParams.append("searchText", params.searchText);
+    if (params?.sport) queryParams.append('sport', params.sport);
+    if (params?.country) queryParams.append('country', params.country);
+    if (params?.offset !== undefined)
+      queryParams.append('offset', params.offset.toString());
+    if (params?.limit !== undefined)
+      queryParams.append('limit', params.limit.toString());
+    if (params?.leagueId)
+      queryParams.append('league_id', params.leagueId.toString());
+    if (params?.searchText) queryParams.append('searchText', params.searchText);
 
-    const url = `${config.apiBaseUrl}/api/v1/teams${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+    const url = `${config.apiBaseUrl}/api/v1/teams${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<Team[]>(url);
   },
 };

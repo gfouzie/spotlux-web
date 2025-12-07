@@ -1,6 +1,6 @@
-import Link from "next/link";
-import Button from "@/components/common/Button";
-import { Play, Search, Star } from "iconoir-react";
+import Link from 'next/link';
+import Button from '@/components/common/Button';
+import { Play, Search, Star } from 'iconoir-react';
 
 export default function LandingPage() {
   return (
@@ -33,18 +33,14 @@ export default function LandingPage() {
       <section className="py-16 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Built for <span className="text-accent-col">Athletes</span> &{" "}
+            Built for <span className="text-accent-col">Athletes</span> &{' '}
             <span className="text-accent-col">Scouts</span>
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-12 h-12 bg-accent-col/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Play
-                  width={24}
-                  height={24}
-                  className="text-accent-col"
-                />
+                <Play width={24} height={24} className="text-accent-col" />
               </div>
               <h3 className="text-xl font-semibold mb-2">
                 Showcase Highlights
@@ -57,11 +53,7 @@ export default function LandingPage() {
 
             <div className="text-center">
               <div className="w-12 h-12 bg-accent-col/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Search
-                  width={24}
-                  height={24}
-                  className="text-accent-col"
-                />
+                <Search width={24} height={24} className="text-accent-col" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Get Discovered</h3>
               <p className="text-text-col/70">
@@ -72,11 +64,7 @@ export default function LandingPage() {
 
             <div className="text-center">
               <div className="w-12 h-12 bg-accent-col/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Star
-                  width={24}
-                  height={24}
-                  className="text-accent-col"
-                />
+                <Star width={24} height={24} className="text-accent-col" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Stand Out</h3>
               <p className="text-text-col/70">

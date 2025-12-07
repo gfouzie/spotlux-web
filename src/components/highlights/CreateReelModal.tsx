@@ -1,12 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Modal from "@/components/common/Modal";
-import Input from "@/components/common/Input";
-import Select from "@/components/common/Select";
-import Button from "@/components/common/Button";
-import Alert from "@/components/common/Alert";
-import { highlightReelsApi, HighlightReelCreateRequest } from "@/api/highlightReels";
+import { useState } from 'react';
+import Modal from '@/components/common/Modal';
+import Input from '@/components/common/Input';
+import Select from '@/components/common/Select';
+import Button from '@/components/common/Button';
+import Alert from '@/components/common/Alert';
+import {
+  highlightReelsApi,
+  HighlightReelCreateRequest,
+} from '@/api/highlightReels';
 
 interface CreateReelModalProps {
   isOpen: boolean;
@@ -22,8 +25,8 @@ export default function CreateReelModal({
   sport,
 }: CreateReelModalProps) {
   const [formData, setFormData] = useState({
-    name: "",
-    visibility: "private" as "private" | "public" | "friends_only",
+    name: '',
+    visibility: 'private' as 'private' | 'public' | 'friends_only',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,18 +46,18 @@ export default function CreateReelModal({
       await highlightReelsApi.createHighlightReel(createRequest);
 
       // Reset form
-      setFormData({ name: "", visibility: "private" });
+      setFormData({ name: '', visibility: 'private' });
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create reel");
+      setError(err instanceof Error ? err.message : 'Failed to create reel');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleClose = () => {
-    setFormData({ name: "", visibility: "private" });
+    setFormData({ name: '', visibility: 'private' });
     setError(null);
     onClose();
   };
@@ -94,23 +97,29 @@ export default function CreateReelModal({
           onChange={(e) =>
             setFormData({
               ...formData,
-              visibility: e.target.value as "private" | "public" | "friends_only",
+              visibility: e.target.value as
+                | 'private'
+                | 'public'
+                | 'friends_only',
             })
           }
           options={[
-            { value: "private", label: "Private - Only you can see" },
-            { value: "friends_only", label: "Friends Only - Only friends can see" },
-            { value: "public", label: "Public - Everyone can see" },
+            { value: 'private', label: 'Private - Only you can see' },
+            {
+              value: 'friends_only',
+              label: 'Friends Only - Only friends can see',
+            },
+            { value: 'public', label: 'Public - Everyone can see' },
           ]}
           required
         />
 
         <div className="bg-bg-col/30 p-3 rounded">
           <p className="text-sm text-text-col/60">
-            <strong>Sport:</strong> {sport.charAt(0).toUpperCase() + sport.slice(1)}
+            <strong>Sport:</strong>{' '}
+            {sport.charAt(0).toUpperCase() + sport.slice(1)}
           </p>
         </div>
-
       </div>
     </Modal>
   );

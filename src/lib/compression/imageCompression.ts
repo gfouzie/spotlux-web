@@ -1,4 +1,4 @@
-import imageCompression from "browser-image-compression";
+import imageCompression from 'browser-image-compression';
 
 export interface ImageCompressionOptions {
   maxSizeMB?: number;
@@ -46,12 +46,13 @@ export async function compressImage(
     });
 
     const compressedSize = compressedFile.size;
-    const compressionRatio = ((originalSize - compressedSize) / originalSize) * 100;
+    const compressionRatio =
+      ((originalSize - compressedSize) / originalSize) * 100;
 
     console.log(
       `Image compressed: ${(originalSize / 1024 / 1024).toFixed(2)}MB → ` +
-      `${(compressedSize / 1024 / 1024).toFixed(2)}MB ` +
-      `(${compressionRatio.toFixed(1)}% reduction)`
+        `${(compressedSize / 1024 / 1024).toFixed(2)}MB ` +
+        `(${compressionRatio.toFixed(1)}% reduction)`
     );
 
     return {
@@ -61,9 +62,9 @@ export async function compressImage(
       compressionRatio,
     };
   } catch (error) {
-    console.error("Image compression failed:", error);
+    console.error('Image compression failed:', error);
     throw new Error(
-      `Failed to compress image: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Failed to compress image: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }
@@ -79,10 +80,10 @@ export function validateImageFile(file: File): {
   error?: string;
 } {
   // Check if it's an image
-  if (!file.type.startsWith("image/")) {
+  if (!file.type.startsWith('image/')) {
     return {
       valid: false,
-      error: "File must be an image (JPEG, PNG, WebP, or GIF)",
+      error: 'File must be an image (JPEG, PNG, WebP, or GIF)',
     };
   }
 
@@ -91,7 +92,7 @@ export function validateImageFile(file: File): {
   if (file.size > maxSize) {
     return {
       valid: false,
-      error: "Image must be less than 10MB",
+      error: 'Image must be less than 10MB',
     };
   }
 

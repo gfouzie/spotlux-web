@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import { EditPencil } from "iconoir-react";
-import { UserProfile } from "@/api/profile";
-import { profileApi } from "@/api/profile";
-import { useAuth } from "@/contexts/AuthContext";
-import FriendsListModal from "@/components/friends/FriendsListModal";
-import EditProfileModal from "@/components/profile/EditProfileModal";
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { EditPencil } from 'iconoir-react';
+import { UserProfile } from '@/api/profile';
+import { profileApi } from '@/api/profile';
+import { useAuth } from '@/contexts/AuthContext';
+import FriendsListModal from '@/components/friends/FriendsListModal';
+import EditProfileModal from '@/components/profile/EditProfileModal';
 
 interface ProfilePictureSectionProps {
   profileImageUrl: string | null;
@@ -20,9 +20,12 @@ interface ProfilePictureSectionProps {
 /**
  * Get user initials for placeholder
  */
-const getUserInitials = (firstName: string | null, lastName: string | null): string => {
-  const first = firstName?.trim() || "";
-  const last = lastName?.trim() || "";
+const getUserInitials = (
+  firstName: string | null,
+  lastName: string | null
+): string => {
+  const first = firstName?.trim() || '';
+  const last = lastName?.trim() || '';
 
   if (first && last) {
     return (first[0] + last[0]).toUpperCase();
@@ -31,22 +34,26 @@ const getUserInitials = (firstName: string | null, lastName: string | null): str
   } else if (last) {
     return last.substring(0, 2).toUpperCase();
   }
-  return "??";
+  return '??';
 };
 
 /**
  * Format birthday for display (without timezone conversion)
  */
 const formatBirthday = (birthday: string | null): string => {
-  if (!birthday) return "Not set";
+  if (!birthday) return 'Not set';
 
   try {
     // Parse date components directly to avoid timezone issues
     const [year, month, day] = birthday.split('-').map(Number);
     const date = new Date(year, month - 1, day); // month is 0-indexed
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   } catch {
-    return "Not set";
+    return 'Not set';
   }
 };
 
@@ -54,7 +61,7 @@ const formatBirthday = (birthday: string | null): string => {
  * Format height in inches to feet and inches display
  */
 const formatHeight = (heightInches: number | null): string => {
-  if (!heightInches) return "Not set";
+  if (!heightInches) return 'Not set';
 
   const feet = Math.floor(heightInches / 12);
   const inches = heightInches % 12;
@@ -66,13 +73,17 @@ const formatHeight = (heightInches: number | null): string => {
  * Format weight in lbs
  */
 const formatWeight = (weightLbs: number | null): string => {
-  if (!weightLbs) return "Not set";
+  if (!weightLbs) return 'Not set';
   return `${weightLbs} lbs`;
 };
 
-const formatHometown = (city: string | null, state: string | null, country: string | null): string => {
+const formatHometown = (
+  city: string | null,
+  state: string | null,
+  country: string | null
+): string => {
   const parts = [city, state, country].filter(Boolean);
-  return parts.length > 0 ? parts.join(", ") : "Not set";
+  return parts.length > 0 ? parts.join(', ') : 'Not set';
 };
 
 const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
@@ -98,7 +109,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
       const data = await profileApi.getProfile();
       setProfile(data);
     } catch (err) {
-      console.error("Failed to load profile:", err);
+      console.error('Failed to load profile:', err);
     } finally {
       setLoading(false);
     }
@@ -176,21 +187,39 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
           {/* Right: Stats vertically aligned */}
           <div className="flex flex-col gap-1 text-right mt-8">
             <div className="flex items-center justify-end">
-              <span className="hidden md:flex text-sm text-text-col opacity-70 mr-1">Born: </span>
-              <span className="text-sm text-text-col">{formatBirthday(profile?.birthday || null)}</span>
-            </div>
-            <div className="flex items-center justify-end">
-              <span className="hidden md:block text-sm text-text-col opacity-70 mr-1">Height: </span>
-              <span className="text-sm text-text-col">{formatHeight(profile?.height || null)}</span>
-            </div>
-            <div className="flex items-center justify-end">
-              <span className="hidden md:block text-sm text-text-col opacity-70 mr-1">Weight: </span>
-              <span className="text-sm text-text-col">{formatWeight(profile?.weight || null)}</span>
-            </div>
-            <div className="flex items-center justify-end">
-              <span className="hidden md:block text-sm text-text-col opacity-70 mr-1">Hometown: </span>
+              <span className="hidden md:flex text-sm text-text-col opacity-70 mr-1">
+                Born:{' '}
+              </span>
               <span className="text-sm text-text-col">
-                {formatHometown(profile?.hometownCity || null, profile?.hometownState || null, profile?.hometownCountry || null)}
+                {formatBirthday(profile?.birthday || null)}
+              </span>
+            </div>
+            <div className="flex items-center justify-end">
+              <span className="hidden md:block text-sm text-text-col opacity-70 mr-1">
+                Height:{' '}
+              </span>
+              <span className="text-sm text-text-col">
+                {formatHeight(profile?.height || null)}
+              </span>
+            </div>
+            <div className="flex items-center justify-end">
+              <span className="hidden md:block text-sm text-text-col opacity-70 mr-1">
+                Weight:{' '}
+              </span>
+              <span className="text-sm text-text-col">
+                {formatWeight(profile?.weight || null)}
+              </span>
+            </div>
+            <div className="flex items-center justify-end">
+              <span className="hidden md:block text-sm text-text-col opacity-70 mr-1">
+                Hometown:{' '}
+              </span>
+              <span className="text-sm text-text-col">
+                {formatHometown(
+                  profile?.hometownCity || null,
+                  profile?.hometownState || null,
+                  profile?.hometownCountry || null
+                )}
               </span>
             </div>
           </div>
@@ -217,4 +246,3 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
 };
 
 export default ProfilePictureSection;
-

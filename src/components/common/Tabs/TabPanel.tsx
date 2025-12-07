@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { forwardRef } from "react";
-import { cn } from "@/lib/utils";
+import { forwardRef } from 'react';
+import { cn } from '@/lib/utils';
 
 interface TabPanelProps extends React.HTMLAttributes<HTMLDivElement> {
   isActive?: boolean;
@@ -24,9 +24,9 @@ const TabPanel = forwardRef<HTMLDivElement, TabPanelProps>(
         role="tabpanel"
         aria-hidden={!isActive}
         className={cn(
-          "transition-opacity duration-200",
-          isActive ? "opacity-100" : "opacity-0 hidden",
-          keepMounted && !isActive && "sr-only",
+          'transition-opacity duration-200',
+          isActive ? 'opacity-100' : 'opacity-0 hidden',
+          keepMounted && !isActive && 'sr-only',
           className
         )}
         {...props}
@@ -37,6 +37,6 @@ const TabPanel = forwardRef<HTMLDivElement, TabPanelProps>(
   }
 );
 
-TabPanel.displayName = "TabPanel";
+TabPanel.displayName = 'TabPanel';
 
 export default TabPanel;

@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useUser } from "@/contexts/UserContext";
-import { userApi, type User } from "@/api/user";
-import { friendshipsApi } from "@/api/friendships";
-import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import SearchInput from "@/components/search/SearchInput";
-import UserList from "@/components/search/UserList";
-import Pagination from "@/components/search/Pagination";
-import RequestsCard from "@/components/search/RequestsCard";
-import Alert from "@/components/common/Alert";
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
+import { userApi, type User } from '@/api/user';
+import { friendshipsApi } from '@/api/friendships';
+import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
+import SearchInput from '@/components/search/SearchInput';
+import UserList from '@/components/search/UserList';
+import Pagination from '@/components/search/Pagination';
+import RequestsCard from '@/components/search/RequestsCard';
+import Alert from '@/components/common/Alert';
 
-type TabType = "all" | "friends";
+type TabType = 'all' | 'friends';
 
 export default function SearchPage() {
   const { isAuthenticated } = useAuth();
   const { user: currentUser } = useUser();
-  const [activeTab, setActiveTab] = useState<TabType>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -45,7 +45,7 @@ export default function SearchPage() {
         setTotalCount((page - 1) * itemsPerPage + users.length);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load users");
+      setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +68,7 @@ export default function SearchPage() {
         setFriendsCount((page - 1) * itemsPerPage + friends.length);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load friends");
+      setError(err instanceof Error ? err.message : 'Failed to load friends');
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +84,7 @@ export default function SearchPage() {
         // If we got a full page, there might be more, otherwise this is the count
         setFriendsCount(friends.length);
       } catch (err) {
-        console.error("Failed to load friends count:", err);
+        console.error('Failed to load friends count:', err);
       }
     };
 
@@ -94,7 +94,7 @@ export default function SearchPage() {
   // Load users when search or page changes
   useEffect(() => {
     if (isAuthenticated) {
-      if (activeTab === "all") {
+      if (activeTab === 'all') {
         loadUsers();
       } else {
         loadFriends();
@@ -116,7 +116,7 @@ export default function SearchPage() {
 
   const handleStatusChange = async () => {
     // Reload the current list when friendship status changes
-    if (activeTab === "all") {
+    if (activeTab === 'all') {
       loadUsers();
     } else {
       loadFriends();
@@ -130,7 +130,7 @@ export default function SearchPage() {
         const friends = await friendshipsApi.getMyFriends(0, 20);
         setFriendsCount(friends.length);
       } catch (err) {
-        console.error("Failed to reload friends count:", err);
+        console.error('Failed to reload friends count:', err);
       }
     }
   };
@@ -138,18 +138,18 @@ export default function SearchPage() {
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     setPage(1);
-    setSearchQuery("");
-    setDebouncedSearch("");
+    setSearchQuery('');
+    setDebouncedSearch('');
   };
 
   const getEmptyMessage = () => {
-    if (activeTab === "friends") {
-      return "You have no friends yet";
+    if (activeTab === 'friends') {
+      return 'You have no friends yet';
     }
     if (debouncedSearch) {
-      return "No users found matching your search";
+      return 'No users found matching your search';
     }
-    return "People you might know";
+    return 'People you might know';
   };
 
   return (
@@ -171,7 +171,7 @@ export default function SearchPage() {
             {/* Left/Center - Search & Users (2/3 width on large screens) */}
             <div className="lg:col-span-2 space-y-4">
               {/* Search Input (only show on "all" tab) */}
-              {activeTab === "all" && (
+              {activeTab === 'all' && (
                 <SearchInput
                   value={searchQuery}
                   onChange={setSearchQuery}
@@ -182,21 +182,21 @@ export default function SearchPage() {
               {/* Tabs */}
               <div className="flex gap-4 border-b border-bg-col">
                 <button
-                  onClick={() => handleTabChange("all")}
+                  onClick={() => handleTabChange('all')}
                   className={`cursor-pointer pb-2 px-4 ${
-                    activeTab === "all"
-                      ? "border-b-2 border-accent-col text-text-col"
-                      : "text-text-col/60 hover:text-text-col"
+                    activeTab === 'all'
+                      ? 'border-b-2 border-accent-col text-text-col'
+                      : 'text-text-col/60 hover:text-text-col'
                   }`}
                 >
                   All Users
                 </button>
                 <button
-                  onClick={() => handleTabChange("friends")}
+                  onClick={() => handleTabChange('friends')}
                   className={`cursor-pointer pb-2 px-4 ${
-                    activeTab === "friends"
-                      ? "border-b-2 border-accent-col text-text-col"
-                      : "text-text-col/60 hover:text-text-col"
+                    activeTab === 'friends'
+                      ? 'border-b-2 border-accent-col text-text-col'
+                      : 'text-text-col/60 hover:text-text-col'
                   }`}
                 >
                   Friends ({friendsCount})

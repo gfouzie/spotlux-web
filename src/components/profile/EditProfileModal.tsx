@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Modal from "@/components/common/Modal";
-import Input from "@/components/common/Input";
-import Alert from "@/components/common/Alert";
-import { profileApi, UserProfile, ProfileUpdateRequest } from "@/api/profile";
-import { feetInchesToInches, inchesToFeetInches } from "@/lib/utils";
+import { useState, useEffect } from 'react';
+import Modal from '@/components/common/Modal';
+import Input from '@/components/common/Input';
+import Alert from '@/components/common/Alert';
+import { profileApi, UserProfile, ProfileUpdateRequest } from '@/api/profile';
+import { feetInchesToInches, inchesToFeetInches } from '@/lib/utils';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -21,17 +21,17 @@ export default function EditProfileModal({
   onSuccess,
 }: EditProfileModalProps) {
   const heightData = inchesToFeetInches(user?.height);
-  
+
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    birthday: user?.birthday || "",
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    birthday: user?.birthday || '',
     heightFeet: heightData.feet,
     heightInches: heightData.inches,
-    weight: user?.weight?.toString() || "",
-    hometownCity: user?.hometownCity || "",
-    hometownState: user?.hometownState || "",
-    hometownCountry: user?.hometownCountry || "",
+    weight: user?.weight?.toString() || '',
+    hometownCity: user?.hometownCity || '',
+    hometownState: user?.hometownState || '',
+    hometownCountry: user?.hometownCountry || '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,17 +40,17 @@ export default function EditProfileModal({
   useEffect(() => {
     if (user) {
       const heightData = inchesToFeetInches(user.height);
-      
+
       setFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        birthday: user.birthday || "",
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        birthday: user.birthday || '',
         heightFeet: heightData.feet,
         heightInches: heightData.inches,
-        weight: user.weight?.toString() || "",
-        hometownCity: user.hometownCity || "",
-        hometownState: user.hometownState || "",
-        hometownCountry: user.hometownCountry || "",
+        weight: user.weight?.toString() || '',
+        hometownCity: user.hometownCity || '',
+        hometownState: user.hometownState || '',
+        hometownCountry: user.hometownCountry || '',
       });
     }
   }, [user]);
@@ -76,7 +76,7 @@ export default function EditProfileModal({
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update profile");
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
       setIsSubmitting(false);
     }
@@ -207,7 +207,6 @@ export default function EditProfileModal({
             maxLength={100}
           />
         </div>
-
       </div>
     </Modal>
   );

@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
 
 /**
  * User sport interface
@@ -25,9 +25,7 @@ export const userSportsApi = {
    * Get user sports for the authenticated user
    */
   getUserSports: async (): Promise<UserSport[]> => {
-    return authRequest<UserSport[]>(
-      `${config.apiBaseUrl}/api/v1/user/sports`
-    );
+    return authRequest<UserSport[]>(`${config.apiBaseUrl}/api/v1/user/sports`);
   },
 
   /**
@@ -43,13 +41,10 @@ export const userSportsApi = {
    * Add a sport to the authenticated user's profile
    */
   addUserSport: async (data: UserSportCreateRequest): Promise<UserSport> => {
-    return authRequest<UserSport>(
-      `${config.apiBaseUrl}/api/v1/user/sports`,
-      {
-        method: "POST",
-        body: JSON.stringify(data),
-      }
-    );
+    return authRequest<UserSport>(`${config.apiBaseUrl}/api/v1/user/sports`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 
   /**
@@ -59,7 +54,7 @@ export const userSportsApi = {
     return authRequest<void>(
       `${config.apiBaseUrl}/api/v1/user/sports/${sport}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
   },

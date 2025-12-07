@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
 
 /**
  * Base interface for presigned URL requests
@@ -13,14 +13,14 @@ interface BasePresignedUrlRequest {
  * Profile picture upload request
  */
 interface ProfilePicturePresignedUrlRequest extends BasePresignedUrlRequest {
-  uploadType: "profile_picture";
+  uploadType: 'profile_picture';
 }
 
 /**
  * Team picture upload request
  */
 interface TeamPicturePresignedUrlRequest extends BasePresignedUrlRequest {
-  uploadType: "team_picture";
+  uploadType: 'team_picture';
   teamId: number;
 }
 
@@ -28,7 +28,7 @@ interface TeamPicturePresignedUrlRequest extends BasePresignedUrlRequest {
  * Highlight video upload request
  */
 interface HighlightVideoPresignedUrlRequest extends BasePresignedUrlRequest {
-  uploadType: "highlight_video";
+  uploadType: 'highlight_video';
   highlightReelId: number;
 }
 
@@ -36,7 +36,7 @@ interface HighlightVideoPresignedUrlRequest extends BasePresignedUrlRequest {
  * Highlight reel thumbnail upload request
  */
 interface HighlightReelThumbnailPresignedUrlRequest extends BasePresignedUrlRequest {
-  uploadType: "highlight_reel_thumbnail";
+  uploadType: 'highlight_reel_thumbnail';
   highlightReelId: number;
 }
 
@@ -44,7 +44,7 @@ interface HighlightReelThumbnailPresignedUrlRequest extends BasePresignedUrlRequ
  * Highlight thumbnail upload request
  */
 interface HighlightThumbnailPresignedUrlRequest extends BasePresignedUrlRequest {
-  uploadType: "highlight_thumbnail";
+  uploadType: 'highlight_thumbnail';
   highlightId: number;
 }
 
@@ -79,14 +79,14 @@ interface BaseUploadCompleteRequest {
  * Profile picture upload completion request
  */
 interface ProfilePictureUploadCompleteRequest extends BaseUploadCompleteRequest {
-  uploadType: "profile_picture";
+  uploadType: 'profile_picture';
 }
 
 /**
  * Team picture upload completion request
  */
 interface TeamPictureUploadCompleteRequest extends BaseUploadCompleteRequest {
-  uploadType: "team_picture";
+  uploadType: 'team_picture';
   teamId: number;
 }
 
@@ -94,7 +94,7 @@ interface TeamPictureUploadCompleteRequest extends BaseUploadCompleteRequest {
  * Highlight reel thumbnail upload completion request
  */
 interface HighlightReelThumbnailUploadCompleteRequest extends BaseUploadCompleteRequest {
-  uploadType: "highlight_reel_thumbnail";
+  uploadType: 'highlight_reel_thumbnail';
   highlightReelId: number;
 }
 
@@ -102,7 +102,7 @@ interface HighlightReelThumbnailUploadCompleteRequest extends BaseUploadComplete
  * Highlight thumbnail upload completion request
  */
 interface HighlightThumbnailUploadCompleteRequest extends BaseUploadCompleteRequest {
-  uploadType: "highlight_thumbnail";
+  uploadType: 'highlight_thumbnail';
   highlightId: number;
 }
 
@@ -138,10 +138,10 @@ const uploadToS3 = async (
   });
 
   // File must be the last field
-  formData.append("file", file);
+  formData.append('file', file);
 
   const response = await fetch(presignedData.uploadUrl, {
-    method: "POST",
+    method: 'POST',
     body: formData,
   });
 
@@ -165,13 +165,13 @@ export const uploadApi = {
     const presignedRequest: PresignedUrlRequest = {
       filename: file.name,
       contentType: file.type,
-      uploadType: "profile_picture",
+      uploadType: 'profile_picture',
     };
 
     const presignedData = await authRequest<PresignedUrlResponse>(
       `${config.apiBaseUrl}/api/v1/upload/presigned-url`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(presignedRequest),
       }
     );
@@ -182,13 +182,13 @@ export const uploadApi = {
     // Step 3: Notify backend of completion
     const completeRequest: UploadCompleteRequest = {
       s3Key: presignedData.s3Key,
-      uploadType: "profile_picture",
+      uploadType: 'profile_picture',
     };
 
     return authRequest<ProfilePictureUploadResponse>(
       `${config.apiBaseUrl}/api/v1/upload/complete`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(completeRequest),
       }
     );
@@ -201,7 +201,7 @@ export const uploadApi = {
     return authRequest<{ message: string }>(
       `${config.apiBaseUrl}/api/v1/upload/profile-picture`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
   },
@@ -217,14 +217,14 @@ export const uploadApi = {
     const presignedRequest: PresignedUrlRequest = {
       filename: file.name,
       contentType: file.type,
-      uploadType: "team_picture",
+      uploadType: 'team_picture',
       teamId,
     };
 
     const presignedData = await authRequest<PresignedUrlResponse>(
       `${config.apiBaseUrl}/api/v1/upload/presigned-url`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(presignedRequest),
       }
     );
@@ -235,14 +235,14 @@ export const uploadApi = {
     // Step 3: Notify backend of completion
     const completeRequest: UploadCompleteRequest = {
       s3Key: presignedData.s3Key,
-      uploadType: "team_picture",
+      uploadType: 'team_picture',
       teamId,
     };
 
     return authRequest<ProfilePictureUploadResponse>(
       `${config.apiBaseUrl}/api/v1/upload/complete`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(completeRequest),
       }
     );
@@ -255,7 +255,7 @@ export const uploadApi = {
     return authRequest<{ message: string }>(
       `${config.apiBaseUrl}/api/v1/upload/team-picture/${teamId}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
   },
@@ -271,14 +271,14 @@ export const uploadApi = {
     const presignedRequest: PresignedUrlRequest = {
       filename: file.name,
       contentType: file.type,
-      uploadType: "highlight_video",
+      uploadType: 'highlight_video',
       highlightReelId: reelId,
     };
 
     const presignedData = await authRequest<PresignedUrlResponse>(
       `${config.apiBaseUrl}/api/v1/upload/presigned-url`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(presignedRequest),
       }
     );
@@ -304,14 +304,14 @@ export const uploadApi = {
     const presignedRequest: PresignedUrlRequest = {
       filename: file.name,
       contentType: file.type,
-      uploadType: "highlight_reel_thumbnail",
+      uploadType: 'highlight_reel_thumbnail',
       highlightReelId: reelId,
     };
 
     const presignedData = await authRequest<PresignedUrlResponse>(
       `${config.apiBaseUrl}/api/v1/upload/presigned-url`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(presignedRequest),
       }
     );
@@ -322,14 +322,14 @@ export const uploadApi = {
     // Step 3: Notify backend of completion
     const completeRequest: UploadCompleteRequest = {
       s3Key: presignedData.s3Key,
-      uploadType: "highlight_reel_thumbnail",
+      uploadType: 'highlight_reel_thumbnail',
       highlightReelId: reelId,
     };
 
     return authRequest<ProfilePictureUploadResponse>(
       `${config.apiBaseUrl}/api/v1/upload/complete`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(completeRequest),
       }
     );
@@ -346,14 +346,14 @@ export const uploadApi = {
     const presignedRequest: PresignedUrlRequest = {
       filename: file.name,
       contentType: file.type,
-      uploadType: "highlight_thumbnail",
+      uploadType: 'highlight_thumbnail',
       highlightId: highlightId,
     };
 
     const presignedData = await authRequest<PresignedUrlResponse>(
       `${config.apiBaseUrl}/api/v1/upload/presigned-url`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(presignedRequest),
       }
     );
@@ -364,14 +364,14 @@ export const uploadApi = {
     // Step 3: Notify backend of completion
     const completeRequest: UploadCompleteRequest = {
       s3Key: presignedData.s3Key,
-      uploadType: "highlight_thumbnail",
+      uploadType: 'highlight_thumbnail',
       highlightId: highlightId,
     };
 
     return authRequest<ProfilePictureUploadResponse>(
       `${config.apiBaseUrl}/api/v1/upload/complete`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(completeRequest),
       }
     );
@@ -381,11 +381,13 @@ export const uploadApi = {
    * Delete highlight reel thumbnail
    * Note: Currently unused in frontend - PATCH with null is used instead
    */
-  deleteHighlightReelThumbnail: async (reelId: number): Promise<{ message: string }> => {
+  deleteHighlightReelThumbnail: async (
+    reelId: number
+  ): Promise<{ message: string }> => {
     return authRequest<{ message: string }>(
       `${config.apiBaseUrl}/api/v1/upload/highlight-reel-thumbnail/${reelId}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
   },

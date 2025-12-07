@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
 
 export interface Prompt {
   id: number;
@@ -49,34 +49,36 @@ export const promptsApi = {
   async getPrompts(params?: GetPromptsParams): Promise<Prompt[]> {
     const queryParams = new URLSearchParams();
 
-    if (params?.sport) queryParams.append("sport", params.sport);
-    if (params?.offset !== undefined) queryParams.append("offset", params.offset.toString());
-    if (params?.limit !== undefined) queryParams.append("limit", params.limit.toString());
-    if (params?.searchText) queryParams.append("searchText", params.searchText);
+    if (params?.sport) queryParams.append('sport', params.sport);
+    if (params?.offset !== undefined)
+      queryParams.append('offset', params.offset.toString());
+    if (params?.limit !== undefined)
+      queryParams.append('limit', params.limit.toString());
+    if (params?.searchText) queryParams.append('searchText', params.searchText);
 
-    const url = `${config.apiBaseUrl}/api/v1/prompts${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+    const url = `${config.apiBaseUrl}/api/v1/prompts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<Prompt[]>(url, {
-      cache: "no-store",
+      cache: 'no-store',
     });
   },
 
   async createPrompt(prompt: PromptCreate): Promise<Prompt> {
     return authRequest<Prompt>(`${config.apiBaseUrl}/api/v1/prompts`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(prompt),
     });
   },
 
   async updatePrompt(id: number, prompt: PromptUpdate): Promise<Prompt> {
     return authRequest<Prompt>(`${config.apiBaseUrl}/api/v1/prompts/${id}`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify(prompt),
     });
   },
 
   async deletePrompt(id: number): Promise<void> {
     await authRequest<void>(`${config.apiBaseUrl}/api/v1/prompts/${id}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
   },
 };

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { HighlightReel } from "@/api/highlightReels";
-import { cn } from "@/lib/utils";
-import { VideoCamera, Lock, Group, Settings } from "iconoir-react";
+import Image from 'next/image';
+import { HighlightReel } from '@/api/highlightReels';
+import { cn } from '@/lib/utils';
+import { VideoCamera, Lock, Group, Settings } from 'iconoir-react';
 
 interface HighlightReelCardProps {
   reel: HighlightReel;
@@ -24,7 +24,7 @@ export default function HighlightReelCard({
     <div
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center gap-2 cursor-pointer group",
+        'flex flex-col items-center gap-2 cursor-pointer group',
         className
       )}
     >
@@ -59,16 +59,14 @@ export default function HighlightReelCard({
         </div>
 
         {/* Visibility Badge */}
-        {reel.visibility !== "public" && (
+        {reel.visibility !== 'public' && (
           <div
             className={cn(
-              "absolute bottom-0 right-0 w-5 h-5 rounded-full flex items-center justify-center",
-              reel.visibility === "private"
-                ? "bg-red-600"
-                : "bg-yellow-600"
+              'absolute bottom-0 right-0 w-5 h-5 rounded-full flex items-center justify-center',
+              reel.visibility === 'private' ? 'bg-red-600' : 'bg-yellow-600'
             )}
           >
-            {reel.visibility === "private" ? (
+            {reel.visibility === 'private' ? (
               <Lock className="w-3 h-3 text-white" />
             ) : (
               <Group className="w-3 h-3 text-white" />

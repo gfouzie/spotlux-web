@@ -1,32 +1,32 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Martel_Sans } from "next/font/google";
-import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { UserProvider } from "@/contexts/UserContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono, Martel_Sans } from 'next/font/google';
+import './globals.css';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { UserProvider } from '@/contexts/UserContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 const martelSans = Martel_Sans({
-  variable: "--font-martel-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
-  display: "swap",
+  variable: '--font-martel-sans',
+  subsets: ['latin'],
+  weight: ['300', '400', '600', '700'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Spotlux",
-  description: "Shining on the future",
+  title: 'Spotlux',
+  description: 'Shining on the future',
   icons: {
-    icon: "/spotlux_favicon.ico",
+    icon: '/spotlux_favicon.ico',
   },
 };
 

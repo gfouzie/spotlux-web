@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import CreateTeamForm from "@/components/test-tools/CreateTeamForm";
-import TeamsList from "@/components/test-tools/TeamsList";
-import { Team } from "@/types/team";
+import React, { useState } from 'react';
+import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
+import CreateTeamForm from '@/components/test-tools/CreateTeamForm';
+import TeamsList from '@/components/test-tools/TeamsList';
+import { Team } from '@/types/team';
 
 const TestToolsPage: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleTeamCreated = (team: Team) => {
-    console.log("Team created:", team);
+    console.log('Team created:', team);
     // Trigger teams list refresh
     setRefreshKey((prev) => prev + 1);
   };

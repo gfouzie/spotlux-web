@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { User } from "@/api/user";
-import UserListItem from "./UserListItem";
+import { User } from '@/api/user';
+import UserListItem from './UserListItem';
 
 interface UserListProps {
   users: User[];
@@ -15,7 +15,7 @@ export default function UserList({
   users,
   currentUserId,
   isLoading,
-  emptyMessage = "No users found",
+  emptyMessage = 'No users found',
   onStatusChange,
 }: UserListProps) {
   if (isLoading) {
@@ -28,9 +28,7 @@ export default function UserList({
 
   if (users?.length === 0) {
     return (
-      <div className="text-center py-12 text-text-col/50">
-        {emptyMessage}
-      </div>
+      <div className="text-center py-12 text-text-col/50">{emptyMessage}</div>
     );
   }
 

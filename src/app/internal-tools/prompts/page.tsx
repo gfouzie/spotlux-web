@@ -1,16 +1,19 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { useState, useCallback, useEffect } from "react";
-import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import { promptsApi, type Prompt, type PromptCreate } from "@/api/prompts";
-import { promptCategoriesApi, type PromptCategory } from "@/api/promptCategories";
-import { sportsApi } from "@/api/sports";
-import Button from "@/components/common/Button";
-import Input from "@/components/common/Input";
-import Select from "@/components/common/Select";
-import Textarea from "@/components/common/Textarea";
-import Alert from "@/components/common/Alert";
+import { useAuth } from '@/contexts/AuthContext';
+import { useState, useCallback, useEffect } from 'react';
+import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
+import { promptsApi, type Prompt, type PromptCreate } from '@/api/prompts';
+import {
+  promptCategoriesApi,
+  type PromptCategory,
+} from '@/api/promptCategories';
+import { sportsApi } from '@/api/sports';
+import Button from '@/components/common/Button';
+import Input from '@/components/common/Input';
+import Select from '@/components/common/Select';
+import Textarea from '@/components/common/Textarea';
+import Alert from '@/components/common/Alert';
 
 export default function PromptsPage() {
   const { isAuthenticated } = useAuth();
@@ -25,9 +28,9 @@ export default function PromptsPage() {
 
   // Form state
   const [formData, setFormData] = useState({
-    name: "",
-    sport: "",
-    description: "",
+    name: '',
+    sport: '',
+    description: '',
     promptCategoryId: undefined as number | undefined,
   });
 
@@ -40,7 +43,7 @@ export default function PromptsPage() {
       const prompts = await promptsApi.getPrompts();
       setPrompts(prompts);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load prompts");
+      setError(err instanceof Error ? err.message : 'Failed to load prompts');
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +61,7 @@ export default function PromptsPage() {
         setFormData((prev) => ({ ...prev, sport: sportValues?.[0] }));
       }
     } catch (err) {
-      console.error("Failed to load sports:", err);
+      console.error('Failed to load sports:', err);
       // Don't set error state since this is non-critical
     }
   }, [formData.sport]);
@@ -68,7 +71,7 @@ export default function PromptsPage() {
       const categories = await promptCategoriesApi.getPromptCategories();
       setCategories(categories);
     } catch (err) {
-      console.error("Failed to load categories:", err);
+      console.error('Failed to load categories:', err);
     }
   }, []);
 
@@ -93,13 +96,18 @@ export default function PromptsPage() {
         promptCategoryId: formData.promptCategoryId,
       };
       await promptsApi.createPrompt(promptData);
-      setFormData({ name: "", sport: sports[0] || "", description: "", promptCategoryId: undefined });
+      setFormData({
+        name: '',
+        sport: sports[0] || '',
+        description: '',
+        promptCategoryId: undefined,
+      });
       setShowCreateForm(false);
       await loadPrompts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create prompt");
+      setError(err instanceof Error ? err.message : 'Failed to create prompt');
     }
-  };  
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,24 +121,29 @@ export default function PromptsPage() {
         description: formData.description || undefined,
         promptCategoryId: formData.promptCategoryId,
       });
-      setFormData({ name: "", sport: sports[0] || "", description: "", promptCategoryId: undefined });
+      setFormData({
+        name: '',
+        sport: sports[0] || '',
+        description: '',
+        promptCategoryId: undefined,
+      });
       setEditingId(null);
       await loadPrompts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update prompt");
+      setError(err instanceof Error ? err.message : 'Failed to update prompt');
     }
   };
 
   const handleDelete = async (id: number) => {
     if (!isAuthenticated) return;
-    if (!confirm("Are you sure you want to delete this prompt?")) return;
+    if (!confirm('Are you sure you want to delete this prompt?')) return;
 
     try {
       setError(null);
       await promptsApi.deletePrompt(id);
       await loadPrompts();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete prompt");
+      setError(err instanceof Error ? err.message : 'Failed to delete prompt');
     }
   };
 
@@ -138,7 +151,7 @@ export default function PromptsPage() {
     setFormData({
       name: prompt.name,
       sport: prompt.sport,
-      description: prompt.description || "",
+      description: prompt.description || '',
       promptCategoryId: prompt.promptCategoryId,
     });
     setEditingId(prompt.id);
@@ -146,7 +159,12 @@ export default function PromptsPage() {
   };
 
   const cancelEdit = () => {
-    setFormData({ name: "", sport: sports[0] || "", description: "", promptCategoryId: undefined });
+    setFormData({
+      name: '',
+      sport: sports[0] || '',
+      description: '',
+      promptCategoryId: undefined,
+    });
     setEditingId(null);
     setShowCreateForm(false);
   };
@@ -177,7 +195,7 @@ export default function PromptsPage() {
             className="mb-6 p-4 bg-bg-col/30 rounded border border-bg-col"
           >
             <h2 className="text-lg font-semibold text-text-col mb-4">
-              {editingId !== null ? "Edit Prompt" : "Create New Prompt"}
+              {editingId !== null ? 'Edit Prompt' : 'Create New Prompt'}
             </h2>
             <div className="space-y-4">
               <Input
@@ -197,7 +215,7 @@ export default function PromptsPage() {
                 }
                 options={
                   sports?.length === 0
-                    ? [{ value: "", label: "Loading sports..." }]
+                    ? [{ value: '', label: 'Loading sports...' }]
                     : sports?.map((sport) => ({
                         value: sport,
                         label: sport.charAt(0).toUpperCase() + sport.slice(1),
@@ -208,21 +226,23 @@ export default function PromptsPage() {
 
               <Select
                 label="Category (optional)"
-                value={formData.promptCategoryId?.toString() || ""}
+                value={formData.promptCategoryId?.toString() || ''}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    promptCategoryId: e.target.value ? parseInt(e.target.value) : undefined
+                    promptCategoryId: e.target.value
+                      ? parseInt(e.target.value)
+                      : undefined,
                   })
                 }
                 options={[
-                  { value: "", label: "None" },
+                  { value: '', label: 'None' },
                   ...(categories?.length === 0
-                    ? [{ value: "", label: "No categories available" }]
+                    ? [{ value: '', label: 'No categories available' }]
                     : categories?.map((category) => ({
                         value: category.id.toString(),
                         label: category.name,
-                      })))
+                      }))),
                 ]}
               />
 
@@ -237,7 +257,7 @@ export default function PromptsPage() {
 
               <div className="flex gap-2">
                 <Button type="submit">
-                  {editingId !== null ? "Update" : "Create"}
+                  {editingId !== null ? 'Update' : 'Create'}
                 </Button>
                 <Button type="button" onClick={cancelEdit} variant="secondary">
                   Cancel
@@ -301,4 +321,3 @@ export default function PromptsPage() {
     </AuthenticatedLayout>
   );
 }
-

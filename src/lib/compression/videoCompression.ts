@@ -1,10 +1,10 @@
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { toBlobURL } from "@ffmpeg/util";
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { toBlobURL } from '@ffmpeg/util';
 
 export interface VideoCompressionOptions {
   crf?: number; // Constant Rate Factor (18-32, lower = better quality)
   maxResolution?: number; // Max width or height in pixels
-  preset?: "ultrafast" | "fast" | "medium" | "slow"; // Compression speed vs quality
+  preset?: 'ultrafast' | 'fast' | 'medium' | 'slow'; // Compression speed vs quality
 }
 
 export interface VideoCompressionResult {
@@ -21,7 +21,7 @@ export interface ProgressCallback {
 const DEFAULT_OPTIONS: Required<VideoCompressionOptions> = {
   crf: 28, // Good balance of quality and size
   maxResolution: 1920, // 1080p max
-  preset: "medium",
+  preset: 'medium',
 };
 
 let ffmpegInstance: FFmpeg | null = null;
@@ -51,18 +51,21 @@ async function loadFFmpeg(): Promise<FFmpeg> {
     const ffmpeg = new FFmpeg();
 
     // Load ffmpeg core from CDN
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
     await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+      wasmURL: await toBlobURL(
+        `${baseURL}/ffmpeg-core.wasm`,
+        'application/wasm'
+      ),
     });
 
-    console.log("FFmpeg loaded successfully");
+    console.log('FFmpeg loaded successfully');
     ffmpegInstance = ffmpeg;
     return ffmpeg;
   } catch (error) {
-    console.error("Failed to load FFmpeg:", error);
-    throw new Error("Failed to load video compression library");
+    console.error('Failed to load FFmpeg:', error);
+    throw new Error('Failed to load video compression library');
   } finally {
     isLoading = false;
   }
@@ -89,39 +92,39 @@ export async function compressVideo(
 
     // Listen to progress events
     if (onProgress) {
-      ffmpeg.on("progress", ({ progress }) => {
+      ffmpeg.on('progress', ({ progress }) => {
         // FFmpeg progress is 0-1, convert to 0-100
         onProgress(Math.round(progress * 100));
       });
     }
 
     const originalSize = file.size;
-    const inputName = "input.mp4";
-    const outputName = "output.mp4";
+    const inputName = 'input.mp4';
+    const outputName = 'output.mp4';
 
     // Write input file to FFmpeg's virtual filesystem
     await ffmpeg.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
 
     // Build FFmpeg command
     const ffmpegArgs = [
-      "-i",
+      '-i',
       inputName,
-      "-c:v",
-      "libx264", // H.264 codec (widely supported)
-      "-preset",
+      '-c:v',
+      'libx264', // H.264 codec (widely supported)
+      '-preset',
       opts.preset,
-      "-crf",
+      '-crf',
       opts.crf.toString(),
-      "-vf",
+      '-vf',
       `scale='min(${opts.maxResolution},iw)':'min(${opts.maxResolution},ih)':force_original_aspect_ratio=decrease`, // Scale down if needed
-      "-c:a",
-      "aac", // AAC audio codec
-      "-b:a",
-      "128k", // Audio bitrate
+      '-c:a',
+      'aac', // AAC audio codec
+      '-b:a',
+      '128k', // Audio bitrate
       outputName,
     ];
 
-    console.log("Compressing video with FFmpeg:", ffmpegArgs.join(" "));
+    console.log('Compressing video with FFmpeg:', ffmpegArgs.join(' '));
 
     // Run FFmpeg compression
     await ffmpeg.exec(ffmpegArgs);
@@ -129,14 +132,15 @@ export async function compressVideo(
     // Read the compressed file
     const data = await ffmpeg.readFile(outputName);
     // @ts-expect-error - ffmpeg returns Uint8Array but TypeScript has issues with the generic type
-    const compressedBlob = new Blob([data], { type: "video/mp4" });
+    const compressedBlob = new Blob([data], { type: 'video/mp4' });
     const compressedSize = compressedBlob.size;
-    const compressionRatio = ((originalSize - compressedSize) / originalSize) * 100;
+    const compressionRatio =
+      ((originalSize - compressedSize) / originalSize) * 100;
 
     console.log(
       `Video compressed: ${(originalSize / 1024 / 1024).toFixed(2)}MB → ` +
-      `${(compressedSize / 1024 / 1024).toFixed(2)}MB ` +
-      `(${compressionRatio.toFixed(1)}% reduction)`
+        `${(compressedSize / 1024 / 1024).toFixed(2)}MB ` +
+        `(${compressionRatio.toFixed(1)}% reduction)`
     );
 
     // Clean up
@@ -150,9 +154,9 @@ export async function compressVideo(
       compressionRatio,
     };
   } catch (error) {
-    console.error("Video compression failed:", error);
+    console.error('Video compression failed:', error);
     throw new Error(
-      `Failed to compress video: ${error instanceof Error ? error.message : "Unknown error"}`
+      `Failed to compress video: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }
@@ -168,10 +172,10 @@ export function validateVideoFile(file: File): {
   error?: string;
 } {
   // Check if it's a video
-  if (!file.type.startsWith("video/")) {
+  if (!file.type.startsWith('video/')) {
     return {
       valid: false,
-      error: "File must be a video (MP4, MOV, WebM, or AVI)",
+      error: 'File must be a video (MP4, MOV, WebM, or AVI)',
     };
   }
 
@@ -180,7 +184,7 @@ export function validateVideoFile(file: File): {
   if (file.size > maxSize) {
     return {
       valid: false,
-      error: "Video must be less than 100MB",
+      error: 'Video must be less than 100MB',
     };
   }
 
@@ -195,8 +199,8 @@ export function validateVideoFile(file: File): {
  */
 export async function getVideoDuration(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
-    const video = document.createElement("video");
-    video.preload = "metadata";
+    const video = document.createElement('video');
+    video.preload = 'metadata';
 
     video.onloadedmetadata = () => {
       window.URL.revokeObjectURL(video.src);
@@ -204,7 +208,7 @@ export async function getVideoDuration(file: File): Promise<number> {
     };
 
     video.onerror = () => {
-      reject(new Error("Failed to load video metadata"));
+      reject(new Error('Failed to load video metadata'));
     };
 
     video.src = URL.createObjectURL(file);

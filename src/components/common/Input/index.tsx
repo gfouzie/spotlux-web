@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { forwardRef, useState } from "react";
-import { cn } from "@/lib/utils";
-import "./input.css";
+import { forwardRef, useState } from 'react';
+import { cn } from '@/lib/utils';
+import './input.css';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -13,15 +13,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    {
-      label,
-      error,
-      icon,
-      rightIcon,
-      className,
-      type = "text",
-      ...props
-    },
+    { label, error, icon, rightIcon, className, type = 'text', ...props },
     ref
   ) => {
     const [isFocused, setIsFocused] = useState(false);
@@ -52,23 +44,23 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             onBlur={() => setIsFocused(false)}
             className={cn(
               // Base styles
-              "spotlux-input", // ← Component-specific class for autofill styles
-              "w-full px-4 py-3 rounded-lg transition-all duration-200",
-              "bg-bg-col border border-text-col/30",
-              "text-text-col placeholder-text-col/50",
-              "focus:outline-none focus:ring-2 focus:ring-accent-col focus:border-transparent",
+              'spotlux-input', // ← Component-specific class for autofill styles
+              'w-full px-4 py-3 rounded-lg transition-all duration-200',
+              'bg-bg-col border border-text-col/30',
+              'text-text-col placeholder-text-col/50',
+              'focus:outline-none focus:ring-2 focus:ring-accent-col focus:border-transparent',
 
               // Icon padding
-              icon && "pl-10",
+              icon && 'pl-10',
 
               // Right icon padding
-              rightIcon && "pr-12",
+              rightIcon && 'pr-12',
 
               // Error state
-              error && "border-red-500 focus:ring-red-500",
+              error && 'border-red-500 focus:ring-red-500',
 
               // Focus state
-              isFocused && "bg-text-col/15",
+              isFocused && 'bg-text-col/15',
 
               className
             )}
@@ -88,6 +80,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = "Input";
+Input.displayName = 'Input';
 
 export default Input;

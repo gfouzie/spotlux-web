@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useReducer, useState, useMemo, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { debounce } from "lodash";
-import { userApi, ApiError, validationApi } from "@/api";
-import { useAuth } from "@/contexts/AuthContext";
-import Input from "@/components/common/Input/index";
-import PrivateInput from "@/components/common/Input/PrivateInput";
-import Button from "@/components/common/Button";
-import AuthFormContainer from "@/components/auth/AuthFormContainer";
+import { useReducer, useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { debounce } from 'lodash';
+import { userApi, ApiError, validationApi } from '@/api';
+import { useAuth } from '@/contexts/AuthContext';
+import Input from '@/components/common/Input/index';
+import PrivateInput from '@/components/common/Input/PrivateInput';
+import Button from '@/components/common/Button';
+import AuthFormContainer from '@/components/auth/AuthFormContainer';
 
 interface FormData {
   firstName: string;
@@ -28,48 +28,48 @@ interface State {
 }
 
 type Action =
-  | { type: "UPDATE_FIELD"; field: keyof FormData; value: string }
-  | { type: "SET_LOADING"; loading: boolean }
-  | { type: "SET_ERROR"; error: string }
-  | { type: "RESET_FORM" }
-  | { type: "SET_ATTEMPTED_SUBMIT"; attempted: boolean };
+  | { type: 'UPDATE_FIELD'; field: keyof FormData; value: string }
+  | { type: 'SET_LOADING'; loading: boolean }
+  | { type: 'SET_ERROR'; error: string }
+  | { type: 'RESET_FORM' }
+  | { type: 'SET_ATTEMPTED_SUBMIT'; attempted: boolean };
 
 // Initial state
 const initialState: State = {
   formData: {
-    firstName: "",
-    lastName: "",
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    birthday: "",
+    firstName: '',
+    lastName: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    birthday: '',
   },
   loading: false,
-  error: "",
+  error: '',
   hasAttemptedSubmit: false,
 };
 
 // Reducer function
 const registrationReducer = (state: State, action: Action): State => {
   switch (action.type) {
-    case "UPDATE_FIELD":
+    case 'UPDATE_FIELD':
       return {
         ...state,
         formData: {
           ...state.formData,
           [action.field]: action.value,
         },
-        error: "", // Clear error when user starts typing
+        error: '', // Clear error when user starts typing
         hasAttemptedSubmit: false, // Reset submit attempt when user types
       };
-    case "SET_LOADING":
+    case 'SET_LOADING':
       return { ...state, loading: action.loading };
-    case "SET_ERROR":
+    case 'SET_ERROR':
       return { ...state, error: action.error, loading: false };
-    case "RESET_FORM":
+    case 'RESET_FORM':
       return initialState;
-    case "SET_ATTEMPTED_SUBMIT":
+    case 'SET_ATTEMPTED_SUBMIT':
       return { ...state, hasAttemptedSubmit: action.attempted };
     default:
       return state;
@@ -82,7 +82,9 @@ export default function RegisterPage() {
   const [state, dispatch] = useReducer(registrationReducer, initialState);
 
   // Availability state
-  const [usernameAvailability, setUsernameAvailability] = useState<boolean | null>(null);
+  const [usernameAvailability, setUsernameAvailability] = useState<
+    boolean | null
+  >(null);
 
   // Debounced username check function
   const checkUsernameAvailability = useMemo(
@@ -94,10 +96,11 @@ export default function RegisterPage() {
         }
 
         try {
-          const result = await validationApi.checkUsernameAvailability(username);
+          const result =
+            await validationApi.checkUsernameAvailability(username);
           setUsernameAvailability(result.available);
         } catch (error) {
-          console.error("Username check failed:", error);
+          console.error('Username check failed:', error);
           setUsernameAvailability(null);
         }
       }, 500),
@@ -123,15 +126,15 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch({ type: "SET_ATTEMPTED_SUBMIT", attempted: true });
-    dispatch({ type: "SET_LOADING", loading: true });
+    dispatch({ type: 'SET_ATTEMPTED_SUBMIT', attempted: true });
+    dispatch({ type: 'SET_LOADING', loading: true });
 
     try {
       // Check if username is available
       if (usernameAvailability === false) {
         dispatch({
-          type: "SET_ERROR",
-          error: "Username is already taken.",
+          type: 'SET_ERROR',
+          error: 'Username is already taken.',
         });
         return;
       }
@@ -143,8 +146,8 @@ export default function RegisterPage() {
         !namePattern.test(state.formData.lastName)
       ) {
         dispatch({
-          type: "SET_ERROR",
-          error: "First and last name must only contain letters.",
+          type: 'SET_ERROR',
+          error: 'First and last name must only contain letters.',
         });
         return;
       }
@@ -153,15 +156,15 @@ export default function RegisterPage() {
       const usernamePattern = /^[a-z0-9]{2,20}$/;
       if (!usernamePattern.test(state.formData.username)) {
         dispatch({
-          type: "SET_ERROR",
-          error: "Username must only contain lowercase letters and numbers.",
+          type: 'SET_ERROR',
+          error: 'Username must only contain lowercase letters and numbers.',
         });
         return;
       }
 
       // Check if passwords match
       if (state.formData.password !== state.formData.confirmPassword) {
-        dispatch({ type: "SET_ERROR", error: "Passwords do not match" });
+        dispatch({ type: 'SET_ERROR', error: 'Passwords do not match' });
         return;
       }
 
@@ -171,24 +174,24 @@ export default function RegisterPage() {
 
       // Register and auto-login the user (backend validates age requirement)
       const loginResponse = await userApi.registerAndLogin(registrationData);
-      console.log("User registered and logged in successfully");
+      console.log('User registered and logged in successfully');
 
       // Set the tokens in auth context
       setTokens(loginResponse.accessToken, loginResponse.refreshToken);
 
       // Redirect to dashboard
-      router.push("/");
+      router.push('/');
     } catch (err) {
       if (err instanceof ApiError) {
-        dispatch({ type: "SET_ERROR", error: err.message });
+        dispatch({ type: 'SET_ERROR', error: err.message });
       } else {
         dispatch({
-          type: "SET_ERROR",
-          error: err instanceof Error ? err.message : "Registration failed",
+          type: 'SET_ERROR',
+          error: err instanceof Error ? err.message : 'Registration failed',
         });
       }
     } finally {
-      dispatch({ type: "SET_LOADING", loading: false });
+      dispatch({ type: 'SET_LOADING', loading: false });
     }
   };
 
@@ -210,11 +213,11 @@ export default function RegisterPage() {
           type="email"
           label="Email"
           placeholder="your@email.com"
-          value={state.formData.email || ""}
+          value={state.formData.email || ''}
           onChange={(e) =>
             dispatch({
-              type: "UPDATE_FIELD",
-              field: "email",
+              type: 'UPDATE_FIELD',
+              field: 'email',
               value: e.target.value,
             })
           }
@@ -226,11 +229,11 @@ export default function RegisterPage() {
             id="password"
             label="Password"
             placeholder="Create a secure password"
-            value={state.formData.password || ""}
+            value={state.formData.password || ''}
             onChange={(e) =>
               dispatch({
-                type: "UPDATE_FIELD",
-                field: "password",
+                type: 'UPDATE_FIELD',
+                field: 'password',
                 value: e.target.value,
               })
             }
@@ -246,11 +249,11 @@ export default function RegisterPage() {
           id="confirmPassword"
           label="Confirm Password"
           placeholder="Confirm your password"
-          value={state.formData.confirmPassword || ""}
+          value={state.formData.confirmPassword || ''}
           onChange={(e) =>
             dispatch({
-              type: "UPDATE_FIELD",
-              field: "confirmPassword",
+              type: 'UPDATE_FIELD',
+              field: 'confirmPassword',
               value: e.target.value,
             })
           }
@@ -260,7 +263,7 @@ export default function RegisterPage() {
             state.hasAttemptedSubmit &&
             state.formData.confirmPassword &&
             state.formData.password !== state.formData.confirmPassword
-              ? "Passwords do not match"
+              ? 'Passwords do not match'
               : undefined
           }
         />
@@ -270,11 +273,11 @@ export default function RegisterPage() {
             type="text"
             label="First Name"
             placeholder="First name"
-            value={state.formData.firstName || ""}
+            value={state.formData.firstName || ''}
             onChange={(e) =>
               dispatch({
-                type: "UPDATE_FIELD",
-                field: "firstName",
+                type: 'UPDATE_FIELD',
+                field: 'firstName',
                 value: e.target.value,
               })
             }
@@ -287,11 +290,11 @@ export default function RegisterPage() {
             type="text"
             label="Last Name"
             placeholder="Last name"
-            value={state.formData.lastName || ""}
+            value={state.formData.lastName || ''}
             onChange={(e) =>
               dispatch({
-                type: "UPDATE_FIELD",
-                field: "lastName",
+                type: 'UPDATE_FIELD',
+                field: 'lastName',
                 value: e.target.value,
               })
             }
@@ -307,11 +310,11 @@ export default function RegisterPage() {
             type="text"
             label="Username"
             placeholder="username123"
-            value={state.formData.username || ""}
+            value={state.formData.username || ''}
             onChange={(e) =>
               dispatch({
-                type: "UPDATE_FIELD",
-                field: "username",
+                type: 'UPDATE_FIELD',
+                field: 'username',
                 value: e.target.value.toLowerCase(),
               })
             }
@@ -341,24 +344,27 @@ export default function RegisterPage() {
             id="birthday"
             type="date"
             label="Birthday"
-            value={state.formData.birthday || ""}
+            value={state.formData.birthday || ''}
             onChange={(e) =>
               dispatch({
-                type: "UPDATE_FIELD",
-                field: "birthday",
+                type: 'UPDATE_FIELD',
+                field: 'birthday',
                 value: e.target.value,
               })
             }
             onInput={(e) => {
               const target = e.target as HTMLInputElement;
-              target.setCustomValidity("");
+              target.setCustomValidity('');
             }}
             onInvalid={(e) => {
               const target = e.target as HTMLInputElement;
-              if (target.validity.rangeOverflow || target.validity.rangeUnderflow) {
-                target.setCustomValidity("Must be 13 years old to join");
+              if (
+                target.validity.rangeOverflow ||
+                target.validity.rangeUnderflow
+              ) {
+                target.setCustomValidity('Must be 13 years old to join');
               } else if (target.validity.valueMissing) {
-                target.setCustomValidity("Birthday is required");
+                target.setCustomValidity('Birthday is required');
               }
             }}
             max={
@@ -368,7 +374,7 @@ export default function RegisterPage() {
                 new Date().getDate()
               )
                 .toISOString()
-                .split("T")[0]
+                .split('T')[0]
             }
             required
           />

@@ -1,4 +1,4 @@
-import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
+import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 
 const MessagesPage = () => {
   return (

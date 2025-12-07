@@ -1,11 +1,11 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
 import type {
   UserTeam,
   UserTeamFull,
   UserTeamCreate,
   UserTeamUpdate,
-} from "@/types/team";
+} from '@/types/team';
 
 /**
  * API functions for user team operations
@@ -43,7 +43,9 @@ export const userTeamsApi = {
    * Returns teams grouped by sport (sorted by created_at of first team, oldest first),
    * with teams within each sport sorted by year_joined (newest first).
    */
-  getUserTeamsByUserIdFull: async (userId: number): Promise<Record<string, UserTeamFull[]>> => {
+  getUserTeamsByUserIdFull: async (
+    userId: number
+  ): Promise<Record<string, UserTeamFull[]>> => {
     return authRequest<Record<string, UserTeamFull[]>>(
       `${config.apiBaseUrl}/api/v1/users/${userId}/teams/full`
     );
@@ -63,7 +65,7 @@ export const userTeamsApi = {
    */
   createUserTeam: async (teamData: UserTeamCreate): Promise<UserTeam> => {
     return authRequest<UserTeam>(`${config.apiBaseUrl}/api/v1/user/teams`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(teamData),
     });
   },
@@ -78,7 +80,7 @@ export const userTeamsApi = {
     return authRequest<UserTeam>(
       `${config.apiBaseUrl}/api/v1/user/teams/${userTeamId}`,
       {
-        method: "PATCH",
+        method: 'PATCH',
         body: JSON.stringify(teamData),
       }
     );
@@ -91,7 +93,7 @@ export const userTeamsApi = {
     return authRequest<void>(
       `${config.apiBaseUrl}/api/v1/user/teams/${userTeamId}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
   },

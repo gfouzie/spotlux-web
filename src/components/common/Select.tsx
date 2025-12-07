@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { forwardRef } from "react";
-import { cn } from "@/lib/utils";
+import { forwardRef } from 'react';
+import { cn } from '@/lib/utils';
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -26,14 +26,14 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           className={cn(
             // Base styles
-            "w-full px-4 py-3 rounded-lg transition-all duration-200",
-            "bg-bg-col border border-text-col/30",
-            "text-text-col",
-            "focus:outline-none focus:ring-2 focus:ring-accent-col focus:border-transparent",
-            "cursor-pointer",
+            'w-full px-4 py-3 rounded-lg transition-all duration-200',
+            'bg-bg-col border border-text-col/30',
+            'text-text-col',
+            'focus:outline-none focus:ring-2 focus:ring-accent-col focus:border-transparent',
+            'cursor-pointer',
 
             // Error state
-            error && "border-red-500 focus:ring-red-500",
+            error && 'border-red-500 focus:ring-red-500',
 
             className
           )}
@@ -52,6 +52,6 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
   }
 );
 
-Select.displayName = "Select";
+Select.displayName = 'Select';
 
 export default Select;

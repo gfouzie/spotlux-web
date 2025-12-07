@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Light Mode Colors */
@@ -26,7 +26,7 @@
 }
 
 /* Light Mode (applied via data-theme="light" on html/body) */
-[data-theme="light"] {
+[data-theme='light'] {
   --bg-col: var(--bg-col-light);
   --text-col: var(--text-col-light);
   --accent-col: var(--accent-col-light);
@@ -35,7 +35,7 @@
 }
 
 /* Dark Mode (applied via data-theme="dark" on html/body) */
-[data-theme="dark"] {
+[data-theme='dark'] {
   --bg-col: var(--bg-col-dark);
   --text-col: var(--text-col-dark);
   --accent-col: var(--accent-col-dark);
@@ -60,8 +60,14 @@
 body {
   background: var(--bg-col);
   color: var(--text-col);
-  font-family: var(--font-martel-sans), "Martel Sans", -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    var(--font-martel-sans),
+    'Martel Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
 }
 
 .spotlight-oval {

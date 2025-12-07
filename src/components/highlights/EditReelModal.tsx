@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
-import Modal from "@/components/common/Modal";
-import Select from "@/components/common/Select";
-import Button from "@/components/common/Button";
-import Alert from "@/components/common/Alert";
-import { Xmark, Upload, VideoCamera, Menu, Trash } from "iconoir-react";
-import { HighlightReel, highlightReelsApi } from "@/api/highlightReels";
-import { Highlight, highlightsApi } from "@/api/highlights";
-import { uploadApi } from "@/api/upload";
-import { cn } from "@/lib/utils";
+import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import Modal from '@/components/common/Modal';
+import Select from '@/components/common/Select';
+import Button from '@/components/common/Button';
+import Alert from '@/components/common/Alert';
+import { Xmark, Upload, VideoCamera, Menu, Trash } from 'iconoir-react';
+import { HighlightReel, highlightReelsApi } from '@/api/highlightReels';
+import { Highlight, highlightsApi } from '@/api/highlights';
+import { uploadApi } from '@/api/upload';
+import { cn } from '@/lib/utils';
 
 interface EditReelModalProps {
   isOpen: boolean;
@@ -30,12 +30,16 @@ export default function EditReelModal({
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [shouldRemoveThumbnail, setShouldRemoveThumbnail] = useState(false);
-  const [visibility, setVisibility] = useState<"private" | "public" | "friends_only">("private");
+  const [visibility, setVisibility] = useState<
+    'private' | 'public' | 'friends_only'
+  >('private');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [reorderedClips, setReorderedClips] = useState<Set<number>>(new Set());
-  const [deletingHighlightId, setDeletingHighlightId] = useState<number | null>(null);
+  const [deletingHighlightId, setDeletingHighlightId] = useState<number | null>(
+    null
+  );
 
   // Load highlights for this reel
   const loadHighlights = useCallback(async () => {
@@ -45,7 +49,9 @@ export default function EditReelModal({
       const sorted = highlights?.sort((a, b) => a.orderIndex - b.orderIndex);
       setHighlights(sorted);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load highlights");
+      setError(
+        err instanceof Error ? err.message : 'Failed to load highlights'
+      );
     } finally {
       setIsLoadingHighlights(false);
     }
@@ -68,15 +74,15 @@ export default function EditReelModal({
     setShouldRemoveThumbnail(false);
 
     // Validate file type
-    if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError("Image must be less than 5MB");
+      setError('Image must be less than 5MB');
       return;
     }
 
@@ -86,7 +92,7 @@ export default function EditReelModal({
   };
 
   const handleRemoveThumbnail = () => {
-    if (thumbnailPreview && thumbnailPreview.startsWith("blob:")) {
+    if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
       URL.revokeObjectURL(thumbnailPreview);
     }
     setThumbnailFile(null);
@@ -118,7 +124,11 @@ export default function EditReelModal({
 
     // Mark affected clips as reordered
     const affected = new Set(reorderedClips);
-    for (let i = Math.min(draggedIndex, dropIndex); i <= Math.max(draggedIndex, dropIndex); i++) {
+    for (
+      let i = Math.min(draggedIndex, dropIndex);
+      i <= Math.max(draggedIndex, dropIndex);
+      i++
+    ) {
       affected.add(newHighlights[i].id);
     }
     setReorderedClips(affected);
@@ -131,7 +141,11 @@ export default function EditReelModal({
   };
 
   const handleDeleteHighlight = async (highlightId: number) => {
-    if (!confirm("Are you sure you want to delete this clip? This action cannot be undone.")) {
+    if (
+      !confirm(
+        'Are you sure you want to delete this clip? This action cannot be undone.'
+      )
+    ) {
       return;
     }
 
@@ -142,7 +156,7 @@ export default function EditReelModal({
       await highlightsApi.deleteHighlight(highlightId);
 
       // Remove from local state
-      const updatedHighlights = highlights.filter(h => h.id !== highlightId);
+      const updatedHighlights = highlights.filter((h) => h.id !== highlightId);
       setHighlights(updatedHighlights);
 
       // Remove from reordered clips set if present
@@ -153,7 +167,7 @@ export default function EditReelModal({
       // Reload highlights to get fresh data with updated order indices
       await loadHighlights();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete clip");
+      setError(err instanceof Error ? err.message : 'Failed to delete clip');
     } finally {
       setDeletingHighlightId(null);
     }
@@ -182,7 +196,10 @@ export default function EditReelModal({
       }
 
       // Prepare update data for other fields
-      const updateData: { thumbnailUrl?: string | null; visibility?: "private" | "public" | "friends_only" } = {};
+      const updateData: {
+        thumbnailUrl?: string | null;
+        visibility?: 'private' | 'public' | 'friends_only';
+      } = {};
 
       // Handle thumbnail removal (set to null)
       if (shouldRemoveThumbnail) {
@@ -200,14 +217,14 @@ export default function EditReelModal({
       onSuccess();
       handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update reel");
+      setError(err instanceof Error ? err.message : 'Failed to update reel');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleClose = () => {
-    if (thumbnailPreview && thumbnailPreview.startsWith("blob:")) {
+    if (thumbnailPreview && thumbnailPreview.startsWith('blob:')) {
       URL.revokeObjectURL(thumbnailPreview);
     }
     setThumbnailFile(null);
@@ -246,7 +263,8 @@ export default function EditReelModal({
             <strong>Reel:</strong> {reel.name}
           </p>
           <p className="text-sm text-text-col/60">
-            <strong>Sport:</strong> {reel.sport.charAt(0).toUpperCase() + reel.sport.slice(1)}
+            <strong>Sport:</strong>{' '}
+            {reel.sport.charAt(0).toUpperCase() + reel.sport.slice(1)}
           </p>
         </div>
 
@@ -255,12 +273,17 @@ export default function EditReelModal({
           label="Visibility"
           value={visibility}
           onChange={(e) =>
-            setVisibility(e.target.value as "private" | "public" | "friends_only")
+            setVisibility(
+              e.target.value as 'private' | 'public' | 'friends_only'
+            )
           }
           options={[
-            { value: "private", label: "Private - Only you can see" },
-            { value: "friends_only", label: "Friends Only - Only friends can see" },
-            { value: "public", label: "Public - Everyone can see" },
+            { value: 'private', label: 'Private - Only you can see' },
+            {
+              value: 'friends_only',
+              label: 'Friends Only - Only friends can see',
+            },
+            { value: 'public', label: 'Public - Everyone can see' },
           ]}
           required
         />
@@ -276,15 +299,15 @@ export default function EditReelModal({
 
           {thumbnailPreview ? (
             <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-bg-col">
-              {thumbnailPreview.endsWith(".mp4") ||
-              thumbnailPreview.endsWith(".mov") ||
-              thumbnailPreview.endsWith(".webm") ? (
+              {thumbnailPreview.endsWith('.mp4') ||
+              thumbnailPreview.endsWith('.mov') ||
+              thumbnailPreview.endsWith('.webm') ? (
                 <video
                   src={thumbnailPreview}
                   className="w-full h-full object-cover"
                   preload="metadata"
                 />
-              ) : thumbnailPreview.startsWith("blob:") ? (
+              ) : thumbnailPreview.startsWith('blob:') ? (
                 // Use regular img for blob URLs (locally selected files)
                 <img
                   src={thumbnailPreview}
@@ -322,12 +345,14 @@ export default function EditReelModal({
               <label
                 htmlFor="thumbnail-upload"
                 className={cn(
-                  "cursor-pointer flex flex-col items-center gap-2",
-                  isSubmitting && "opacity-50 cursor-not-allowed"
+                  'cursor-pointer flex flex-col items-center gap-2',
+                  isSubmitting && 'opacity-50 cursor-not-allowed'
                 )}
               >
                 <Upload className="w-8 h-8 text-text-col/40" />
-                <p className="text-sm text-text-col/80">Click to upload thumbnail</p>
+                <p className="text-sm text-text-col/80">
+                  Click to upload thumbnail
+                </p>
                 <p className="text-xs text-text-col/60">
                   JPG, PNG, WEBP up to 5MB
                 </p>
@@ -354,7 +379,9 @@ export default function EditReelModal({
           ) : highlights?.length === 0 ? (
             <div className="text-center py-8 bg-bg-col/30 rounded-lg border border-bg-col">
               <VideoCamera className="w-12 h-12 text-text-col/20 mx-auto mb-2" />
-              <p className="text-sm text-text-col/60">No clips in this reel yet</p>
+              <p className="text-sm text-text-col/60">
+                No clips in this reel yet
+              </p>
             </div>
           ) : (
             <div className="space-y-2 max-h-80 overflow-y-auto">
@@ -367,10 +394,10 @@ export default function EditReelModal({
                   onDrop={(e) => handleDrop(e, index)}
                   onDragEnd={handleDragEnd}
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded border transition-all cursor-move",
+                    'flex items-center gap-3 p-3 rounded border transition-all cursor-move',
                     draggedIndex === index
-                      ? "opacity-50 bg-bg-col/50 border-accent-col"
-                      : "bg-bg-col/30 border-bg-col hover:border-accent-col/50"
+                      ? 'opacity-50 bg-bg-col/50 border-accent-col'
+                      : 'bg-bg-col/30 border-bg-col hover:border-accent-col/50'
                   )}
                 >
                   {/* Drag Handle */}
@@ -422,7 +449,6 @@ export default function EditReelModal({
             </div>
           )}
         </div>
-
       </div>
     </Modal>
   );

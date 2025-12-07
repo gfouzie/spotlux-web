@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useEffect, forwardRef } from "react";
-import { cn } from "@/lib/utils";
-import { Xmark } from "iconoir-react";
-import Button from "./Button";
+import { useEffect, forwardRef } from 'react';
+import { cn } from '@/lib/utils';
+import { Xmark } from 'iconoir-react';
+import Button from './Button';
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl" | "full";
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   showCloseButton?: boolean;
   closeOnOverlayClick?: boolean;
   className?: string;
@@ -24,7 +24,7 @@ interface ModalProps {
   confirmDisabled?: boolean;
   cancelDisabled?: boolean;
   confirmLoading?: boolean;
-  confirmVariant?: "primary" | "secondary" | "danger" | "success";
+  confirmVariant?: 'primary' | 'secondary' | 'danger' | 'success';
   showFooter?: boolean;
 }
 
@@ -35,12 +35,12 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
       onClose,
       title,
       children,
-      size = "md",
+      size = 'md',
       showCloseButton = true,
       closeOnOverlayClick = true,
       className,
-      confirmText = "Confirm",
-      cancelText = "Cancel",
+      confirmText = 'Confirm',
+      cancelText = 'Cancel',
       onConfirm,
       onCancel,
       hideConfirm = false,
@@ -48,7 +48,7 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
       confirmDisabled = false,
       cancelDisabled = false,
       confirmLoading = false,
-      confirmVariant = "primary",
+      confirmVariant = 'primary',
       showFooter = false,
     },
     ref
@@ -58,20 +58,20 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
     // Handle escape key
     useEffect(() => {
       const handleEscape = (e: KeyboardEvent) => {
-        if (e.key === "Escape" && isOpen) {
+        if (e.key === 'Escape' && isOpen) {
           onClose();
         }
       };
 
       if (isOpen) {
-        document.addEventListener("keydown", handleEscape);
+        document.addEventListener('keydown', handleEscape);
         // Prevent body scroll when modal is open
-        document.body.style.overflow = "hidden";
+        document.body.style.overflow = 'hidden';
       }
 
       return () => {
-        document.removeEventListener("keydown", handleEscape);
-        document.body.style.overflow = "unset";
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = 'unset';
       };
     }, [isOpen, onClose]);
 
@@ -80,11 +80,11 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
     }
 
     const sizeStyles = {
-      sm: "max-w-md",
-      md: "max-w-lg",
-      lg: "max-w-2xl",
-      xl: "max-w-4xl",
-      full: "max-w-full mx-4",
+      sm: 'max-w-md',
+      md: 'max-w-lg',
+      lg: 'max-w-2xl',
+      xl: 'max-w-4xl',
+      full: 'max-w-full mx-4',
     };
 
     return (
@@ -92,7 +92,7 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
         className="fixed inset-0 z-50 flex items-center justify-center h-screen w-screen"
         role="dialog"
         aria-modal="true"
-        aria-labelledby={title ? "modal-title" : undefined}
+        aria-labelledby={title ? 'modal-title' : undefined}
       >
         {/* Overlay */}
         <div
@@ -105,9 +105,9 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
         <div
           ref={ref}
           className={cn(
-            "relative w-full bg-card-col rounded-lg shadow-xl",
-            "transform transition-all duration-200",
-            "max-h-[90vh] overflow-hidden flex flex-col",
+            'relative w-full bg-card-col rounded-lg shadow-xl',
+            'transform transition-all duration-200',
+            'max-h-[90vh] overflow-hidden flex flex-col',
             sizeStyles[size],
             className
           )}
@@ -175,6 +175,6 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
   }
 );
 
-Modal.displayName = "Modal";
+Modal.displayName = 'Modal';
 
 export default Modal;

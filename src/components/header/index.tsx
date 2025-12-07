@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import LoggedInHeader from "./LoggedInHeader";
-import LoggedOutHeader from "./LoggedOutHeader";
+import { useAuth } from '@/contexts/AuthContext';
+import LoggedInHeader from './LoggedInHeader';
+import LoggedOutHeader from './LoggedOutHeader';
 
 export default function Header() {
   const { isAuthenticated, isLoading } = useAuth();

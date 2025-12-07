@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   createContext,
@@ -7,9 +7,9 @@ import {
   useState,
   useCallback,
   ReactNode,
-} from "react";
-import { profileApi, type UserProfile } from "@/api/profile";
-import { useAuth } from "./AuthContext";
+} from 'react';
+import { profileApi, type UserProfile } from '@/api/profile';
+import { useAuth } from './AuthContext';
 
 interface UserContextType {
   user: UserProfile | null;
@@ -30,7 +30,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const userData = await profileApi.getProfile();
       setUser(userData);
     } catch (error) {
-      console.error("Failed to fetch user data:", error);
+      console.error('Failed to fetch user data:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -50,11 +50,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       setIsLoading(false);
     }
-  }, [
-    isAuthenticated,
-    authLoading,
-    fetchUserData,
-  ]);
+  }, [isAuthenticated, authLoading, fetchUserData]);
 
   const value: UserContextType = {
     user,
@@ -68,7 +64,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 export const useUserContext = (): UserContextType => {
   const context = useContext(UserContext);
   if (context === undefined) {
-    throw new Error("useUserContext must be used within a UserProvider");
+    throw new Error('useUserContext must be used within a UserProvider');
   }
   return context;
 };

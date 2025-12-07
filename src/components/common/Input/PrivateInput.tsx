@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { forwardRef, useState } from "react";
-import { Eye, EyeClosed } from "iconoir-react";
-import Input, { type InputProps } from "./index";
+import { forwardRef, useState } from 'react';
+import { Eye, EyeClosed } from 'iconoir-react';
+import Input, { type InputProps } from './index';
 
-interface PrivateInputProps extends Omit<InputProps, "type" | "rightIcon"> {
+interface PrivateInputProps extends Omit<InputProps, 'type' | 'rightIcon'> {
   showPasswordToggle?: boolean;
 }
 
@@ -29,7 +29,7 @@ const PrivateInput = forwardRef<HTMLInputElement, PrivateInputProps>(
     return (
       <Input
         ref={ref}
-        type={showPassword ? "text" : "password"}
+        type={showPassword ? 'text' : 'password'}
         rightIcon={toggleButton}
         {...props}
       />
@@ -37,6 +37,6 @@ const PrivateInput = forwardRef<HTMLInputElement, PrivateInputProps>(
   }
 );
 
-PrivateInput.displayName = "PrivateInput";
+PrivateInput.displayName = 'PrivateInput';
 
 export default PrivateInput;

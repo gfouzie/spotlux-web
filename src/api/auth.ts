@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
-import { apiRequest, authRequest } from "./shared";
+import { config } from '@/lib/config';
+import { apiRequest, authRequest } from './shared';
 
 /**
  * Login credentials interface
@@ -27,9 +27,9 @@ export const authApi = {
    */
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     return apiRequest<LoginResponse>(`${config.apiBaseUrl}/api/v1/login`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(credentials),
     });
@@ -42,7 +42,7 @@ export const authApi = {
     return authRequest<{ message: string }>(
       `${config.apiBaseUrl}/api/v1/logout`,
       {
-        method: "POST",
+        method: 'POST',
       }
     );
   },
@@ -52,9 +52,9 @@ export const authApi = {
    */
   refresh: async (refreshToken: string): Promise<LoginResponse> => {
     return apiRequest<LoginResponse>(`${config.apiBaseUrl}/api/v1/refresh`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ refreshToken }),
     });

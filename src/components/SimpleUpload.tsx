@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useRef } from "react";
-import Button from "@/components/common/Button";
-import { uploadApi } from "@/api/upload";
-import { ApiError } from "@/api/shared";
+import { useState, useRef } from 'react';
+import Button from '@/components/common/Button';
+import { uploadApi } from '@/api/upload';
+import { ApiError } from '@/api/shared';
 
 interface UploadResult {
   success: boolean;
@@ -32,17 +32,17 @@ const SimpleUpload = () => {
         fileUrl: result.profileImageUrl,
       });
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error('Upload error:', error);
 
       if (error instanceof ApiError) {
         setUploadResult({ success: false, error: error.message });
       } else {
-        setUploadResult({ success: false, error: "Upload failed" });
+        setUploadResult({ success: false, error: 'Upload failed' });
       }
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
     }
   };
@@ -59,7 +59,8 @@ const SimpleUpload = () => {
             <strong>Upload Type:</strong> Profile Picture
           </p>
           <p className="text-xs text-text-col/60 mt-1">
-            This demo only supports profile picture uploads. Other upload types require additional context (reel IDs, etc.)
+            This demo only supports profile picture uploads. Other upload types
+            require additional context (reel IDs, etc.)
           </p>
         </div>
 
@@ -77,7 +78,7 @@ const SimpleUpload = () => {
           size="lg"
           className="w-full"
         >
-          {isUploading ? "Uploading..." : "Select File"}
+          {isUploading ? 'Uploading...' : 'Select File'}
         </Button>
 
         {uploadResult && (

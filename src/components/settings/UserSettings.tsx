@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
-import Button from "@/components/common/Button";
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import Button from '@/components/common/Button';
 
 interface UserSettingsProps {
   user?: {
@@ -48,14 +48,14 @@ const UserSettings = ({ user }: UserSettingsProps) => {
           <div className="flex justify-between items-center py-2 border-b border-text-col/10">
             <span className="text-sm font-medium text-text-col">Username</span>
             <span className="text-sm text-text-col/70">
-              {user?.username || "demo_user"}
+              {user?.username || 'demo_user'}
             </span>
           </div>
 
           <div className="flex justify-between items-center py-2 border-b border-text-col/10">
             <span className="text-sm font-medium text-text-col">Email</span>
             <span className="text-sm text-text-col/70">
-              {user?.email || "user@example.com"}
+              {user?.email || 'user@example.com'}
             </span>
           </div>
 
@@ -64,7 +64,7 @@ const UserSettings = ({ user }: UserSettingsProps) => {
             <span className="text-sm text-text-col/70">
               {user?.firstName && user?.lastName
                 ? `${user.firstName} ${user.lastName}`
-                : "Not provided"}
+                : 'Not provided'}
             </span>
           </div>
         </div>
@@ -83,7 +83,7 @@ const UserSettings = ({ user }: UserSettingsProps) => {
               </p>
             </div>
             <Button onClick={toggleTheme} variant="secondary" size="sm">
-              Switch to {theme === "light" ? "Dark" : "Light"} Mode
+              Switch to {theme === 'light' ? 'Dark' : 'Light'} Mode
             </Button>
           </div>
         </div>

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Tab, TabList } from "@/components/common/Tabs";
-import { useProfileSport } from "@/contexts/ProfileSportContext";
+import { Tab, TabList } from '@/components/common/Tabs';
+import { useProfileSport } from '@/contexts/ProfileSportContext';
 
 export default function ProfileSportSelector() {
   const { userSports, selectedSport, setSelectedSport } = useProfileSport();

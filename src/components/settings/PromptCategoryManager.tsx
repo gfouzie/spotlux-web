@@ -1,11 +1,15 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
-import { promptCategoriesApi, type PromptCategory, type PromptCategoryCreateRequest } from "@/api/promptCategories";
-import Button from "@/components/common/Button";
-import Input from "@/components/common/Input";
-import Alert from "@/components/common/Alert";
-import LoadingState from "@/components/common/LoadingState";
+import { useState, useEffect, useCallback } from 'react';
+import {
+  promptCategoriesApi,
+  type PromptCategory,
+  type PromptCategoryCreateRequest,
+} from '@/api/promptCategories';
+import Button from '@/components/common/Button';
+import Input from '@/components/common/Input';
+import Alert from '@/components/common/Alert';
+import LoadingState from '@/components/common/LoadingState';
 
 export default function PromptCategoryManager() {
   const [categories, setCategories] = useState<PromptCategory[]>([]);
@@ -17,7 +21,7 @@ export default function PromptCategoryManager() {
 
   // Form state
   const [formData, setFormData] = useState({
-    name: "",
+    name: '',
   });
 
   const loadCategories = useCallback(async () => {
@@ -27,7 +31,9 @@ export default function PromptCategoryManager() {
       const categories = await promptCategoriesApi.getPromptCategories();
       setCategories(categories);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load categories");
+      setError(
+        err instanceof Error ? err.message : 'Failed to load categories'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -38,7 +44,7 @@ export default function PromptCategoryManager() {
   }, [loadCategories]);
 
   const resetForm = () => {
-    setFormData({ name: "" });
+    setFormData({ name: '' });
     setShowCreateForm(false);
     setEditingId(null);
   };
@@ -52,17 +58,19 @@ export default function PromptCategoryManager() {
       if (editingId) {
         // Update existing category
         await promptCategoriesApi.updatePromptCategory(editingId, formData);
-        setSuccess("Category updated successfully");
+        setSuccess('Category updated successfully');
       } else {
         // Create new category
-        await promptCategoriesApi.createPromptCategory(formData as PromptCategoryCreateRequest);
-        setSuccess("Category created successfully");
+        await promptCategoriesApi.createPromptCategory(
+          formData as PromptCategoryCreateRequest
+        );
+        setSuccess('Category created successfully');
       }
 
       resetForm();
       loadCategories();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save category");
+      setError(err instanceof Error ? err.message : 'Failed to save category');
     }
   };
 
@@ -75,15 +83,17 @@ export default function PromptCategoryManager() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+    if (!confirm('Are you sure you want to delete this category?')) return;
 
     try {
       setError(null);
       await promptCategoriesApi.deletePromptCategory(id);
-      setSuccess("Category deleted successfully");
+      setSuccess('Category deleted successfully');
       loadCategories();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete category");
+      setError(
+        err instanceof Error ? err.message : 'Failed to delete category'
+      );
     }
   };
 
@@ -94,7 +104,9 @@ export default function PromptCategoryManager() {
   return (
     <div className="bg-card-col rounded-lg p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-text-col">Prompt Categories</h2>
+        <h2 className="text-xl font-semibold text-text-col">
+          Prompt Categories
+        </h2>
         {!showCreateForm && (
           <Button
             variant="primary"
@@ -115,22 +127,31 @@ export default function PromptCategoryManager() {
       )}
 
       {success && (
-        <Alert variant="success" onClose={() => setSuccess(null)} className="mb-4">
+        <Alert
+          variant="success"
+          onClose={() => setSuccess(null)}
+          className="mb-4"
+        >
           {success}
         </Alert>
       )}
 
       {showCreateForm && (
-        <form onSubmit={handleSubmit} className="mb-6 p-4 bg-bg-col/30 rounded border border-bg-col">
+        <form
+          onSubmit={handleSubmit}
+          className="mb-6 p-4 bg-bg-col/30 rounded border border-bg-col"
+        >
           <h3 className="text-lg font-medium text-text-col mb-4">
-            {editingId ? "Edit Category" : "Create New Category"}
+            {editingId ? 'Edit Category' : 'Create New Category'}
           </h3>
 
           <div className="space-y-4">
             <Input
               label="Category Name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="e.g., Game, Practice, Drill"
               required
             />
@@ -138,13 +159,9 @@ export default function PromptCategoryManager() {
 
           <div className="flex gap-2 mt-4">
             <Button type="submit" variant="primary">
-              {editingId ? "Update" : "Create"}
+              {editingId ? 'Update' : 'Create'}
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={resetForm}
-            >
+            <Button type="button" variant="secondary" onClick={resetForm}>
               Cancel
             </Button>
           </div>

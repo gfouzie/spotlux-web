@@ -1,8 +1,8 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
-import { UserProfile } from "./profile";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
+import { UserProfile } from './profile';
 
-export type FriendshipStatus = "pending" | "accepted" | "rejected";
+export type FriendshipStatus = 'pending' | 'accepted' | 'rejected';
 
 export interface Friendship {
   id: number;
@@ -22,7 +22,7 @@ export interface FriendshipSendResponse extends Friendship {
 }
 
 export interface FriendshipStatusResponse {
-  status: "accepted" | "pending" | "none";
+  status: 'accepted' | 'pending' | 'none';
   isRequester: boolean;
   friendshipId?: number | null;
 }
@@ -35,7 +35,7 @@ export const friendshipsApi = {
     return authRequest<FriendshipSendResponse>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(request),
       }
     );
@@ -54,7 +54,7 @@ export const friendshipsApi = {
     return authRequest<Friendship[]>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/received?${params}`,
       {
-        cache: "no-store",
+        cache: 'no-store',
       }
     );
   },
@@ -72,7 +72,7 @@ export const friendshipsApi = {
     return authRequest<Friendship[]>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/sent?${params}`,
       {
-        cache: "no-store",
+        cache: 'no-store',
       }
     );
   },
@@ -82,7 +82,7 @@ export const friendshipsApi = {
     return authRequest<Friendship>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/${friendshipId}/accept`,
       {
-        method: "PATCH",
+        method: 'PATCH',
       }
     );
   },
@@ -92,7 +92,7 @@ export const friendshipsApi = {
     return authRequest<Friendship>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/${friendshipId}/reject`,
       {
-        method: "PATCH",
+        method: 'PATCH',
       }
     );
   },
@@ -110,7 +110,7 @@ export const friendshipsApi = {
     return authRequest<UserProfile[]>(
       `${config.apiBaseUrl}/api/v1/user/friends?${params}`,
       {
-        cache: "no-store",
+        cache: 'no-store',
       }
     );
   },
@@ -120,7 +120,7 @@ export const friendshipsApi = {
     await authRequest<void>(
       `${config.apiBaseUrl}/api/v1/user/friends/${userId}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
   },
@@ -139,19 +139,17 @@ export const friendshipsApi = {
     return authRequest<UserProfile[]>(
       `${config.apiBaseUrl}/api/v1/users/${userId}/friends?${params}`,
       {
-        cache: "no-store",
+        cache: 'no-store',
       }
     );
   },
 
   // Check friendship status with a user
-  async getFriendshipStatus(
-    userId: number
-  ): Promise<FriendshipStatusResponse> {
+  async getFriendshipStatus(userId: number): Promise<FriendshipStatusResponse> {
     return authRequest<FriendshipStatusResponse>(
       `${config.apiBaseUrl}/api/v1/users/${userId}/friendship-status`,
       {
-        cache: "no-store",
+        cache: 'no-store',
       }
     );
   },
@@ -170,7 +168,7 @@ export const friendshipsApi = {
     return authRequest<UserProfile[]>(
       `${config.apiBaseUrl}/api/v1/users/${userId}/mutual-friends?${params}`,
       {
-        cache: "no-store",
+        cache: 'no-store',
       }
     );
   },

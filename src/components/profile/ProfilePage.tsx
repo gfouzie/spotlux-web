@@ -1,18 +1,24 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import ProfilePictureSection from "@/components/profile/ProfilePictureSection";
-import ProfileSportSelector from "@/components/profile/ProfileSportSelector";
-import SportTabContent from "@/components/highlights/SportTabContent";
-import { profileApi } from "@/api/profile";
-import { useAuth } from "@/contexts/AuthContext";
-import { useUser } from "@/contexts/UserContext";
-import { ProfileSportProvider, useProfileSport } from "@/contexts/ProfileSportContext";
+import React, { useState, useEffect } from 'react';
+import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
+import ProfilePictureSection from '@/components/profile/ProfilePictureSection';
+import ProfileSportSelector from '@/components/profile/ProfileSportSelector';
+import SportTabContent from '@/components/highlights/SportTabContent';
+import { profileApi } from '@/api/profile';
+import { useUser } from '@/contexts/UserContext';
+import {
+  ProfileSportProvider,
+  useProfileSport,
+} from '@/contexts/ProfileSportContext';
 
 function ProfileContent() {
   const { user } = useUser();
-  const { userSports, selectedSport, isLoading: sportsLoading } = useProfileSport();
+  const {
+    userSports,
+    selectedSport,
+    isLoading: sportsLoading,
+  } = useProfileSport();
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -23,7 +29,7 @@ function ProfileContent() {
         const profileData = await profileApi.getProfile();
         setProfileImageUrl(profileData.profileImageUrl);
       } catch (err) {
-        console.error("Failed to load profile:", err);
+        console.error('Failed to load profile:', err);
       } finally {
         setProfileLoading(false);
       }
@@ -40,7 +46,9 @@ function ProfileContent() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-text-col">{user?.username || "Profile"}</h1>
+            <h1 className="text-3xl font-bold text-text-col">
+              {user?.username || 'Profile'}
+            </h1>
           </div>
 
           {/* Profile Sections */}
@@ -59,9 +67,7 @@ function ProfileContent() {
               />
 
               {/* Sport Selector - Shared across all sections */}
-              {userSports.length > 0 && (
-                  <ProfileSportSelector />
-              )}
+              {userSports.length > 0 && <ProfileSportSelector />}
 
               {/* Highlights Section */}
               {user && selectedSport && (
@@ -69,10 +75,7 @@ function ProfileContent() {
                   <h2 className="text-2xl font-bold text-text-col mb-6">
                     Highlights
                   </h2>
-                  <SportTabContent
-                    sport={selectedSport}
-                    isOwner={true}
-                  />
+                  <SportTabContent sport={selectedSport} isOwner={true} />
                 </div>
               )}
 

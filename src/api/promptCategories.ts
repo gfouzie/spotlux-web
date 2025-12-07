@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
 
 /**
  * Prompt category interface
@@ -39,14 +39,18 @@ export const promptCategoriesApi = {
   /**
    * Get prompt categories with pagination and filtering
    */
-  getPromptCategories: async (params?: GetPromptCategoriesParams): Promise<PromptCategory[]> => {
+  getPromptCategories: async (
+    params?: GetPromptCategoriesParams
+  ): Promise<PromptCategory[]> => {
     const queryParams = new URLSearchParams();
 
-    if (params?.offset !== undefined) queryParams.append("offset", params.offset.toString());
-    if (params?.limit !== undefined) queryParams.append("limit", params.limit.toString());
-    if (params?.searchText) queryParams.append("searchText", params.searchText);
+    if (params?.offset !== undefined)
+      queryParams.append('offset', params.offset.toString());
+    if (params?.limit !== undefined)
+      queryParams.append('limit', params.limit.toString());
+    if (params?.searchText) queryParams.append('searchText', params.searchText);
 
-    const url = `${config.apiBaseUrl}/api/v1/prompt_categories${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+    const url = `${config.apiBaseUrl}/api/v1/prompt_categories${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<PromptCategory[]>(url);
   },
 
@@ -59,7 +63,7 @@ export const promptCategoriesApi = {
     return authRequest<PromptCategory>(
       `${config.apiBaseUrl}/api/v1/prompt_categories`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify(data),
       }
     );
@@ -75,7 +79,7 @@ export const promptCategoriesApi = {
     return authRequest<PromptCategory>(
       `${config.apiBaseUrl}/api/v1/prompt_categories/${id}`,
       {
-        method: "PATCH",
+        method: 'PATCH',
         body: JSON.stringify(data),
       }
     );
@@ -88,7 +92,7 @@ export const promptCategoriesApi = {
     return authRequest<void>(
       `${config.apiBaseUrl}/api/v1/prompt_categories/${id}`,
       {
-        method: "DELETE",
+        method: 'DELETE',
       }
     );
   },

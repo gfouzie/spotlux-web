@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useState, useRef } from "react";
-import { teamsApi, CreateTeamData } from "@/api/teams";
-import { uploadApi } from "@/api/upload";
-import { Team } from "@/types/team";
-import { validateImageFile } from "@/lib/compression";
+import React, { useState, useRef } from 'react';
+import { teamsApi, CreateTeamData } from '@/api/teams';
+import { uploadApi } from '@/api/upload';
+import { Team } from '@/types/team';
+import { validateImageFile } from '@/lib/compression';
 
 interface CreateTeamFormProps {
   onTeamCreated?: (team: Team) => void;
@@ -12,9 +12,9 @@ interface CreateTeamFormProps {
 
 const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated }) => {
   const [formData, setFormData] = useState<CreateTeamData>({
-    name: "",
-    sport: "basketball",
-    level: "",
+    name: '',
+    sport: 'basketball',
+    level: '',
   });
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,14 +23,14 @@ const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sports = [
-    "basketball",
-    "soccer",
-    "football",
-    "baseball",
-    "hockey",
-    "volleyball",
-    "tennis",
-    "golf",
+    'basketball',
+    'soccer',
+    'football',
+    'baseball',
+    'hockey',
+    'volleyball',
+    'tennis',
+    'golf',
   ];
 
   const handleInputChange = (
@@ -49,7 +49,7 @@ const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated }) => {
       // Validate file using validation function
       const validation = validateImageFile(file);
       if (!validation.valid) {
-        setError(validation.error || "Invalid image file");
+        setError(validation.error || 'Invalid image file');
         return;
       }
 
@@ -64,7 +64,7 @@ const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated }) => {
     setSuccess(null);
 
     if (!formData.name.trim()) {
-      setError("Team name is required");
+      setError('Team name is required');
       return;
     }
 
@@ -76,26 +76,29 @@ const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated }) => {
 
       // Upload profile picture if provided
       if (profileImage) {
-        const uploadData = await uploadApi.uploadTeamPicture(team.id, profileImage);
+        const uploadData = await uploadApi.uploadTeamPicture(
+          team.id,
+          profileImage
+        );
         team.profileImageUrl = uploadData.profileImageUrl;
       }
 
       setSuccess(`Team "${team.name}" created successfully!`);
       setFormData({
-        name: "",
-        sport: "basketball",
-        level: "",
+        name: '',
+        sport: 'basketball',
+        level: '',
       });
       setProfileImage(null);
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
 
       if (onTeamCreated) {
         onTeamCreated(team);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create team");
+      setError(err instanceof Error ? err.message : 'Failed to create team');
     } finally {
       setLoading(false);
     }
@@ -162,7 +165,7 @@ const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated }) => {
             type="text"
             id="level"
             name="level"
-            value={formData.level || ""}
+            value={formData.level || ''}
             onChange={handleInputChange}
             className="w-full px-3 py-2 bg-bg-col text-text-col border border-component-col rounded-md focus:outline-none focus:ring-2 focus:ring-accent-col"
             placeholder="e.g., Professional, College, High School"
@@ -212,7 +215,7 @@ const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated }) => {
           disabled={loading}
           className="w-full cursor-pointer px-4 py-3 bg-accent-col text-text-col font-medium rounded-md hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Creating Team..." : "Create Team"}
+          {loading ? 'Creating Team...' : 'Create Team'}
         </button>
       </form>
 

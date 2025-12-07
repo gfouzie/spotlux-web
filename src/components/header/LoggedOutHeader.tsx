@@ -1,14 +1,12 @@
-import Link from "next/link";
-import Image from "next/image";
-import { useTheme } from "@/contexts/ThemeContext";
+import Link from 'next/link';
+import Image from 'next/image';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function LoggedOutHeader() {
   const { theme } = useTheme();
 
   const logoSrc =
-    theme === "light"
-      ? "/spotlux_logo_light.png"
-      : "/spotlux_logo_dark.png";
+    theme === 'light' ? '/spotlux_logo_light.png' : '/spotlux_logo_dark.png';
 
   console.log(logoSrc);
   return (

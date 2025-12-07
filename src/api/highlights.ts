@@ -1,5 +1,5 @@
-import { config } from "@/lib/config";
-import { authRequest } from "./shared";
+import { config } from '@/lib/config';
+import { authRequest } from './shared';
 
 /**
  * Highlight interface
@@ -68,13 +68,20 @@ export const highlightsApi = {
   getHighlights: async (params?: GetHighlightsParams): Promise<Highlight[]> => {
     const queryParams = new URLSearchParams();
 
-    if (params?.highlightReelId) queryParams.append("highlight_reel_id", params.highlightReelId.toString());
-    if (params?.promptId) queryParams.append("prompt_id", params.promptId.toString());
-    if (params?.offset !== undefined) queryParams.append("offset", params.offset.toString());
-    if (params?.limit !== undefined) queryParams.append("limit", params.limit.toString());
-    if (params?.searchText) queryParams.append("searchText", params.searchText);
+    if (params?.highlightReelId)
+      queryParams.append(
+        'highlight_reel_id',
+        params.highlightReelId.toString()
+      );
+    if (params?.promptId)
+      queryParams.append('prompt_id', params.promptId.toString());
+    if (params?.offset !== undefined)
+      queryParams.append('offset', params.offset.toString());
+    if (params?.limit !== undefined)
+      queryParams.append('limit', params.limit.toString());
+    if (params?.searchText) queryParams.append('searchText', params.searchText);
 
-    const url = `${config.apiBaseUrl}/api/v1/highlights${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+    const url = `${config.apiBaseUrl}/api/v1/highlights${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<Highlight[]>(url);
   },
 
@@ -86,7 +93,11 @@ export const highlightsApi = {
     offset: number = 0,
     limit: number = 100
   ): Promise<Highlight[]> => {
-    return highlightsApi.getHighlights({ highlightReelId: reelId, offset, limit });
+    return highlightsApi.getHighlights({
+      highlightReelId: reelId,
+      offset,
+      limit,
+    });
   },
 
   /**
@@ -101,16 +112,11 @@ export const highlightsApi = {
   /**
    * Create a new highlight
    */
-  createHighlight: async (
-    data: HighlightCreateRequest
-  ): Promise<Highlight> => {
-    return authRequest<Highlight>(
-      `${config.apiBaseUrl}/api/v1/highlights`,
-      {
-        method: "POST",
-        body: JSON.stringify(data),
-      }
-    );
+  createHighlight: async (data: HighlightCreateRequest): Promise<Highlight> => {
+    return authRequest<Highlight>(`${config.apiBaseUrl}/api/v1/highlights`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 
   /**
@@ -123,7 +129,7 @@ export const highlightsApi = {
     return authRequest<Highlight>(
       `${config.apiBaseUrl}/api/v1/highlights/${id}`,
       {
-        method: "PATCH",
+        method: 'PATCH',
         body: JSON.stringify(data),
       }
     );
@@ -133,12 +139,9 @@ export const highlightsApi = {
    * Delete a highlight
    */
   deleteHighlight: async (id: number): Promise<void> => {
-    return authRequest<void>(
-      `${config.apiBaseUrl}/api/v1/highlights/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
+    return authRequest<void>(`${config.apiBaseUrl}/api/v1/highlights/${id}`, {
+      method: 'DELETE',
+    });
   },
 
   /**
@@ -147,12 +150,9 @@ export const highlightsApi = {
   bulkReorderHighlights: async (
     data: HighlightBulkReorderRequest
   ): Promise<void> => {
-    return authRequest<void>(
-      `${config.apiBaseUrl}/api/v1/highlights/reorder`,
-      {
-        method: "POST",
-        body: JSON.stringify(data),
-      }
-    );
+    return authRequest<void>(`${config.apiBaseUrl}/api/v1/highlights/reorder`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 };

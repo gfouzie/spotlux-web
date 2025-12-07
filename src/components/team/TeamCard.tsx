@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import Image from "next/image";
-import { Team } from "@/types/team";
+import React from 'react';
+import Image from 'next/image';
+import { Team } from '@/types/team';
 
 interface TeamCardProps {
   team: Team;

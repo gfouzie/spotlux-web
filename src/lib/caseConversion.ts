@@ -24,7 +24,7 @@ export const keysToCamel = (obj: any): any => {
     return obj.map(keysToCamel);
   }
 
-  if (typeof obj === "object" && obj.constructor === Object) {
+  if (typeof obj === 'object' && obj.constructor === Object) {
     return Object.keys(obj).reduce((acc, key) => {
       const camelKey = toCamelCase(key);
       acc[camelKey] = keysToCamel(obj[key]);
@@ -47,7 +47,7 @@ export const keysToSnake = (obj: any): any => {
     return obj.map(keysToSnake);
   }
 
-  if (typeof obj === "object" && obj.constructor === Object) {
+  if (typeof obj === 'object' && obj.constructor === Object) {
     return Object.keys(obj).reduce((acc, key) => {
       const snakeKey = toSnakeCase(key);
       acc[snakeKey] = keysToSnake(obj[key]);

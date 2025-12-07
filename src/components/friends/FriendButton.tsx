@@ -1,17 +1,23 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { friendshipsApi, type FriendshipStatusResponse } from "@/api/friendships";
-import Button from "@/components/common/Button";
-import Alert from "@/components/common/Alert";
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  friendshipsApi,
+  type FriendshipStatusResponse,
+} from '@/api/friendships';
+import Button from '@/components/common/Button';
+import Alert from '@/components/common/Alert';
 
 interface FriendButtonProps {
   userId: number;
   onStatusChange?: () => void;
 }
 
-export default function FriendButton({ userId, onStatusChange }: FriendButtonProps) {
+export default function FriendButton({
+  userId,
+  onStatusChange,
+}: FriendButtonProps) {
   const { isAuthenticated } = useAuth();
   const [status, setStatus] = useState<FriendshipStatusResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,12 +37,12 @@ export default function FriendButton({ userId, onStatusChange }: FriendButtonPro
     try {
       setIsLoading(true);
       setError(null);
-      const statusData = await friendshipsApi.getFriendshipStatus(
-        userId
-      );
+      const statusData = await friendshipsApi.getFriendshipStatus(userId);
       setStatus(statusData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load friendship status");
+      setError(
+        err instanceof Error ? err.message : 'Failed to load friendship status'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +66,9 @@ export default function FriendButton({ userId, onStatusChange }: FriendButtonPro
       await loadFriendshipStatus();
       onStatusChange?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send friend request");
+      setError(
+        err instanceof Error ? err.message : 'Failed to send friend request'
+      );
     } finally {
       setIsActionLoading(false);
     }
@@ -76,7 +84,9 @@ export default function FriendButton({ userId, onStatusChange }: FriendButtonPro
       await loadFriendshipStatus();
       onStatusChange?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to accept friend request");
+      setError(
+        err instanceof Error ? err.message : 'Failed to accept friend request'
+      );
     } finally {
       setIsActionLoading(false);
     }
@@ -92,7 +102,9 @@ export default function FriendButton({ userId, onStatusChange }: FriendButtonPro
       await loadFriendshipStatus();
       onStatusChange?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reject friend request");
+      setError(
+        err instanceof Error ? err.message : 'Failed to reject friend request'
+      );
     } finally {
       setIsActionLoading(false);
     }
@@ -100,7 +112,7 @@ export default function FriendButton({ userId, onStatusChange }: FriendButtonPro
 
   const handleUnfriend = async () => {
     if (!isAuthenticated) return;
-    if (!confirm("Are you sure you want to unfriend this user?")) return;
+    if (!confirm('Are you sure you want to unfriend this user?')) return;
 
     try {
       setIsActionLoading(true);
@@ -109,14 +121,18 @@ export default function FriendButton({ userId, onStatusChange }: FriendButtonPro
       await loadFriendshipStatus();
       onStatusChange?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to unfriend user");
+      setError(err instanceof Error ? err.message : 'Failed to unfriend user');
     } finally {
       setIsActionLoading(false);
     }
   };
 
   if (isLoading) {
-    return <Button size="sm" disabled>Loading...</Button>;
+    return (
+      <Button size="sm" disabled>
+        Loading...
+      </Button>
+    );
   }
 
   if (!status) {
@@ -137,7 +153,7 @@ export default function FriendButton({ userId, onStatusChange }: FriendButtonPro
         </Alert>
       )}
 
-      {status.status === "none" && (
+      {status.status === 'none' && (
         <Button
           size="sm"
           onClick={handleSendRequest}
@@ -148,17 +164,13 @@ export default function FriendButton({ userId, onStatusChange }: FriendButtonPro
         </Button>
       )}
 
-      {status.status === "pending" && status.isRequester && (
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled
-        >
+      {status.status === 'pending' && status.isRequester && (
+        <Button size="sm" variant="secondary" disabled>
           Request Sent
         </Button>
       )}
 
-      {status.status === "pending" && !status.isRequester && (
+      {status.status === 'pending' && !status.isRequester && (
         <div className="flex gap-2">
           <Button
             size="sm"
@@ -179,7 +191,7 @@ export default function FriendButton({ userId, onStatusChange }: FriendButtonPro
         </div>
       )}
 
-      {status.status === "accepted" && (
+      {status.status === 'accepted' && (
         <Button
           size="sm"
           variant="secondary"

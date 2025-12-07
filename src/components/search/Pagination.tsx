@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { NavArrowLeft, NavArrowRight } from "iconoir-react";
+import { NavArrowLeft, NavArrowRight } from 'iconoir-react';
 
 interface PaginationProps {
   currentPage: number;
@@ -26,7 +26,7 @@ export default function Pagination({
   return (
     <div className="flex items-center justify-between mt-6">
       <div className="text-sm text-text-col/60">
-        Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)} -{" "}
+        Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)} -{' '}
         {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} users
       </div>
       <div className="flex items-center gap-2">
@@ -36,8 +36,8 @@ export default function Pagination({
           disabled={!hasPrevious}
           className={`flex items-center gap-1 px-3 py-1.5 rounded-md ${
             hasPrevious
-              ? "bg-component-col text-text-col hover:bg-bg-col/50"
-              : "bg-bg-col/30 text-text-col/30 cursor-not-allowed"
+              ? 'bg-component-col text-text-col hover:bg-bg-col/50'
+              : 'bg-bg-col/30 text-text-col/30 cursor-not-allowed'
           }`}
         >
           <NavArrowLeft className="w-4 h-4" />
@@ -52,8 +52,8 @@ export default function Pagination({
           disabled={!hasNext}
           className={`flex items-center gap-1 px-3 py-1.5 rounded-md ${
             hasNext
-              ? "bg-component-col text-text-col hover:bg-bg-col/50"
-              : "bg-bg-col/30 text-text-col/30 cursor-not-allowed"
+              ? 'bg-component-col text-text-col hover:bg-bg-col/50'
+              : 'bg-bg-col/30 text-text-col/30 cursor-not-allowed'
           }`}
         >
           Next

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import Image from "next/image";
-import { User } from "@/api/user";
-import FriendButton from "@/components/friends/FriendButton";
+import Link from 'next/link';
+import Image from 'next/image';
+import { User } from '@/api/user';
+import FriendButton from '@/components/friends/FriendButton';
 
 interface UserListItemProps {
   user: User;

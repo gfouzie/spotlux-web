@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
-import { teamsApi } from "@/api/teams";
-import { Team } from "@/types/team";
-import TeamCard from "@/components/team/TeamCard";
+import React, { useState, useEffect, useCallback } from 'react';
+import { teamsApi } from '@/api/teams';
+import { Team } from '@/types/team';
+import TeamCard from '@/components/team/TeamCard';
 
 const TEAMS_PER_PAGE = 10;
 
 const TeamsList: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
-  const [selectedSport, setSelectedSport] = useState<string>("all");
+  const [selectedSport, setSelectedSport] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,50 +17,53 @@ const TeamsList: React.FC = () => {
   const [offset, setOffset] = useState(0);
 
   const sports = [
-    "all",
-    "basketball",
-    "soccer",
-    "football",
-    "baseball",
-    "hockey",
-    "volleyball",
-    "tennis",
-    "golf",
+    'all',
+    'basketball',
+    'soccer',
+    'football',
+    'baseball',
+    'hockey',
+    'volleyball',
+    'tennis',
+    'golf',
   ];
 
-  const loadTeams = useCallback(async (currentOffset: number, isNewFilter: boolean = false) => {
-    try {
-      if (isNewFilter) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
+  const loadTeams = useCallback(
+    async (currentOffset: number, isNewFilter: boolean = false) => {
+      try {
+        if (isNewFilter) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
+        setError(null);
+
+        const params = {
+          sport: selectedSport === 'all' ? undefined : selectedSport,
+          offset: currentOffset,
+          limit: TEAMS_PER_PAGE,
+        };
+
+        const newTeams = await teamsApi.getTeams(params);
+
+        if (isNewFilter) {
+          setTeams(newTeams);
+        } else {
+          setTeams((prev) => [...prev, ...newTeams]);
+        }
+
+        // If we got fewer teams than requested, there are no more teams to load
+        setHasMore(newTeams?.length === TEAMS_PER_PAGE);
+        setOffset(currentOffset + newTeams?.length);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load teams');
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-      setError(null);
-
-      const params = {
-        sport: selectedSport === "all" ? undefined : selectedSport,
-        offset: currentOffset,
-        limit: TEAMS_PER_PAGE,
-      };
-
-      const newTeams = await teamsApi.getTeams(params);
-
-      if (isNewFilter) {
-        setTeams(newTeams);
-      } else {
-        setTeams((prev) => [...prev, ...newTeams]);
-      }
-
-      // If we got fewer teams than requested, there are no more teams to load
-      setHasMore(newTeams?.length === TEAMS_PER_PAGE);
-      setOffset(currentOffset + newTeams?.length);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load teams");
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [selectedSport]);
+    },
+    [selectedSport]
+  );
 
   // Reset and load teams when sport filter changes
   useEffect(() => {
@@ -89,9 +92,9 @@ const TeamsList: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold text-text-col">Teams List</h2>
           <p className="text-text-col/60 text-sm mt-1">
-            {teams?.length} team{teams?.length !== 1 ? "s" : ""}{" "}
-            {selectedSport !== "all" && `in ${selectedSport}`}
-            {hasMore && " (more available)"}
+            {teams?.length} team{teams?.length !== 1 ? 's' : ''}{' '}
+            {selectedSport !== 'all' && `in ${selectedSport}`}
+            {hasMore && ' (more available)'}
           </p>
         </div>
         <button
@@ -100,7 +103,7 @@ const TeamsList: React.FC = () => {
           disabled={loading}
           className="px-4 py-2 bg-accent-col text-text-col rounded-md hover:opacity-80 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Loading..." : "Refresh"}
+          {loading ? 'Loading...' : 'Refresh'}
         </button>
       </div>
 
@@ -121,7 +124,7 @@ const TeamsList: React.FC = () => {
         >
           {sports.map((sport) => (
             <option key={sport} value={sport} className="capitalize">
-              {sport === "all" ? "All Sports" : sport}
+              {sport === 'all' ? 'All Sports' : sport}
             </option>
           ))}
         </select>
@@ -142,8 +145,8 @@ const TeamsList: React.FC = () => {
       ) : teams.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-text-col/60">
-            {selectedSport === "all"
-              ? "No teams found. Create your first team above!"
+            {selectedSport === 'all'
+              ? 'No teams found. Create your first team above!'
               : `No teams found for ${selectedSport}. Try a different sport or create one!`}
           </p>
         </div>
@@ -154,7 +157,7 @@ const TeamsList: React.FC = () => {
               <TeamCard
                 key={team.id}
                 team={team}
-                onClick={() => console.log("Team clicked:", team)}
+                onClick={() => console.log('Team clicked:', team)}
               />
             ))}
           </div>

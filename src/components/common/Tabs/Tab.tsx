@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { forwardRef } from "react";
-import { cn } from "@/lib/utils";
+import { forwardRef } from 'react';
+import { cn } from '@/lib/utils';
 
 interface TabProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isActive?: boolean;
@@ -16,11 +16,11 @@ const Tab = forwardRef<HTMLButtonElement, TabProps>(
         role="tab"
         aria-selected={isActive}
         className={cn(
-          "inline-flex cursor-pointer items-center justify-center px-12 py-3 text-sm font-medium transition-colors duration-200",
-          "border-t-4 rounded-t-lg hover:text-text-col hover:font-semibold",
+          'inline-flex cursor-pointer items-center justify-center px-12 py-3 text-sm font-medium transition-colors duration-200',
+          'border-t-4 rounded-t-lg hover:text-text-col hover:font-semibold',
           isActive
-            ? "border-accent-col text-text-col font-semibold"
-            : "border-transparent text-text-col/60",
+            ? 'border-accent-col text-text-col font-semibold'
+            : 'border-transparent text-text-col/60',
           className
         )}
         {...props}
@@ -32,6 +32,6 @@ const Tab = forwardRef<HTMLButtonElement, TabProps>(
   }
 );
 
-Tab.displayName = "Tab";
+Tab.displayName = 'Tab';
 
 export default Tab;

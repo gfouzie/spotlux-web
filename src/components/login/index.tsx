@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { ApiError } from "@/api";
-import Button from "@/components/common/Button";
-import Input from "@/components/common/Input/index";
-import PrivateInput from "@/components/common/Input/PrivateInput";
-import AuthFormContainer from "@/components/auth/AuthFormContainer";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { ApiError } from '@/api';
+import Button from '@/components/common/Button';
+import Input from '@/components/common/Input/index';
+import PrivateInput from '@/components/common/Input/PrivateInput';
+import AuthFormContainer from '@/components/auth/AuthFormContainer';
 
 interface LoginFormData {
   email: string;
@@ -16,8 +16,8 @@ interface LoginFormData {
 
 const LoginPage = () => {
   const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,12 +46,12 @@ const LoginPage = () => {
       });
 
       // Redirect will happen automatically via AuthContext
-      router.push("/");
+      router.push('/');
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError(err instanceof Error ? err.message : "Login failed");
+        setError(err instanceof Error ? err.message : 'Login failed');
       }
     } finally {
       setIsLoading(false);
@@ -96,7 +96,7 @@ const LoginPage = () => {
           <div className="text-right mt-2">
             <button
               type="button"
-              onClick={() => console.log("Forgot password clicked")}
+              onClick={() => console.log('Forgot password clicked')}
               className="text-sm text-text-col hover:text-text-col/80 transition-colors cursor-pointer"
             >
               Forgot password?

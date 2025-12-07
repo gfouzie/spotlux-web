@@ -3,7 +3,7 @@ export {
   validateImageFile,
   type ImageCompressionOptions,
   type CompressionResult,
-} from "./imageCompression";
+} from './imageCompression';
 
 export {
   compressVideo,
@@ -12,4 +12,4 @@ export {
   type VideoCompressionOptions,
   type VideoCompressionResult,
   type ProgressCallback,
-} from "./videoCompression";
+} from './videoCompression';

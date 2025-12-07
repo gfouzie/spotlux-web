@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import Image from "next/image";
-import { uploadApi } from "@/api/upload";
-import { validateImageFile } from "@/lib/compression";
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { uploadApi } from '@/api/upload';
+import { validateImageFile } from '@/lib/compression';
 
 interface TeamPictureUploadProps {
   teamId: number;
@@ -48,7 +48,7 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
     // Validate file using validation function
     const validation = validateImageFile(file);
     if (!validation.valid) {
-      setError(validation.error || "Invalid image file");
+      setError(validation.error || 'Invalid image file');
       return;
     }
 
@@ -59,14 +59,16 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
       const data = await uploadApi.uploadTeamPicture(teamId, file);
       onImageUpdate(data.profileImageUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to upload team picture");
+      setError(
+        err instanceof Error ? err.message : 'Failed to upload team picture'
+      );
     } finally {
       setUploading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this team picture?")) {
+    if (!confirm('Are you sure you want to delete this team picture?')) {
       return;
     }
 
@@ -77,7 +79,9 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
       await uploadApi.deleteTeamPicture(teamId);
       onImageUpdate(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete team picture");
+      setError(
+        err instanceof Error ? err.message : 'Failed to delete team picture'
+      );
     } finally {
       setUploading(false);
     }
@@ -112,10 +116,10 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
             <label
               htmlFor="team-picture-upload"
               className={`w-full px-4 py-2 bg-accent-col text-text-col rounded-md text-center cursor-pointer hover:opacity-80 transition-opacity ${
-                uploading ? "opacity-50 cursor-not-allowed" : ""
+                uploading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
-              {uploading ? "Uploading..." : "Upload New Picture"}
+              {uploading ? 'Uploading...' : 'Upload New Picture'}
             </label>
             <input
               id="team-picture-upload"

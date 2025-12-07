@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { Highlight, highlightsApi } from "@/api/highlights";
-import { HighlightReel } from "@/api/highlightReels";
-import Button from "@/components/common/Button";
-import { Plus, VideoCamera, Trash } from "iconoir-react";
-import Alert from "@/components/common/Alert";
+import { useState, useCallback } from 'react';
+import { Highlight, highlightsApi } from '@/api/highlights';
+import { HighlightReel } from '@/api/highlightReels';
+import Button from '@/components/common/Button';
+import { Plus, VideoCamera, Trash } from 'iconoir-react';
+import Alert from '@/components/common/Alert';
 
 interface HighlightClipManagerProps {
   reel: HighlightReel;
@@ -32,14 +32,16 @@ export default function HighlightClipManager({
       const sorted = highlights?.sort((a, b) => a.orderIndex - b.orderIndex);
       setHighlights(sorted);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load highlights");
+      setError(
+        err instanceof Error ? err.message : 'Failed to load highlights'
+      );
     } finally {
       setIsLoading(false);
     }
   }, [reel.id]);
 
   const handleDelete = async (highlightId: number) => {
-    if (!confirm("Are you sure you want to delete this clip?")) return;
+    if (!confirm('Are you sure you want to delete this clip?')) return;
 
     setDeletingId(highlightId);
     try {
@@ -47,7 +49,9 @@ export default function HighlightClipManager({
       await loadHighlights();
       onReload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete highlight");
+      setError(
+        err instanceof Error ? err.message : 'Failed to delete highlight'
+      );
     } finally {
       setDeletingId(null);
     }
