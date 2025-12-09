@@ -135,9 +135,9 @@ export default function HighlightProfileContent({
 
       {/* Highlight Reels Grid */}
       <div>
-        <h3 className="text-xl font-semibold text-text-col mb-4">
+        <h2 className="text-2xl font-bold text-text-col mb-6">
           Highlight Reels
-        </h3>
+        </h2>
         <HighlightReelGrid
           reels={reels}
           onReelClick={handleReelClick}

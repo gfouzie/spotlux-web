@@ -78,9 +78,6 @@ function ProfileContent() {
               {/* Highlights Section */}
               {user && selectedSport && (
                 <div className="bg-card-col rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-text-col mb-6">
-                    Highlights
-                  </h2>
                   <HighlightProfileContent
                     sport={selectedSport}
                     isOwner={true}
@@ -91,9 +88,6 @@ function ProfileContent() {
               {/*User Team Section*/}
               {user && (
                 <div className="bg-card-col rounded-lg p-6">
-                  <h2 className="text-2xl font-bold text-text-col mb-6">
-                    Teams
-                  </h2>
                   <UserTeamsProfileContent />
                 </div>
               )}
