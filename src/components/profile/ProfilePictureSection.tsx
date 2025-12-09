@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { EditPencil } from 'iconoir-react';
 import { UserProfile } from '@/api/profile';
 import { profileApi } from '@/api/profile';
+import { uploadApi } from '@/api/upload';
+import { compressImage } from '@/lib/compression/imageCompression';
 import { useAuth } from '@/contexts/AuthContext';
 import FriendsListModal from '@/components/friends/FriendsListModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
@@ -98,8 +100,13 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
   const [loading, setLoading] = useState(true);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const initials = getUserInitials(firstName, lastName);
+
+  // Use profile state image URL if available, otherwise fall back to prop
+  const currentProfileImageUrl = profile?.profileImageUrl ?? profileImageUrl;
 
   const loadProfile = async () => {
     if (!isAuthenticated) return;
@@ -115,8 +122,70 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
     }
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Basic validation
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Image must be less than 10MB');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      // Compress the image
+      const { compressedFile } = await compressImage(file, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 800,
+        quality: 0.85,
+      });
+
+      // Upload the compressed image
+      await uploadApi.uploadProfilePicture(compressedFile);
+
+      // Reload profile to get updated image URL
+      await loadProfile();
+    } catch (err) {
+      console.error('Failed to upload profile picture:', err);
+      alert('Failed to upload profile picture. Please try again.');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDeleteProfilePicture = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to remove your profile picture?'
+    );
+
+    if (!confirmed) return;
+
+    setIsUploading(true);
+
+    try {
+      await uploadApi.deleteProfilePicture();
+      await loadProfile();
+    } catch (err) {
+      console.error('Failed to delete profile picture:', err);
+      alert('Failed to delete profile picture. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   useEffect(() => {
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
   if (loading) {
@@ -147,21 +216,78 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
           <div className="flex items-center gap-6">
             {/* Left: Profile Picture and Friends Link */}
             <div className="flex flex-col flex-shrink-0">
-              <div className="relative w-20 h-20 rounded-full overflow-hidden bg-component-col mb-3">
-                {profileImageUrl ? (
-                  <Image
-                    src={profileImageUrl}
-                    alt="Profile"
-                    fill
-                    sizes="80px"
-                    className="object-cover border-2 border-accent-col rounded-full"
+              <div className="relative w-20 h-20 mb-3">
+                {/* Hidden file input */}
+                {isOwnProfile && (
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="profile-picture-upload"
                   />
+                )}
+
+                {currentProfileImageUrl ? (
+                  <>
+                    {isOwnProfile ? (
+                      <label
+                        htmlFor="profile-picture-upload"
+                        className="cursor-pointer block w-20 h-20 rounded-full overflow-hidden hover:opacity-80 transition-opacity"
+                      >
+                        <Image
+                          src={currentProfileImageUrl}
+                          alt="Profile"
+                          fill
+                          sizes="80px"
+                          className="object-cover border-2 border-accent-col rounded-full"
+                        />
+                      </label>
+                    ) : (
+                      <div className="w-20 h-20 rounded-full overflow-hidden">
+                        <Image
+                          src={currentProfileImageUrl}
+                          alt="Profile"
+                          fill
+                          sizes="80px"
+                          className="object-cover border-2 border-accent-col rounded-full"
+                        />
+                      </div>
+                    )}
+                    {isOwnProfile && (
+                      <button
+                        type="button"
+                        onClick={handleDeleteProfilePicture}
+                        disabled={isUploading}
+                        className="cursor-pointer absolute -top-0 -right-0 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors shadow-md disabled:opacity-50"
+                        aria-label="Remove profile picture"
+                      >
+                        <span className="text-lg font-light leading-none">
+                          −
+                        </span>
+                      </button>
+                    )}
+                  </>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-accent-col/20">
-                    <span className="text-2xl font-semibold text-text-col">
-                      {initials}
-                    </span>
-                  </div>
+                  <>
+                    {isOwnProfile ? (
+                      <label
+                        htmlFor="profile-picture-upload"
+                        className="cursor-pointer w-20 h-20 rounded-full bg-accent-col/20 flex items-center justify-center hover:bg-accent-col/30 transition-colors border-2 border-accent-col/50"
+                      >
+                        <span className="text-2xl font-semibold text-text-col">
+                          {initials}
+                        </span>
+                      </label>
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-accent-col/20 flex items-center justify-center border-2 border-accent-col/50">
+                        <span className="text-2xl font-semibold text-text-col">
+                          {initials}
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               <button
