@@ -51,30 +51,44 @@ const TeamLogoUpload: React.FC<TeamLogoUploadProps> = ({
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium text-text-col mb-2">
-        Team Logo
-      </label>
-
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-center gap-4">
         {/* Preview */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 relative">
           {displayPreview ? (
-            <Image
-              src={displayPreview}
-              alt="Team logo preview"
-              width={80}
-              height={80}
-              className="rounded-lg object-cover border border-text-col/20"
-            />
+            <>
+              <label
+                htmlFor="team-logo-upload"
+                className="cursor-pointer block w-24 h-24 rounded-full overflow-hidden hover:opacity-80 transition-opacity"
+              >
+                <Image
+                  src={displayPreview}
+                  alt="Team logo preview"
+                  width={96}
+                  height={96}
+                  className="w-full h-full object-cover border-2 border-accent-col rounded-full"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="cursor-pointer absolute -top-0 -right-0 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
+                aria-label="Remove logo"
+              >
+                <span className="text-lg font-light leading-none">−</span>
+              </button>
+            </>
           ) : (
-            <div className="w-20 h-20 rounded-lg bg-bg-col border border-text-col/20 flex items-center justify-center text-text-col/40">
-              <span className="text-2xl">🏆</span>
-            </div>
+            <label
+              htmlFor="team-logo-upload"
+              className="cursor-pointer w-20 h-20 rounded-full bg-bg-col border border-text-col/20 flex items-center justify-center text-text-col/40 hover:bg-bg-col/50 hover:border-accent-col transition-colors"
+            >
+              <span className="text-4xl font-light">+</span>
+            </label>
           )}
         </div>
 
         {/* Upload Controls */}
-        <div className="flex-1">
+        <div className="flex flex-col items-center">
           <input
             ref={fileInputRef}
             type="file"
@@ -84,28 +98,12 @@ const TeamLogoUpload: React.FC<TeamLogoUploadProps> = ({
             id="team-logo-upload"
           />
 
-          <div className="flex gap-2">
-            <label
-              htmlFor="team-logo-upload"
-              className="cursor-pointer px-4 py-2 bg-accent-col text-text-col rounded-lg hover:opacity-80 transition-opacity text-sm font-medium"
-            >
-              {displayPreview ? 'Change Logo' : 'Upload Logo'}
-            </label>
-
-            {displayPreview && (
-              <button
-                type="button"
-                onClick={handleRemove}
-                className="cursor-pointer px-4 py-2 bg-bg-col text-text-col/70 rounded-lg hover:bg-bg-col/50 transition-colors text-sm font-medium"
-              >
-                Remove
-              </button>
-            )}
-          </div>
-
-          <p className="text-xs text-text-col/50 mt-2">
-            JPEG, PNG, GIF, or WebP • Max 10MB
-          </p>
+          <label
+            htmlFor="team-logo-upload"
+            className="cursor-pointer text-accent-col text-sm font-bold"
+          >
+            {displayPreview ? 'Change Team Logo' : 'Add Team Logo'}
+          </label>
         </div>
       </div>
 

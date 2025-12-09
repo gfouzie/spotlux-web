@@ -40,7 +40,7 @@ const UserTeamFormScreen: React.FC<UserTeamFormScreenProps> = ({
 
   // Helper to show error at the clicked field
   const showError = (field: string, message: string) => {
-    setErrors(prev => ({ ...prev, [field]: message }));
+    setErrors((prev) => ({ ...prev, [field]: message }));
   };
 
   // Load sports enum
@@ -173,28 +173,16 @@ const UserTeamFormScreen: React.FC<UserTeamFormScreenProps> = ({
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Sport */}
       <div>
-        <label className="block text-sm font-medium text-text-col mb-2">
-          Sport *
-        </label>
-        {isLoadingSports ? (
-          <div className="h-12 bg-bg-col rounded-lg animate-pulse" />
-        ) : (
-          <select
-            value={formData.sport}
-            onChange={(e) => onFormChange({ sport: e.target.value })}
-            className="w-full px-4 py-3 rounded-lg bg-bg-col border border-text-col/30 text-text-col focus:outline-none focus:ring-2 focus:ring-accent-col capitalize"
-          >
-            <option value="">Select a sport</option>
-            {sports.map((sport) => (
-              <option key={sport} value={sport} className="capitalize">
-                {sport}
-              </option>
-            ))}
-          </select>
-        )}
-        {errors.sport && (
-          <p className="text-red-500 text-xs mt-1">{errors.sport}</p>
-        )}
+        <SearchableDropdown
+          label="Sport"
+          value={formData.sport}
+          options={sports}
+          onChange={(sport) => onFormChange({ sport })}
+          placeholder="Select a sport"
+          error={errors.sport}
+          required
+          isLoading={isLoadingSports}
+        />
       </div>
 
       {/* Country */}
@@ -294,7 +282,7 @@ const UserTeamFormScreen: React.FC<UserTeamFormScreenProps> = ({
       {/* Position (Optional) */}
       <div>
         <NavigationInput
-          label="Position"
+          label="Position (optional)"
           value={formData.position?.name}
           placeholder="Click to select position (optional)"
           onClick={handlePositionClick}
@@ -304,7 +292,7 @@ const UserTeamFormScreen: React.FC<UserTeamFormScreenProps> = ({
 
       {/* Jersey Number (Optional) */}
       <Input
-        label="Jersey Number"
+        label="Jersey Number (optional)"
         type="number"
         value={formData.jerseyNumber}
         onChange={(e) =>

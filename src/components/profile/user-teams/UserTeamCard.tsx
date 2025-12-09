@@ -11,28 +11,34 @@ interface UserTeamCardProps {
   onDelete?: (userTeam: UserTeamFull) => void;
 }
 
-const UserTeamCard: React.FC<UserTeamCardProps> = ({ userTeam, onEdit, onDelete }) => {
-  const { team, league, position, yearJoined, yearLeft, jerseyNumber } = userTeam;
+const UserTeamCard: React.FC<UserTeamCardProps> = ({
+  userTeam,
+  onEdit,
+  onDelete,
+}) => {
+  const { team, league, position, yearJoined, yearLeft, jerseyNumber } =
+    userTeam;
 
   // Format the year range
   const yearRange = yearLeft
     ? `${yearJoined} - ${yearLeft}`
     : `${yearJoined} - Present`;
 
-  // Format position and jersey
-  const positionText = position
-    ? `${position.name}${jerseyNumber !== null ? ` (#${jerseyNumber})` : ''}`
-    : jerseyNumber !== null
-    ? `#${jerseyNumber}`
-    : null;
-
-  // Format league and level
-  const leagueText = league
-    ? `${league.name}${team.level ? ` • ${team.level}` : ''}`
-    : team.level || null;
-
+  // Format the position and jersey number and only show the parts that are not null o rboth if they are both not null
+  const getPositionAndJerseyNumber = () => {
+    if (position?.name && jerseyNumber != null) {
+      return `${position?.name} • #${jerseyNumber}`;
+    }
+    if (position?.name) {
+      return position?.name;
+    }
+    if (jerseyNumber != null) {
+      return `#${jerseyNumber}`;
+    }
+    return null;
+  };
   return (
-    <div className="flex items-center gap-4 py-4 border-b border-bg-col/50 last:border-b-0">
+    <div className="flex items-center gap-4 py-4 border-b-2 border-bg-col/50 last:border-b-0">
       {/* Team Logo */}
       <div className="flex-shrink-0">
         {team.profileImageUrl ? (
@@ -55,21 +61,20 @@ const UserTeamCard: React.FC<UserTeamCardProps> = ({ userTeam, onEdit, onDelete 
       {/* Team Info */}
       <div className="flex-1 min-w-0">
         <h4 className="text-base font-semibold text-text-col truncate">
-          {team.name}
+          {team.name} {team.level ? `• ${team.level}` : ''}
         </h4>
-        {leagueText && (
-          <p className="text-sm text-text-col/70 mt-1">
-            {leagueText}
-          </p>
-        )}
-        {positionText && (
-          <p className="text-sm text-text-col/70 mt-1">
-            {positionText}
-          </p>
-        )}
-        <p className="text-sm text-text-col/50 mt-1">
-          {yearRange}
+        <p className="text-sm text-text-col/70 mt-1">
+          {getPositionAndJerseyNumber()}
         </p>
+        {league && (
+          <p className="text-sm text-text-col/70 mt-1">
+            {league.abbreviation ?? league.name}{' '}
+            {league.state && league.country
+              ? `• ${league.state}, ${league.country}`
+              : ''}
+          </p>
+        )}
+        <p className="text-sm text-text-col/50 mt-1">{yearRange}</p>
       </div>
 
       {/* Action Buttons */}

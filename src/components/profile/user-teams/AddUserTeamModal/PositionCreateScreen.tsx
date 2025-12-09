@@ -70,7 +70,7 @@ const PositionCreateScreen: React.FC<PositionCreateScreenProps> = ({
 
       {/* Position Abbreviation */}
       <Input
-        label="Position Abbreviation"
+        label="Position Abbreviation (optional)"
         value={formData.abbreviation}
         onChange={(e) => onFormChange({ abbreviation: e.target.value })}
         placeholder="e.g., PG"

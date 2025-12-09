@@ -74,7 +74,7 @@ const LeagueCreateScreen: React.FC<LeagueCreateScreenProps> = ({
 
       {/* League Abbreviation */}
       <Input
-        label="League Abbreviation"
+        label="League Abbreviation (optional)"
         value={formData.abbreviation}
         onChange={(e) => onFormChange({ abbreviation: e.target.value })}
         placeholder="e.g., NBA"
@@ -83,7 +83,7 @@ const LeagueCreateScreen: React.FC<LeagueCreateScreenProps> = ({
 
       {/* Province/State */}
       <Input
-        label="Province/State"
+        label="Province/State (optional)"
         value={formData.state}
         onChange={(e) => onFormChange({ state: e.target.value })}
         placeholder="e.g., California"

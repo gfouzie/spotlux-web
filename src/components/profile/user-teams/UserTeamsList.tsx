@@ -11,7 +11,11 @@ interface UserTeamsListProps {
   onDelete?: (userTeam: UserTeamFull) => void;
 }
 
-const UserTeamsList: React.FC<UserTeamsListProps> = ({ teamsBySport, onEdit, onDelete }) => {
+const UserTeamsList: React.FC<UserTeamsListProps> = ({
+  teamsBySport,
+  onEdit,
+  onDelete,
+}) => {
   const { selectedSport } = useProfileSport();
 
   // Filter teams by selected sport
@@ -26,7 +30,7 @@ const UserTeamsList: React.FC<UserTeamsListProps> = ({ teamsBySport, onEdit, onD
   }
 
   return (
-    <div className="bg-card-col rounded-lg p-4">
+    <div className="bg-card-col rounded-lg p-1">
       {teams.map((userTeam) => (
         <UserTeamCard
           key={userTeam.id}

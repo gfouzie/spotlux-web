@@ -10,7 +10,9 @@ import AddUserTeamModal from './AddUserTeamModal';
 
 export default function UserTeamsProfileContent() {
   const { refreshSports } = useProfileSport();
-  const [teamsBySport, setTeamsBySport] = useState<Record<string, UserTeamFull[]>>({});
+  const [teamsBySport, setTeamsBySport] = useState<
+    Record<string, UserTeamFull[]>
+  >({});
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<UserTeamFull | null>(null);
@@ -83,11 +85,11 @@ export default function UserTeamsProfileContent() {
     <>
       {/* Header with Add Button */}
       {hasTeams && (
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-text-col">Teams</h2>
           <button
             onClick={handleAddTeam}
-            className="cursor-pointer flex items-center justify-center w-10 h-10 rounded-lg bg-accent-col text-text-col hover:opacity-80 transition-opacity"
+            className="cursor-pointer flex items-center justify-center w-7 h-7 rounded-lg bg-accent-col text-text-col hover:opacity-80 transition-opacity"
             aria-label="Add team"
           >
             <span className="text-xl font-semibold">+</span>

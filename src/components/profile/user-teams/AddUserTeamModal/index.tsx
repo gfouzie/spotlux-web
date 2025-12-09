@@ -40,9 +40,14 @@ const AddUserTeamModal: React.FC<AddUserTeamModalProps> = ({
   const [currentScreen, setCurrentScreen] = useState<ModalScreen>('main');
   const [screenHistory, setScreenHistory] = useState<ModalScreen[]>([]);
   const [formData, setFormData] = useState<UserTeamFormData>(initialFormData);
-  const [leagueFormData, setLeagueFormData] = useState<LeagueFormData>(initialLeagueFormData);
-  const [teamFormData, setTeamFormData] = useState<TeamFormData>(initialTeamFormData);
-  const [positionFormData, setPositionFormData] = useState<PositionFormData>(initialPositionFormData);
+  const [leagueFormData, setLeagueFormData] = useState<LeagueFormData>(
+    initialLeagueFormData
+  );
+  const [teamFormData, setTeamFormData] =
+    useState<TeamFormData>(initialTeamFormData);
+  const [positionFormData, setPositionFormData] = useState<PositionFormData>(
+    initialPositionFormData
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Pre-populate form when editing
@@ -169,9 +174,14 @@ const AddUserTeamModal: React.FC<AddUserTeamModalProps> = ({
         teamId: formData.team.id,
         sport: formData.sport,
         yearJoined: formData.yearJoined as number,
-        yearLeft: formData.isCurrentTeam ? null : (formData.yearLeft as number || null),
+        yearLeft: formData.isCurrentTeam
+          ? null
+          : (formData.yearLeft as number) || null,
         positionId: formData.position?.id || null,
-        jerseyNumber: formData.jerseyNumber !== '' ? (formData.jerseyNumber as number) : null,
+        jerseyNumber:
+          formData.jerseyNumber !== ''
+            ? (formData.jerseyNumber as number)
+            : null,
       };
 
       if (editingUserTeam) {
@@ -185,7 +195,10 @@ const AddUserTeamModal: React.FC<AddUserTeamModalProps> = ({
       onSuccess();
       handleClose();
     } catch (err) {
-      console.error(`Failed to ${editingUserTeam ? 'update' : 'create'} user team:`, err);
+      console.error(
+        `Failed to ${editingUserTeam ? 'update' : 'create'} user team:`,
+        err
+      );
       // Error handling is done in the form screen
     } finally {
       setIsSubmitting(false);
@@ -330,7 +343,7 @@ const AddUserTeamModal: React.FC<AddUserTeamModalProps> = ({
         </div>
       }
     >
-      <div className="min-h-[400px] max-h-[600px] overflow-y-auto">
+      <div className="min-h-[400px] max-h-[600px] overflow-y-auto p-1">
         {renderScreen()}
       </div>
     </Modal>

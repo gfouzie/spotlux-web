@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Team, League } from '@/types/team';
 import { teamsApi } from '@/api/teams';
 import { uploadApi } from '@/api/upload';
+import { compressImage } from '@/lib/compression/imageCompression';
 import Input from '@/components/common/Input';
 import Button from '@/components/common/Button';
 import TeamLogoUpload from './TeamLogoUpload';
@@ -56,9 +57,16 @@ const TeamCreateScreen: React.FC<TeamCreateScreenProps> = ({
       // Step 2: Upload logo if provided
       if (formData.logoFile) {
         try {
+          // Compress the image before uploading
+          const { compressedFile } = await compressImage(formData.logoFile, {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 800,
+            quality: 0.85,
+          });
+
           const uploadResult = await uploadApi.uploadTeamPicture(
             createdTeam.id,
-            formData.logoFile
+            compressedFile
           );
           createdTeam.profileImageUrl = uploadResult.profileImageUrl;
         } catch (uploadErr) {
@@ -96,7 +104,7 @@ const TeamCreateScreen: React.FC<TeamCreateScreenProps> = ({
 
       {/* Team Level/Tier/Division */}
       <Input
-        label="Team Level/Tier/Division"
+        label="Team Level/Tier/Division (optional)"
         value={formData.level}
         onChange={(e) => onFormChange({ level: e.target.value })}
         placeholder="e.g., Professional, College, Division 1"
