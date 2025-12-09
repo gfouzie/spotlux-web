@@ -1,5 +1,5 @@
 import { config } from '@/lib/config';
-import { authRequest } from './shared';
+import { authRequest, apiRequest } from './shared';
 
 /**
  * User sport interface
@@ -29,10 +29,10 @@ export const userSportsApi = {
   },
 
   /**
-   * Get user sports for a specific user by username
+   * Get user sports for a specific user by username (public endpoint)
    */
   getUserSportsByUsername: async (username: string): Promise<UserSport[]> => {
-    return authRequest<UserSport[]>(
+    return apiRequest<UserSport[]>(
       `${config.apiBaseUrl}/api/v1/users/${username}/sports`
     );
   },

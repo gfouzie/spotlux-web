@@ -30,6 +30,9 @@ export interface User {
   birthday: string | null;
   height: number | null;
   weight: number | null;
+  hometownCity?: string | null;
+  hometownState?: string | null;
+  hometownCountry?: string | null;
   tierId: number | null;
   isSuperuser: boolean;
 }
@@ -82,7 +85,7 @@ export const userApi = {
    */
   getUserByUsername: async (username: string): Promise<User> => {
     return apiRequest<User>(
-      `${config.apiBaseUrl}/api/v1/user/by-username/${username}`
+      `${config.apiBaseUrl}/api/v1/user/${username}`
     );
   },
 

@@ -25,61 +25,82 @@ const ProfileSportContext = createContext<ProfileSportContextType | undefined>(
 
 interface ProfileSportProviderProps {
   children: ReactNode;
+  username?: string; // Optional: if provided, fetches sports for this user instead of current user
 }
 
 const SESSION_STORAGE_KEY = 'spotlux-selected-sport';
 
-export function ProfileSportProvider({ children }: ProfileSportProviderProps) {
+export function ProfileSportProvider({ children, username }: ProfileSportProviderProps) {
   const { user } = useUser();
   const [userSports, setUserSports] = useState<UserSport[]>([]);
+
+  // For own profile: use session storage persistence
+  // For viewing others: use local state only (resets on navigation)
+  const isViewingOwnProfile = !username;
+
   const [selectedSport, setSelectedSportState] = useState<string | null>(() => {
-    // Initialize from session storage
-    if (typeof window !== 'undefined') {
+    // Only initialize from session storage when viewing own profile
+    if (isViewingOwnProfile && typeof window !== 'undefined') {
       return sessionStorage.getItem(SESSION_STORAGE_KEY);
     }
     return null;
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Wrapper to update both state and session storage
+  // Wrapper to update state and conditionally update session storage
   const setSelectedSport = useCallback((sport: string) => {
     setSelectedSportState(sport);
-    if (typeof window !== 'undefined') {
+    // Only persist to session storage when viewing own profile
+    if (isViewingOwnProfile && typeof window !== 'undefined') {
       sessionStorage.setItem(SESSION_STORAGE_KEY, sport);
     }
-  }, []);
+  }, [isViewingOwnProfile]);
 
   const loadSports = useCallback(async () => {
-    if (!user) {
+    // If viewing someone else's profile (username provided), always fetch
+    // If viewing own profile (no username), require authenticated user
+    if (!username && !user) {
       setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
-      const sportsData = await userSportsApi.getUserSports();
+      // Fetch sports for the specified user or current authenticated user
+      const sportsData = username
+        ? await userSportsApi.getUserSportsByUsername(username)
+        : await userSportsApi.getUserSports();
       setUserSports(sportsData);
 
-      // Set first sport as selected if available and nothing is selected
-      if (sportsData?.length > 0 && !selectedSport) {
-        setSelectedSport(sportsData[0].sport);
-      } else if (sportsData?.length === 0) {
-        // Clear selection when no sports
-        setSelectedSportState(null);
-        if (typeof window !== 'undefined') {
-          sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      if (username) {
+        // Viewing someone else's profile: reset to first sport only on initial load
+        if (sportsData?.length > 0 && !selectedSport) {
+          setSelectedSportState(sportsData[0].sport);
+        } else if (sportsData?.length === 0) {
+          setSelectedSportState(null);
         }
-      } else if (
-        selectedSport &&
-        !sportsData?.find((s) => s.sport === selectedSport)
-      ) {
-        // If current selected sport was removed, switch to first available
-        if (sportsData[0]?.sport) {
+      } else {
+        // Viewing own profile: use session storage logic
+        if (sportsData?.length > 0 && !selectedSport) {
           setSelectedSport(sportsData[0].sport);
-        } else {
+        } else if (sportsData?.length === 0) {
+          // Clear selection when no sports
           setSelectedSportState(null);
           if (typeof window !== 'undefined') {
             sessionStorage.removeItem(SESSION_STORAGE_KEY);
+          }
+        } else if (
+          selectedSport &&
+          !sportsData?.find((s) => s.sport === selectedSport)
+        ) {
+          // If current selected sport was removed, switch to first available
+          if (sportsData[0]?.sport) {
+            setSelectedSport(sportsData[0].sport);
+          } else {
+            setSelectedSportState(null);
+            if (typeof window !== 'undefined') {
+              sessionStorage.removeItem(SESSION_STORAGE_KEY);
+            }
           }
         }
       }
@@ -88,7 +109,7 @@ export function ProfileSportProvider({ children }: ProfileSportProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [user, selectedSport, setSelectedSport]);
+  }, [user, username, setSelectedSport]);
 
   const refreshSports = useCallback(async () => {
     await loadSports();

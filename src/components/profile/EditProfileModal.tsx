@@ -6,12 +6,13 @@ import Input from '@/components/common/Input';
 import Alert from '@/components/common/Alert';
 import { profileApi, UserProfile, ProfileUpdateRequest } from '@/api/profile';
 import { feetInchesToInches, inchesToFeetInches } from '@/lib/utils';
+import { User } from '@/api/user';
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: UserProfile | null;
-  onSuccess: () => void;
+  user: User | UserProfile | null;
+  onSuccess?: (() => void) | (() => Promise<void>);
 }
 
 export default function EditProfileModal({
@@ -73,7 +74,7 @@ export default function EditProfileModal({
 
       await profileApi.updateProfile(updateRequest);
 
-      onSuccess();
+      await onSuccess?.();
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');

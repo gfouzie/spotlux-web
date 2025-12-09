@@ -1,22 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { EditPencil } from 'iconoir-react';
 import { UserProfile } from '@/api/profile';
-import { profileApi } from '@/api/profile';
+import { User } from '@/api/user';
 import { uploadApi } from '@/api/upload';
 import { compressImage } from '@/lib/compression/imageCompression';
-import { useAuth } from '@/contexts/AuthContext';
 import FriendsListModal from '@/components/friends/FriendsListModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 
 interface ProfilePictureSectionProps {
-  profileImageUrl: string | null;
-  firstName: string | null;
-  lastName: string | null;
-  userId: number;
+  user: User | UserProfile;
   isOwnProfile?: boolean;
+  onProfileUpdate?: () => Promise<void>;
 }
 
 /**
@@ -89,38 +86,17 @@ const formatHometown = (
 };
 
 const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
-  profileImageUrl,
-  firstName,
-  lastName,
-  userId,
+  user,
   isOwnProfile = false,
+  onProfileUpdate,
 }) => {
-  const { isAuthenticated } = useAuth();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [showFriendsModal, setShowFriendsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const initials = getUserInitials(firstName, lastName);
-
-  // Use profile state image URL if available, otherwise fall back to prop
-  const currentProfileImageUrl = profile?.profileImageUrl ?? profileImageUrl;
-
-  const loadProfile = async () => {
-    if (!isAuthenticated) return;
-
-    try {
-      setLoading(true);
-      const data = await profileApi.getProfile();
-      setProfile(data);
-    } catch (err) {
-      console.error('Failed to load profile:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const initials = getUserInitials(user?.firstName || null, user?.lastName || null);
+  const currentProfileImageUrl = user?.profileImageUrl;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -150,8 +126,8 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
       // Upload the compressed image
       await uploadApi.uploadProfilePicture(compressedFile);
 
-      // Reload profile to get updated image URL
-      await loadProfile();
+      // Notify parent to refresh profile data
+      await onProfileUpdate?.();
     } catch (err) {
       console.error('Failed to upload profile picture:', err);
       alert('Failed to upload profile picture. Please try again.');
@@ -174,7 +150,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
 
     try {
       await uploadApi.deleteProfilePicture();
-      await loadProfile();
+      await onProfileUpdate?.();
     } catch (err) {
       console.error('Failed to delete profile picture:', err);
       alert('Failed to delete profile picture. Please try again.');
@@ -182,21 +158,6 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
       setIsUploading(false);
     }
   };
-
-  useEffect(() => {
-    loadProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
-
-  if (loading) {
-    return (
-      <div className="bg-card-col rounded-lg p-6">
-        <div className="flex items-center justify-center h-32">
-          <div className="w-6 h-6 border-2 border-accent-col border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -302,10 +263,10 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
             {/* Middle: First Name and Last Name stacked */}
             <div className="flex flex-col justify-center">
               <div className="text-lg md:text-xl font-semibold text-text-col">
-                {firstName}
+                {user?.firstName}
               </div>
               <div className="text-xl md:text-3xl font-bold text-text-col">
-                {lastName}
+                {user?.lastName}
               </div>
             </div>
           </div>
@@ -317,7 +278,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
                 Born:{' '}
               </span>
               <span className="text-sm text-text-col">
-                {formatBirthday(profile?.birthday || null)}
+                {formatBirthday(user?.birthday || null)}
               </span>
             </div>
             <div className="flex items-center justify-end">
@@ -325,7 +286,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
                 Height:{' '}
               </span>
               <span className="text-sm text-text-col">
-                {formatHeight(profile?.height || null)}
+                {formatHeight(user?.height || null)}
               </span>
             </div>
             <div className="flex items-center justify-end">
@@ -333,7 +294,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
                 Weight:{' '}
               </span>
               <span className="text-sm text-text-col">
-                {formatWeight(profile?.weight || null)}
+                {formatWeight(user?.weight || null)}
               </span>
             </div>
             <div className="flex items-center justify-end">
@@ -342,9 +303,9 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
               </span>
               <span className="text-sm text-text-col">
                 {formatHometown(
-                  profile?.hometownCity || null,
-                  profile?.hometownState || null,
-                  profile?.hometownCountry || null
+                  user?.hometownCity || null,
+                  user?.hometownState || null,
+                  user?.hometownCountry || null
                 )}
               </span>
             </div>
@@ -356,7 +317,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
       <FriendsListModal
         isOpen={showFriendsModal}
         onClose={() => setShowFriendsModal(false)}
-        userId={userId}
+        userId={user?.id || 0}
         isOwnProfile={isOwnProfile}
       />
 
@@ -364,8 +325,8 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
       <EditProfileModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        user={profile}
-        onSuccess={loadProfile}
+        user={user}
+        onSuccess={onProfileUpdate}
       />
     </>
   );

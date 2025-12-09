@@ -24,7 +24,7 @@ const UserTeamsList: React.FC<UserTeamsListProps> = ({
   if (teams.length === 0) {
     return (
       <div className="text-center py-8 text-text-col/60">
-        No teams found for {selectedSport}.
+        No {selectedSport?.toLowerCase()} teams found.
       </div>
     );
   }

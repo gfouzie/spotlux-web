@@ -1,5 +1,5 @@
 import { config } from '@/lib/config';
-import { authRequest } from './shared';
+import { authRequest, apiRequest } from './shared';
 import type {
   UserTeam,
   UserTeamFull,
@@ -42,11 +42,12 @@ export const userTeamsApi = {
    * Get all teams for a specific user by user ID with full team, league, and position objects.
    * Returns teams grouped by sport (sorted by created_at of first team, oldest first),
    * with teams within each sport sorted by year_joined (newest first).
+   * (Public endpoint - no authentication required)
    */
   getUserTeamsByUserIdFull: async (
     userId: number
   ): Promise<Record<string, UserTeamFull[]>> => {
-    return authRequest<Record<string, UserTeamFull[]>>(
+    return apiRequest<Record<string, UserTeamFull[]>>(
       `${config.apiBaseUrl}/api/v1/users/${userId}/teams/full`
     );
   },

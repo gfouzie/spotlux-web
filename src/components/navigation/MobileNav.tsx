@@ -31,9 +31,11 @@ const MobileNav = ({ className = '' }: MobileNavProps) => {
   };
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return pathname === '/';
+    // Exact match for home and profile
+    if (href === '/' || href === '/profile') {
+      return pathname === href;
     }
+    // Prefix match for other routes
     return pathname.startsWith(href);
   };
 

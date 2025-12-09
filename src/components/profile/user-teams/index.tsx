@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { UserTeamFull } from '@/types/team';
 import { userTeamsApi } from '@/api/userTeams';
 import { useProfileSport } from '@/contexts/ProfileSportContext';
@@ -8,7 +8,15 @@ import EmptyState from './EmptyState';
 import UserTeamsList from './UserTeamsList';
 import AddUserTeamModal from './AddUserTeamModal';
 
-export default function UserTeamsProfileContent() {
+interface UserTeamsProfileContentProps {
+  isOwner?: boolean; // If true, shows edit/delete buttons. Defaults to true for backward compatibility
+  userId?: number; // Optional: if provided, fetches teams for this user
+}
+
+export default function UserTeamsProfileContent({
+  isOwner = true,
+  userId,
+}: UserTeamsProfileContentProps) {
   const { refreshSports } = useProfileSport();
   const [teamsBySport, setTeamsBySport] = useState<
     Record<string, UserTeamFull[]>
@@ -17,21 +25,24 @@ export default function UserTeamsProfileContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<UserTeamFull | null>(null);
 
-  const loadTeams = async () => {
+  const loadTeams = useCallback(async () => {
     setIsLoading(true);
     try {
-      const teams = await userTeamsApi.getUserTeamsFull();
+      // Fetch teams for the specified user or current authenticated user
+      const teams = userId
+        ? await userTeamsApi.getUserTeamsByUserIdFull(userId)
+        : await userTeamsApi.getUserTeamsFull();
       setTeamsBySport(teams);
     } catch (err) {
       console.error('Failed to load user teams:', err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     loadTeams();
-  }, []);
+  }, [loadTeams]);
 
   const handleSuccess = async () => {
     // Refresh teams list and sports context
@@ -87,32 +98,36 @@ export default function UserTeamsProfileContent() {
       {hasTeams && (
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-text-col">Teams</h2>
-          <button
-            onClick={handleAddTeam}
-            className="cursor-pointer flex items-center justify-center w-7 h-7 rounded-lg bg-accent-col text-text-col hover:opacity-80 transition-opacity"
-            aria-label="Add team"
-          >
-            <span className="text-xl font-semibold">+</span>
-          </button>
+          {isOwner && (
+            <button
+              onClick={handleAddTeam}
+              className="cursor-pointer flex items-center justify-center w-7 h-7 rounded-lg bg-accent-col text-text-col hover:opacity-80 transition-opacity"
+              aria-label="Add team"
+            >
+              <span className="text-xl font-semibold">+</span>
+            </button>
+          )}
         </div>
       )}
 
       {hasTeams ? (
         <UserTeamsList
           teamsBySport={teamsBySport}
-          onEdit={handleEditTeam}
-          onDelete={handleDeleteTeam}
+          onEdit={isOwner ? handleEditTeam : undefined}
+          onDelete={isOwner ? handleDeleteTeam : undefined}
         />
       ) : (
-        <EmptyState onAddTeam={handleAddTeam} />
+        <EmptyState onAddTeam={isOwner ? handleAddTeam : undefined} />
       )}
 
-      <AddUserTeamModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSuccess={handleSuccess}
-        editingUserTeam={editingTeam}
-      />
+      {isOwner && (
+        <AddUserTeamModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSuccess={handleSuccess}
+          editingUserTeam={editingTeam}
+        />
+      )}
     </>
   );
 }
