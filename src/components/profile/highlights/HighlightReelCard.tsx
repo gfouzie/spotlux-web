@@ -82,7 +82,7 @@ export default function HighlightReelCard({
               e.stopPropagation();
               onEdit(e);
             }}
-            className="absolute -top-1 -right-1 w-6 h-6 bg-black/80 hover:bg-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg border border-white/20 cursor-pointer z-10"
+            className="absolute -top-1 -right-1 w-6 h-6 bg-black/80 hover:bg-black rounded-full flex items-center justify-center transition-opacity shadow-lg border border-white/20 cursor-pointer z-10"
             title="Edit reel"
           >
             <Settings className="w-3.5 h-3.5 text-white" />

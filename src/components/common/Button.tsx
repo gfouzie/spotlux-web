@@ -34,7 +34,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = cn(
       'inline-flex cursor-pointer items-center justify-center rounded-lg font-medium transition-colors duration-200',
       'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bg-col',
-      'disabled:cursor-not-allowed disabled:opacity-50'
+      'disabled:cursor-not-allowed disabled:opacity-50 disabled:text-text-col/50'
     );
 
     // Size variants

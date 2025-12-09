@@ -8,8 +8,6 @@ import CreateReelModal from './CreateReelModal';
 import EditReelModal from './EditReelModal';
 import HighlightUploadModal from './HighlightUploadModal';
 import StoryViewer from './StoryViewer';
-import HighlightClipManager from './HighlightClipManager';
-import Button from '@/components/common/Button';
 import Alert from '@/components/common/Alert';
 import LoadingState from '@/components/common/LoadingState';
 
@@ -33,7 +31,6 @@ export default function HighlightProfileContent({
   const [selectedReel, setSelectedReel] = useState<HighlightReel | null>(null);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [viewerHighlights, setViewerHighlights] = useState<Highlight[]>([]);
-  const [showClipManager, setShowClipManager] = useState(false);
 
   const loadReels = useCallback(async () => {
     setIsLoading(true);
@@ -66,10 +63,8 @@ export default function HighlightProfileContent({
       const sorted = highlights?.sort((a, b) => a.orderIndex - b.orderIndex);
 
       if (sorted.length === 0) {
-        // No clips yet - if owner, show clip manager
         if (isOwner) {
-          setSelectedReel(reel);
-          setShowClipManager(true);
+          handleEditReel(reel);
         } else {
           setError('This reel has no clips yet');
         }
@@ -96,12 +91,6 @@ export default function HighlightProfileContent({
 
   const handleUploadSuccess = () => {
     loadReels();
-    setShowClipManager(false);
-  };
-
-  const handleOpenUploadModal = (reel: HighlightReel) => {
-    setSelectedReel(reel);
-    setShowUploadModal(true);
   };
 
   const handleEditReel = (reel: HighlightReel) => {
@@ -121,21 +110,20 @@ export default function HighlightProfileContent({
         </Alert>
       )}
 
-      {/* Action Buttons */}
-      {isOwner && reels?.length > 0 && (
-        <div className="flex gap-2 mb-4">
-          <Button onClick={() => setShowCreateReelModal(true)}>
-            Create Reel
-          </Button>
-          <Button onClick={() => setShowUploadModal(true)}>
-            Upload Highlights
-          </Button>
-        </div>
-      )}
+      {/* Header with Add Button */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-text-col">Highlights</h2>
+        <button
+          onClick={() => setShowUploadModal(true)}
+          className="cursor-pointer flex items-center justify-center w-7 h-7 rounded-lg bg-accent-col text-text-col hover:opacity-80 transition-opacity"
+          aria-label="Add highlight reel"
+        >
+          <span className="text-xl font-semibold">+</span>
+        </button>
+      </div>
 
       {/* Highlight Reels Grid */}
       <div>
-        <h2 className="text-2xl font-bold text-text-col">Highlights</h2>
         <HighlightReelGrid
           reels={reels}
           onReelClick={handleReelClick}
@@ -146,29 +134,6 @@ export default function HighlightProfileContent({
           isOwner={isOwner}
         />
       </div>
-
-      {/* Clip Manager (only shown when owner clicks empty reel) */}
-      {showClipManager && selectedReel && (
-        <div className="bg-card-col rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-text-col">
-              {selectedReel?.name}
-            </h3>
-            <button
-              type="button"
-              onClick={() => setShowClipManager(false)}
-              className="text-text-col/60 hover:text-text-col cursor-pointer"
-            >
-              Close
-            </button>
-          </div>
-          <HighlightClipManager
-            reel={selectedReel}
-            onUploadClick={() => handleOpenUploadModal(selectedReel)}
-            onReload={loadReels}
-          />
-        </div>
-      )}
 
       {/* Create Reel Modal */}
       <CreateReelModal

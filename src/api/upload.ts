@@ -262,6 +262,8 @@ export const uploadApi = {
 
   /**
    * Upload highlight video using presigned URL flow
+   * Note: Does not auto-complete like image uploads. Returns URL for use
+   * in highlightsApi.createHighlight() with additional metadata (promptId, etc.)
    */
   uploadHighlightVideo: async (
     reelId: number,

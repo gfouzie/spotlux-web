@@ -4,12 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import Modal from '@/components/common/Modal';
 import Select from '@/components/common/Select';
 import Alert from '@/components/common/Alert';
-import { Upload, Xmark, Check } from 'iconoir-react';
-import { highlightsApi, HighlightCreateRequest } from '@/api/highlights';
-import { uploadApi } from '@/api/upload';
+import { Upload, Xmark } from 'iconoir-react';
 import { promptsApi, Prompt } from '@/api/prompts';
 import { cn } from '@/lib/utils';
-import { compressVideo, validateVideoFile } from '@/lib/compression';
+import { validateVideoFile } from '@/lib/compression';
+import { compressAndUploadHighlight } from '@/lib/highlights/uploadHelper';
 
 interface HighlightUploadModalProps {
   isOpen: boolean;
@@ -20,18 +19,6 @@ interface HighlightUploadModalProps {
   sport: string;
 }
 
-interface FileWithPreview {
-  file: File;
-  compressedFile?: File;
-  preview: string;
-  uploadProgress: number;
-  compressionProgress: number;
-  uploadStatus: 'pending' | 'compressing' | 'uploading' | 'success' | 'error';
-  errorMessage?: string;
-  originalSize?: number;
-  compressedSize?: number;
-}
-
 export default function HighlightUploadModal({
   isOpen,
   onClose,
@@ -40,7 +27,7 @@ export default function HighlightUploadModal({
   reels,
   sport,
 }: HighlightUploadModalProps) {
-  const [files, setFiles] = useState<FileWithPreview[]>([]);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedReelId, setSelectedReelId] = useState<number | undefined>(
     reelId
@@ -50,6 +37,11 @@ export default function HighlightUploadModal({
   );
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<
+    'idle' | 'compressing' | 'uploading' | 'success' | 'error'
+  >('idle');
+  const [compressedVideoSize, setCompressedVideoSize] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
 
   // Load prompts for the sport
@@ -83,50 +75,35 @@ export default function HighlightUploadModal({
   }, [reelId]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    // Validate file types and sizes
-    const validFiles: FileWithPreview[] = [];
-    const errors: string[] = [];
-
-    selectedFiles.forEach((file) => {
-      const validation = validateVideoFile(file);
-      if (!validation.valid) {
-        errors.push(`${file.name}: ${validation.error}`);
-        return;
-      }
-
-      validFiles.push({
-        file,
-        preview: URL.createObjectURL(file),
-        uploadProgress: 0,
-        compressionProgress: 0,
-        uploadStatus: 'pending',
-        originalSize: file.size,
-      });
-    });
-
-    if (errors?.length > 0) {
-      setError(errors.join(', '));
+    // Validate using the shared validation function
+    const validation = validateVideoFile(file);
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid video file');
+      return;
     }
 
-    setFiles((prev) => [...prev, ...validFiles]);
+    setVideoFile(file);
+    setUploadStatus('idle');
+    setCompressionProgress(0);
+    setCompressedVideoSize(0);
+    setError(null);
 
     // Reset input
     e.target.value = '';
   };
 
-  const removeFile = (index: number) => {
-    setFiles((prev) => {
-      const newFiles = [...prev];
-      URL.revokeObjectURL(newFiles[index].preview);
-      newFiles.splice(index, 1);
-      return newFiles;
-    });
+  const handleRemoveVideo = () => {
+    setVideoFile(null);
+    setUploadStatus('idle');
+    setCompressionProgress(0);
+    setCompressedVideoSize(0);
   };
 
   const handleUpload = async () => {
-    if (files?.length === 0) return;
+    if (!videoFile) return;
     if (!selectedReelId) {
       setError('Please select a reel');
       return;
@@ -136,113 +113,41 @@ export default function HighlightUploadModal({
     setError(null);
 
     try {
-      // Track upload results
-      let failureCount = 0;
+      const { compressedSize } = await compressAndUploadHighlight({
+        reelId: selectedReelId,
+        videoFile,
+        promptId: selectedPromptId,
+        onCompressionProgress: (progress) => {
+          setCompressionProgress(progress);
+        },
+        onStatusChange: (status) => {
+          if (status === 'compressing') setUploadStatus('compressing');
+          else if (status === 'uploading') setUploadStatus('uploading');
+          else if (status === 'creating') setUploadStatus('uploading');
+        },
+      });
 
-      // Upload each file
-      for (let i = 0; i < files?.length; i++) {
-        const fileWithPreview = files[i];
+      setCompressedVideoSize(compressedSize);
+      setUploadStatus('success');
 
-        try {
-          // Step 1: Compress the video
-          setFiles((prev) => {
-            const updated = [...prev];
-            updated[i].uploadStatus = 'compressing';
-            return updated;
-          });
-
-          const { compressedBlob, compressedSize } = await compressVideo(
-            fileWithPreview.file,
-            {}, // Use default compression settings
-            (progress) => {
-              // Update compression progress
-              setFiles((prev) => {
-                const updated = [...prev];
-                updated[i].compressionProgress = progress;
-                return updated;
-              });
-            }
-          );
-
-          // Convert blob to file
-          const compressedFile = new File(
-            [compressedBlob],
-            fileWithPreview.file.name,
-            {
-              type: 'video/mp4',
-            }
-          );
-
-          // Update with compressed file info
-          setFiles((prev) => {
-            const updated = [...prev];
-            updated[i].compressedFile = compressedFile;
-            updated[i].compressedSize = compressedSize;
-            return updated;
-          });
-
-          // Step 2: Upload compressed video to S3
-          setFiles((prev) => {
-            const updated = [...prev];
-            updated[i].uploadStatus = 'uploading';
-            return updated;
-          });
-
-          const { fileUrl } = await uploadApi.uploadHighlightVideo(
-            selectedReelId,
-            compressedFile
-          );
-
-          // Create highlight record
-          const createRequest: HighlightCreateRequest = {
-            highlightReelId: selectedReelId,
-            videoUrl: fileUrl,
-            promptId: selectedPromptId,
-          };
-
-          await highlightsApi.createHighlight(createRequest);
-
-          // Update status to success
-          setFiles((prev) => {
-            const updated = [...prev];
-            updated[i].uploadStatus = 'success';
-            updated[i].uploadProgress = 100;
-            return updated;
-          });
-        } catch (err) {
-          // Update status to error
-          setFiles((prev) => {
-            const updated = [...prev];
-            updated[i].uploadStatus = 'error';
-            updated[i].errorMessage =
-              err instanceof Error ? err.message : 'Upload failed';
-            return updated;
-          });
-
-          failureCount++;
-        }
-      }
-
-      // Check if all uploads succeeded
-      if (failureCount === 0) {
-        onSuccess();
-        handleClose();
-      } else {
-        setError('Some uploads failed. Please retry the failed uploads.');
-      }
+      // Call success callback and close modal
+      onSuccess();
+      handleClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      setUploadStatus('error');
+      setError(err instanceof Error ? err.message : 'Failed to upload video');
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleClose = () => {
-    // Clean up previews
-    files?.forEach((f) => URL.revokeObjectURL(f.preview));
-    setFiles([]);
+    setVideoFile(null);
     setSelectedReelId(reelId);
     setSelectedPromptId(undefined);
+    setUploadStatus('idle');
+    setCompressionProgress(0);
+    setCompressedVideoSize(0);
     setError(null);
     onClose();
   };
@@ -251,15 +156,21 @@ export default function HighlightUploadModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Upload Highlight Clips"
+      title="Upload Highlight Clip"
       size="lg"
       showFooter
-      confirmText={`Upload${files?.length ? ` (${files?.length})` : ''}`}
+      confirmText={
+        uploadStatus === 'compressing'
+          ? `Compressing ${compressionProgress}%`
+          : uploadStatus === 'uploading'
+            ? 'Uploading...'
+            : 'Upload'
+      }
       cancelText="Cancel"
       onConfirm={handleUpload}
       onCancel={handleClose}
       confirmLoading={isUploading}
-      confirmDisabled={files?.length === 0}
+      confirmDisabled={!videoFile || uploadStatus === 'success'}
     >
       <div className="space-y-4">
         {error && (
@@ -308,96 +219,85 @@ export default function HighlightUploadModal({
           }
         />
 
-        {/* File Upload Area */}
-        <div className="border-2 border-dashed border-text-col/30 rounded-lg p-6 text-center">
-          <input
-            type="file"
-            accept="video/*"
-            multiple
-            onChange={handleFileSelect}
-            className="hidden"
-            id="video-upload"
-            disabled={isUploading}
-          />
-          <label
-            htmlFor="video-upload"
-            className={cn(
-              'cursor-pointer flex flex-col items-center gap-2',
-              isUploading && 'opacity-50 cursor-not-allowed'
-            )}
-          >
-            <Upload className="w-12 h-12 text-text-col/40" />
-            <p className="text-text-col font-medium">
-              Click to upload video clips
-            </p>
-            <p className="text-sm text-text-col/60">
-              MP4, MOV, WEBM up to 100MB each
-            </p>
-          </label>
-        </div>
-
-        {/* File List */}
-        {files?.length > 0 && (
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {files?.map((fileWithPreview, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-3 p-3 bg-bg-col/30 rounded border border-bg-col"
-              >
-                {/* Video Preview */}
-                <video
-                  src={fileWithPreview.preview}
-                  className="w-16 h-16 object-cover rounded"
-                />
-
-                {/* File Info */}
+        {/* Video Upload */}
+        {videoFile ? (
+          <div className="space-y-3">
+            {/* File Info */}
+            <div className="p-3 bg-bg-col/30 rounded border border-bg-col">
+              <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text-col truncate">
-                    {fileWithPreview.file.name}
+                  <p className="text-sm text-text-col font-medium truncate">
+                    {videoFile.name}
                   </p>
                   <p className="text-xs text-text-col/60">
-                    {(fileWithPreview.file.size / (1024 * 1024)).toFixed(2)} MB
+                    {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
-
-                  {/* Status */}
-                  {fileWithPreview.uploadStatus === 'compressing' && (
-                    <p className="text-xs text-accent-col">
-                      Compressing... {fileWithPreview.compressionProgress}%
-                    </p>
-                  )}
-                  {fileWithPreview.uploadStatus === 'uploading' && (
-                    <p className="text-xs text-accent-col">Uploading...</p>
-                  )}
-                  {fileWithPreview.uploadStatus === 'success' && (
-                    <p className="text-xs text-green-600">Uploaded</p>
-                  )}
-                  {fileWithPreview.uploadStatus === 'error' && (
-                    <p className="text-xs text-red-600">
-                      {fileWithPreview.errorMessage || 'Failed'}
+                  {compressedVideoSize > 0 && (
+                    <p className="text-xs text-text-col">
+                      Compressed:{' '}
+                      {(compressedVideoSize / (1024 * 1024)).toFixed(2)} MB (
+                      {(
+                        ((videoFile.size - compressedVideoSize) /
+                          videoFile.size) *
+                        100
+                      ).toFixed(1)}
+                      % reduction)
                     </p>
                   )}
                 </div>
-
-                {/* Remove Button */}
-                {fileWithPreview.uploadStatus === 'pending' && !isUploading && (
+                {!isUploading && uploadStatus !== 'success' && (
                   <button
                     type="button"
-                    onClick={() => removeFile(index)}
-                    className="cursor-pointer p-2 hover:bg-bg-col/50 rounded transition-colors"
+                    onClick={handleRemoveVideo}
+                    className="cursor-pointer p-2 hover:bg-bg-col/50 rounded transition-colors flex-shrink-0"
                   >
                     <Xmark className="w-4 h-4 text-text-col/60" />
                   </button>
                 )}
-
-                {/* Status Icon */}
-                {fileWithPreview.uploadStatus === 'success' && (
-                  <Check className="w-5 h-5 text-green-600" />
-                )}
-                {fileWithPreview.uploadStatus === 'error' && (
-                  <Xmark className="w-5 h-5 text-red-600" />
-                )}
               </div>
-            ))}
+            </div>
+
+            {/* Status Messages */}
+            {uploadStatus === 'compressing' && (
+              <p className="text-xs text-text-col">
+                Compressing... {compressionProgress}%
+              </p>
+            )}
+            {uploadStatus === 'uploading' && (
+              <p className="text-xs text-text-col">Uploading to S3...</p>
+            )}
+            {uploadStatus === 'success' && (
+              <p className="text-xs text-green-600">✓ Upload successful!</p>
+            )}
+            {uploadStatus === 'error' && (
+              <p className="text-xs text-red-600">Upload failed</p>
+            )}
+          </div>
+        ) : (
+          <div className="border-2 border-dashed border-text-col/30 rounded-lg p-6 text-center">
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleFileSelect}
+              className="hidden"
+              id="video-upload"
+              disabled={isUploading}
+            />
+            <label
+              htmlFor="video-upload"
+              className={cn(
+                'cursor-pointer flex flex-col items-center gap-2',
+                isUploading && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              <Upload className="w-12 h-12 text-text-col/40" />
+              <p className="text-text-col font-medium">
+                Click to upload video clip
+              </p>
+              <p className="text-sm text-text-col/60">
+                MP4, MOV, WEBM up to 100MB
+              </p>
+            </label>
           </div>
         )}
       </div>

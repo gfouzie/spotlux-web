@@ -27,11 +27,27 @@ interface ProfileSportProviderProps {
   children: ReactNode;
 }
 
+const SESSION_STORAGE_KEY = 'spotlux-selected-sport';
+
 export function ProfileSportProvider({ children }: ProfileSportProviderProps) {
   const { user } = useUser();
   const [userSports, setUserSports] = useState<UserSport[]>([]);
-  const [selectedSport, setSelectedSport] = useState<string | null>(null);
+  const [selectedSport, setSelectedSportState] = useState<string | null>(() => {
+    // Initialize from session storage
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem(SESSION_STORAGE_KEY);
+    }
+    return null;
+  });
   const [isLoading, setIsLoading] = useState(true);
+
+  // Wrapper to update both state and session storage
+  const setSelectedSport = useCallback((sport: string) => {
+    setSelectedSportState(sport);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, sport);
+    }
+  }, []);
 
   const loadSports = useCallback(async () => {
     if (!user) {
@@ -48,20 +64,31 @@ export function ProfileSportProvider({ children }: ProfileSportProviderProps) {
       if (sportsData?.length > 0 && !selectedSport) {
         setSelectedSport(sportsData[0].sport);
       } else if (sportsData?.length === 0) {
-        setSelectedSport(null);
+        // Clear selection when no sports
+        setSelectedSportState(null);
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem(SESSION_STORAGE_KEY);
+        }
       } else if (
         selectedSport &&
         !sportsData?.find((s) => s.sport === selectedSport)
       ) {
         // If current selected sport was removed, switch to first available
-        setSelectedSport(sportsData[0]?.sport || null);
+        if (sportsData[0]?.sport) {
+          setSelectedSport(sportsData[0].sport);
+        } else {
+          setSelectedSportState(null);
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem(SESSION_STORAGE_KEY);
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to load user sports:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [user, selectedSport]);
+  }, [user, selectedSport, setSelectedSport]);
 
   const refreshSports = useCallback(async () => {
     await loadSports();

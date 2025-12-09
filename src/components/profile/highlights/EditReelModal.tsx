@@ -10,6 +10,9 @@ import { Xmark, Upload, VideoCamera, Menu, Trash } from 'iconoir-react';
 import { HighlightReel, highlightReelsApi } from '@/api/highlightReels';
 import { Highlight, highlightsApi } from '@/api/highlights';
 import { uploadApi } from '@/api/upload';
+import { Prompt, promptsApi } from '@/api/prompts';
+import { validateVideoFile } from '@/lib/compression';
+import { compressAndUploadHighlight } from '@/lib/highlights/uploadHelper';
 import { cn } from '@/lib/utils';
 
 interface EditReelModalProps {
@@ -41,6 +44,17 @@ export default function EditReelModal({
     null
   );
 
+  // New video upload state
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [selectedPromptId, setSelectedPromptId] = useState<number | null>(null);
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<
+    'idle' | 'compressing' | 'uploading' | 'success' | 'error'
+  >('idle');
+  const [compressedVideoSize, setCompressedVideoSize] = useState<number>(0);
+
   // Load highlights for this reel
   const loadHighlights = useCallback(async () => {
     setIsLoadingHighlights(true);
@@ -57,14 +71,28 @@ export default function EditReelModal({
     }
   }, [reel.id]);
 
+  // Load prompts for this sport
+  const loadPrompts = useCallback(async () => {
+    try {
+      const promptsData = await promptsApi.getPrompts({
+        sport: reel.sport,
+        limit: 100,
+      });
+      setPrompts(promptsData);
+    } catch (err) {
+      console.error('Failed to load prompts:', err);
+    }
+  }, [reel.sport]);
+
   useEffect(() => {
     if (isOpen) {
       loadHighlights();
+      loadPrompts();
       setThumbnailPreview(reel.thumbnailUrl || null);
       setVisibility(reel.visibility);
       setShouldRemoveThumbnail(false);
     }
-  }, [isOpen, loadHighlights, reel.thumbnailUrl, reel.visibility]);
+  }, [isOpen, loadHighlights, loadPrompts, reel.thumbnailUrl, reel.visibility]);
 
   const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -98,6 +126,78 @@ export default function EditReelModal({
     setThumbnailFile(null);
     setThumbnailPreview(null);
     setShouldRemoveThumbnail(true);
+  };
+
+  const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate using the shared validation function
+    const validation = validateVideoFile(file);
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid video file');
+      return;
+    }
+
+    setVideoFile(file);
+    setUploadStatus('idle');
+    setCompressionProgress(0);
+    setCompressedVideoSize(0);
+    setError(null);
+
+    // Auto-upload immediately after selecting file
+    await handleUploadVideo(file);
+  };
+
+  const handleRemoveVideo = () => {
+    setVideoFile(null);
+    setSelectedPromptId(null);
+    setUploadStatus('idle');
+    setCompressionProgress(0);
+    setCompressedVideoSize(0);
+  };
+
+  const handleUploadVideo = async (fileToUpload?: File) => {
+    const file = fileToUpload || videoFile;
+    if (!file) return;
+
+    setIsUploadingVideo(true);
+    setError(null);
+
+    try {
+      const { compressedSize } = await compressAndUploadHighlight({
+        reelId: reel.id,
+        videoFile: file,
+        promptId: selectedPromptId || undefined,
+        onCompressionProgress: (progress) => {
+          setCompressionProgress(progress);
+        },
+        onStatusChange: (status) => {
+          if (status === 'compressing') setUploadStatus('compressing');
+          else if (status === 'uploading') setUploadStatus('uploading');
+          else if (status === 'creating') setUploadStatus('uploading'); // Keep showing "uploading" during creation
+        },
+      });
+
+      setCompressedVideoSize(compressedSize);
+
+      // Reload highlights and show success
+      setUploadStatus('success');
+      await loadHighlights();
+
+      // Refresh parent component to get updated reel data (including auto-generated thumbnail)
+      onSuccess();
+
+      // Clear upload form after a brief success display
+      setTimeout(() => {
+        handleRemoveVideo();
+      }, 1500);
+    } catch (err) {
+      setUploadStatus('error');
+      setError(err instanceof Error ? err.message : 'Failed to upload video');
+    } finally {
+      setIsUploadingVideo(false);
+    }
   };
 
   const handleDragStart = (index: number) => {
@@ -230,6 +330,11 @@ export default function EditReelModal({
     setThumbnailFile(null);
     setThumbnailPreview(null);
     setShouldRemoveThumbnail(false);
+    setVideoFile(null);
+    setSelectedPromptId(null);
+    setUploadStatus('idle');
+    setCompressionProgress(0);
+    setCompressedVideoSize(0);
     setVisibility(reel.visibility);
     setError(null);
     setReorderedClips(new Set());
@@ -248,7 +353,8 @@ export default function EditReelModal({
       cancelText="Cancel"
       onConfirm={handleSubmit}
       onCancel={handleClose}
-      confirmLoading={isSubmitting}
+      confirmLoading={isSubmitting || isUploadingVideo}
+      confirmDisabled={isUploadingVideo}
     >
       <div className="space-y-6">
         {error && (
@@ -361,8 +467,121 @@ export default function EditReelModal({
           )}
         </div>
 
+        {/* Add New Video Section */}
+        <div className="space-y-3 border-t border-bg-col pt-6">
+          <label className="block text-sm font-medium text-text-col">
+            Add New Clip
+          </label>
+          <p className="text-xs text-text-col/60">
+            {videoFile && uploadStatus !== 'success'
+              ? 'Uploading your video clip...'
+              : 'Select a video file to upload (uploads automatically)'}
+          </p>
+
+          {/* Prompt Selection (shown before file upload) */}
+          {prompts.length > 0 && !videoFile && (
+            <Select
+              label="Prompt (Optional)"
+              value={selectedPromptId?.toString() || ''}
+              onChange={(e) =>
+                setSelectedPromptId(
+                  e.target.value ? parseInt(e.target.value) : null
+                )
+              }
+              options={[
+                { value: '', label: 'No prompt' },
+                ...prompts.map((prompt) => ({
+                  value: prompt.id.toString(),
+                  label: prompt.name,
+                })),
+              ]}
+            />
+          )}
+
+          {videoFile ? (
+            <div className="space-y-3">
+              {/* File Info */}
+              <div className="p-3 bg-bg-col/30 rounded border border-bg-col">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-text-col font-medium truncate">
+                      {videoFile.name}
+                    </p>
+                    <p className="text-xs text-text-col/60">
+                      {(videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
+                    {compressedVideoSize > 0 && (
+                      <p className="text-xs text-text-col">
+                        Compressed:{' '}
+                        {(compressedVideoSize / (1024 * 1024)).toFixed(2)} MB (
+                        {(
+                          ((videoFile.size - compressedVideoSize) /
+                            videoFile.size) *
+                          100
+                        ).toFixed(1)}
+                        % reduction)
+                      </p>
+                    )}
+                  </div>
+                  {!isUploadingVideo && uploadStatus !== 'success' && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveVideo}
+                      className="cursor-pointer p-2 hover:bg-bg-col/50 rounded transition-colors flex-shrink-0"
+                    >
+                      <Xmark className="w-4 h-4 text-text-col/60" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Status Messages */}
+              {uploadStatus === 'compressing' && (
+                <p className="text-xs text-text-col">
+                  Compressing... {compressionProgress}%
+                </p>
+              )}
+              {uploadStatus === 'uploading' && (
+                <p className="text-xs text-text-col">Uploading to S3...</p>
+              )}
+              {uploadStatus === 'success' && (
+                <p className="text-xs text-green-600">✓ Upload successful!</p>
+              )}
+              {uploadStatus === 'error' && (
+                <p className="text-xs text-red-600">Upload failed</p>
+              )}
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-text-col/30 rounded-lg p-6 text-center">
+              <input
+                type="file"
+                accept="video/*"
+                onChange={handleVideoSelect}
+                className="hidden"
+                id="video-upload"
+                disabled={isUploadingVideo}
+              />
+              <label
+                htmlFor="video-upload"
+                className={cn(
+                  'cursor-pointer flex flex-col items-center gap-2',
+                  isUploadingVideo && 'opacity-50 cursor-not-allowed'
+                )}
+              >
+                <VideoCamera className="w-8 h-8 text-text-col/40" />
+                <p className="text-sm text-text-col/80">
+                  Click to upload video clip
+                </p>
+                <p className="text-xs text-text-col/60">
+                  MP4, MOV, WEBM up to 100MB
+                </p>
+              </label>
+            </div>
+          )}
+        </div>
+
         {/* Clip Reordering Section */}
-        <div className="space-y-2">
+        <div className="space-y-2 border-t border-bg-col pt-6">
           <label className="block text-sm font-medium text-text-col">
             Reorder Clips ({highlights?.length})
           </label>
@@ -424,7 +643,7 @@ export default function EditReelModal({
 
                   {/* Reordered indicator */}
                   {reorderedClips.has(highlight?.id) && (
-                    <div className="text-xs text-accent-col font-medium">
+                    <div className="text-xs text-text-col font-medium">
                       Modified
                     </div>
                   )}
