@@ -104,6 +104,10 @@ export default function HighlightProfileContent({
   if (isLoading) {
     return <LoadingState />;
   }
+  // Hide section if no reels and not owner
+  if (!isOwner && reels.length === 0) {
+    return null;
+  }
 
   return (
     <div className="bg-card-col rounded-lg p-6">

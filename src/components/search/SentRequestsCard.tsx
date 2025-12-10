@@ -4,19 +4,19 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   friendshipsApi,
-  type FriendshipWithRequester,
+  type FriendshipWithAddressee,
 } from '@/api/friendships';
 import Alert from '@/components/common/Alert';
-import FriendRequestItem from './FriendRequestItem';
+import SentRequestItem from './SentRequestItem';
 
-interface RequestsCardProps {
+interface SentRequestsCardProps {
   refreshTrigger?: number;
   onStatusChange?: () => void;
 }
 
-export default function RequestsCard({ refreshTrigger, onStatusChange }: RequestsCardProps) {
+export default function SentRequestsCard({ refreshTrigger, onStatusChange }: SentRequestsCardProps) {
   const { isAuthenticated } = useAuth();
-  const [requests, setRequests] = useState<FriendshipWithRequester[]>([]);
+  const [requests, setRequests] = useState<FriendshipWithAddressee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,7 +26,7 @@ export default function RequestsCard({ refreshTrigger, onStatusChange }: Request
     try {
       setIsLoading(true);
       setError(null);
-      const requests = await friendshipsApi.getReceivedRequests(0, 100);
+      const requests = await friendshipsApi.getSentRequests(0, 100);
       setRequests(requests);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load requests');
@@ -39,37 +39,19 @@ export default function RequestsCard({ refreshTrigger, onStatusChange }: Request
     loadRequests();
   }, [loadRequests, refreshTrigger]);
 
-  const handleAccept = useCallback(
+  const handleCancel = useCallback(
     async (friendshipId: number) => {
       if (!isAuthenticated) return;
 
       try {
-        await friendshipsApi.acceptFriendRequest(friendshipId);
+        await friendshipsApi.cancelFriendRequest(friendshipId);
         await loadRequests();
         // Notify parent to refresh user list
         if (onStatusChange) {
           onStatusChange();
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to accept request');
-      }
-    },
-    [isAuthenticated, loadRequests, onStatusChange]
-  );
-
-  const handleReject = useCallback(
-    async (friendshipId: number) => {
-      if (!isAuthenticated) return;
-
-      try {
-        await friendshipsApi.rejectFriendRequest(friendshipId);
-        await loadRequests();
-        // Notify parent to refresh user list
-        if (onStatusChange) {
-          onStatusChange();
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to reject request');
+        setError(err instanceof Error ? err.message : 'Failed to cancel request');
       }
     },
     [isAuthenticated, loadRequests, onStatusChange]
@@ -78,7 +60,7 @@ export default function RequestsCard({ refreshTrigger, onStatusChange }: Request
   return (
     <div className="bg-card-col rounded-lg p-6">
       <h3 className="text-lg font-semibold text-text-col mb-4">
-        Friend Requests
+        Sent Requests
       </h3>
 
       {error && (
@@ -98,11 +80,10 @@ export default function RequestsCard({ refreshTrigger, onStatusChange }: Request
       ) : (
         <div className="space-y-3 max-h-[600px] overflow-y-auto">
           {requests?.map((request) => (
-            <FriendRequestItem
+            <SentRequestItem
               key={request.id}
               request={request}
-              onAccept={handleAccept}
-              onReject={handleReject}
+              onCancel={handleCancel}
             />
           ))}
         </div>

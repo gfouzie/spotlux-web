@@ -13,6 +13,30 @@ export interface Friendship {
   updatedAt?: string | null;
 }
 
+export interface RequesterInfo {
+  id: number;
+  username: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  photoUrl?: string | null;
+}
+
+export interface FriendshipWithRequester extends Friendship {
+  requester: RequesterInfo;
+}
+
+export interface AddresseeInfo {
+  id: number;
+  username: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  photoUrl?: string | null;
+}
+
+export interface FriendshipWithAddressee extends Friendship {
+  addressee: AddresseeInfo;
+}
+
 export interface FriendshipSendRequest {
   addresseeId: number;
 }
@@ -45,13 +69,13 @@ export const friendshipsApi = {
   async getReceivedRequests(
     offset: number = 0,
     limit: number = 20
-  ): Promise<Friendship[]> {
+  ): Promise<FriendshipWithRequester[]> {
     const params = new URLSearchParams({
       offset: offset.toString(),
       limit: limit.toString(),
     });
 
-    return authRequest<Friendship[]>(
+    return authRequest<FriendshipWithRequester[]>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/received?${params}`,
       {
         cache: 'no-store',
@@ -63,16 +87,26 @@ export const friendshipsApi = {
   async getSentRequests(
     offset: number = 0,
     limit: number = 20
-  ): Promise<Friendship[]> {
+  ): Promise<FriendshipWithAddressee[]> {
     const params = new URLSearchParams({
       offset: offset.toString(),
       limit: limit.toString(),
     });
 
-    return authRequest<Friendship[]>(
+    return authRequest<FriendshipWithAddressee[]>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/sent?${params}`,
       {
         cache: 'no-store',
+      }
+    );
+  },
+
+  // Cancel a sent friend request
+  async cancelFriendRequest(friendshipId: number): Promise<void> {
+    return authRequest<void>(
+      `${config.apiBaseUrl}/api/v1/user/friends/requests/${friendshipId}`,
+      {
+        method: 'DELETE',
       }
     );
   },
@@ -100,12 +134,17 @@ export const friendshipsApi = {
   // Get my friends list
   async getMyFriends(
     offset: number = 0,
-    limit: number = 20
+    limit: number = 20,
+    searchText?: string
   ): Promise<UserProfile[]> {
     const params = new URLSearchParams({
       offset: offset.toString(),
       limit: limit.toString(),
     });
+
+    if (searchText) {
+      params.append('searchText', searchText);
+    }
 
     return authRequest<UserProfile[]>(
       `${config.apiBaseUrl}/api/v1/user/friends?${params}`,
@@ -129,12 +168,17 @@ export const friendshipsApi = {
   async getUserFriends(
     userId: number,
     offset: number = 0,
-    limit: number = 20
+    limit: number = 20,
+    searchText?: string
   ): Promise<UserProfile[]> {
     const params = new URLSearchParams({
       offset: offset.toString(),
       limit: limit.toString(),
     });
+
+    if (searchText) {
+      params.append('searchText', searchText);
+    }
 
     return authRequest<UserProfile[]>(
       `${config.apiBaseUrl}/api/v1/users/${userId}/friends?${params}`,

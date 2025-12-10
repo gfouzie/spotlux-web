@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { friendshipsApi } from '@/api/friendships';
 import { UserProfile } from '@/api/profile';
-import Link from 'next/link';
-import Image from 'next/image';
 import Modal from '@/components/common/Modal';
+import FriendListItem from './FriendListItem';
+import { Search, Xmark } from 'iconoir-react';
 
 interface FriendsListModalProps {
   isOpen: boolean;
@@ -22,31 +22,58 @@ export default function FriendsListModal({
 }: FriendsListModalProps) {
   const [friends, setFriends] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const loadAllFriends = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Load all friends (up to 100)
+      // Load friends with search
       const friendsList = isOwnProfile
-        ? await friendshipsApi.getMyFriends(0, 100)
-        : await friendshipsApi.getUserFriends(userId, 0, 100);
+        ? await friendshipsApi.getMyFriends(0, 100, debouncedSearch || undefined)
+        : await friendshipsApi.getUserFriends(userId, 0, 100, debouncedSearch || undefined);
 
       setFriends(friendsList);
+      setIsInitialLoad(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load friends');
     } finally {
       setIsLoading(false);
     }
-  }, [isOwnProfile, userId]);
+  }, [isOwnProfile, userId, debouncedSearch]);
 
+  // Reset search when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSearchQuery('');
+      setDebouncedSearch('');
+      setIsInitialLoad(true);
+    }
+  }, [isOpen]);
+
+  // Load friends when debounced search changes or modal opens
   useEffect(() => {
     if (isOpen) {
       loadAllFriends();
     }
   }, [isOpen, loadAllFriends]);
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+  };
 
   return (
     <Modal
@@ -55,53 +82,58 @@ export default function FriendsListModal({
       title={`Friends${friends?.length > 0 ? ` (${friends?.length})` : ''}`}
       size="lg"
     >
-      {isLoading ? (
-        <div className="flex items-center justify-center h-32">
-          <div className="w-8 h-8 border-4 border-accent-col border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      ) : error ? (
+      {error ? (
         <div className="text-center text-red-500 py-8">{error}</div>
-      ) : friends?.length === 0 ? (
-        <div className="text-center text-text-col opacity-70 py-8">
-          {isOwnProfile ? 'You have no friends yet' : 'No friends to show'}
-        </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {friends?.map((friend) => (
-            <Link
-              key={friend.id}
-              href={`/profile/${friend.username}`}
-              onClick={onClose}
-              className="flex items-center space-x-4 p-4 rounded-lg bg-component-col/30 hover:bg-component-col/50 transition-colors"
-            >
-              <div className="relative w-12 h-12 rounded-full bg-component-col overflow-hidden flex-shrink-0">
-                {friend?.profileImageUrl ? (
-                  <Image
-                    src={friend.profileImageUrl}
-                    alt={`${friend.username}'s profile`}
-                    fill
-                    sizes="48px"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-accent-col/20">
-                    <span className="text-lg font-semibold text-text-col">
-                      {friend.firstName?.[0]}
-                      {friend.lastName?.[0]}
-                    </span>
-                  </div>
-                )}
+        <div>
+          {/* Search Input - always show unless there's an error */}
+          <div className="mb-4">
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-col/60">
+                <Search className="w-5 h-5" />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-text-col font-medium truncate">
-                  {friend.firstName} {friend.lastName}
-                </p>
-                <p className="text-text-col opacity-70 text-sm truncate">
-                  @{friend.username}
-                </p>
-              </div>
-            </Link>
-          ))}
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search friends..."
+                className="w-full pl-10 pr-10 py-2 bg-card-col text-text-col border border-bg-col rounded-md focus:outline-none focus:ring-2 focus:ring-accent-col"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-text-col/60 hover:text-text-col"
+                  aria-label="Clear search"
+                >
+                  <Xmark className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Loading State - only show on initial load */}
+          {isLoading && isInitialLoad ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="w-8 h-8 border-4 border-accent-col border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : friends.length === 0 ? (
+            /* Empty State */
+            <div className="text-center text-text-col/60 py-8 text-sm">
+              {searchQuery
+                ? `No friends found matching "${searchQuery}"`
+                : isOwnProfile
+                ? 'You have no friends yet'
+                : 'No friends to show'}
+            </div>
+          ) : (
+            /* Friends List */
+            <div className="max-h-[500px] overflow-y-auto">
+              {friends.map((friend) => (
+                <FriendListItem key={friend.id} friend={friend} onClose={onClose} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </Modal>

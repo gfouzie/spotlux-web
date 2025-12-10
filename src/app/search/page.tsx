@@ -10,6 +10,7 @@ import SearchInput from '@/components/search/SearchInput';
 import UserList from '@/components/search/UserList';
 import Pagination from '@/components/search/Pagination';
 import RequestsCard from '@/components/search/RequestsCard';
+import SentRequestsCard from '@/components/search/SentRequestsCard';
 import Alert from '@/components/common/Alert';
 
 type TabType = 'all' | 'friends';
@@ -27,6 +28,7 @@ export default function SearchPage() {
   const [itemsPerPage] = useState(20);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const loadUsers = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -133,6 +135,9 @@ export default function SearchPage() {
         console.error('Failed to reload friends count:', err);
       }
     }
+
+    // Trigger refresh for request cards
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   const handleTabChange = (tab: TabType) => {
@@ -204,7 +209,7 @@ export default function SearchPage() {
               </div>
 
               {/* User List */}
-              <div className="bg-component-col rounded border border-bg-col p-4">
+              <div className="bg-card-col rounded-lg p-6">
                 <UserList
                   users={users}
                   currentUserId={currentUser?.id || 0}
@@ -226,8 +231,15 @@ export default function SearchPage() {
             </div>
 
             {/* Right Sidebar - Friend Requests (1/3 width on large screens) */}
-            <div className="lg:col-span-1">
-              <RequestsCard />
+            <div className="lg:col-span-1 space-y-4">
+              <RequestsCard
+                refreshTrigger={refreshTrigger}
+                onStatusChange={handleStatusChange}
+              />
+              <SentRequestsCard
+                refreshTrigger={refreshTrigger}
+                onStatusChange={handleStatusChange}
+              />
             </div>
           </div>
         </div>

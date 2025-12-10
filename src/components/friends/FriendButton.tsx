@@ -149,7 +149,7 @@ export default function FriendButton({
 
       {showAutoAcceptMessage && (
         <Alert variant="success" className="mb-2 text-sm">
-          You're now friends! (Mutual request auto-accepted)
+          You&apos;re now friends! (Mutual request auto-accepted)
         </Alert>
       )}
 
@@ -199,7 +199,7 @@ export default function FriendButton({
           isLoading={isActionLoading}
           disabled={isActionLoading}
         >
-          Friends
+          Unfriend
         </Button>
       )}
     </div>
