@@ -7,6 +7,7 @@ import { useProfileSport } from '@/contexts/ProfileSportContext';
 import EmptyState from './EmptyState';
 import UserTeamsList from './UserTeamsList';
 import AddUserTeamModal from './AddUserTeamModal';
+import AddButton from '@/components/common/AddButton';
 
 interface UserTeamsProfileContentProps {
   isOwner?: boolean; // If true, shows edit/delete buttons. Defaults to true for backward compatibility
@@ -99,13 +100,7 @@ export default function UserTeamsProfileContent({
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-text-col">Teams</h2>
           {isOwner && (
-            <button
-              onClick={handleAddTeam}
-              className="cursor-pointer flex items-center justify-center w-7 h-7 rounded-lg bg-accent-col text-text-col hover:opacity-80 transition-opacity"
-              aria-label="Add team"
-            >
-              <span className="text-xl font-semibold">+</span>
-            </button>
+            <AddButton onClick={handleAddTeam} ariaLabel="Add team" />
           )}
         </div>
       )}

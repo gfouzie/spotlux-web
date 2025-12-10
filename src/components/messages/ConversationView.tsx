@@ -17,8 +17,6 @@ interface ConversationViewProps {
   isOtherUserTyping: boolean;
   onSendMessage: (content: string, imageUrl?: string | null) => void;
   onTypingChange: (isTyping: boolean) => void;
-  onEditMessage: (messageId: number, content: string) => void;
-  onDeleteMessage: (messageId: number) => void;
   onMarkAsRead: (messageId: number) => void;
 }
 
@@ -30,8 +28,6 @@ const ConversationView = ({
   isOtherUserTyping,
   onSendMessage,
   onTypingChange,
-  onEditMessage,
-  onDeleteMessage,
   onMarkAsRead,
 }: ConversationViewProps) => {
   if (!conversation) {
@@ -51,15 +47,13 @@ const ConversationView = ({
       : conversation.otherUser.username;
 
   return (
-    <div className="bg-card-col rounded-lg flex flex-col h-full">
+    <div className="bg-card-col rounded-lg flex flex-col h-full overflow-hidden">
       <ConversationHeader conversation={conversation} />
 
       <MessageThread
         messages={messages}
         currentUserId={currentUserId}
         isLoading={false}
-        onEditMessage={onEditMessage}
-        onDeleteMessage={onDeleteMessage}
         onMarkAsRead={onMarkAsRead}
       />
 

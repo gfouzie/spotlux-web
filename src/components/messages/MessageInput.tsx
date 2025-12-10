@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, KeyboardEvent } from 'react';
+import Button from '@/components/common/Button';
+import { Send } from 'iconoir-react';
 
 interface MessageInputProps {
   onSendMessage: (content: string, imageUrl?: string | null) => void;
@@ -87,10 +89,10 @@ const MessageInput = ({
   };
 
   return (
-    <div className="p-4 border-t border-text-col/10">
-      <div className="flex gap-3 items-end">
+    <div className="p-4 border-t border-text-col/10 flex-shrink-0">
+      <div className="flex gap-3 items-start">
         {/* Text input */}
-        <div className="flex-1 relative">
+        <div className="flex-grow relative">
           <textarea
             ref={textareaRef}
             value={content}
@@ -107,14 +109,15 @@ const MessageInput = ({
           </div>
         </div>
 
-        {/* Send button */}
-        <button
+        {/* Send button with send iconoir-react */}
+        <Button
           onClick={handleSend}
           disabled={!content.trim() || disabled}
-          className="px-6 py-3 bg-accent-col text-white rounded-lg font-medium hover:bg-accent-col/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+          variant="secondary"
+          size="md"
         >
-          Send
-        </button>
+          <Send width={20} height={20} />
+        </Button>
       </div>
     </div>
   );

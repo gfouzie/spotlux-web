@@ -10,8 +10,6 @@ interface MessageThreadProps {
   isLoading?: boolean;
   onLoadMore?: () => void;
   hasMore?: boolean;
-  onEditMessage?: (messageId: number, content: string) => void;
-  onDeleteMessage?: (messageId: number) => void;
   onMarkAsRead?: (messageId: number) => void;
 }
 
@@ -21,8 +19,6 @@ const MessageThread = ({
   isLoading = false,
   onLoadMore,
   hasMore = false,
-  onEditMessage,
-  onDeleteMessage,
   onMarkAsRead,
 }: MessageThreadProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,7 +33,10 @@ const MessageThread = ({
       if (container) {
         // Only auto-scroll if user is near the bottom (within 100px)
         const isNearBottom =
-          container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+          container.scrollHeight -
+            container.scrollTop -
+            container.clientHeight <
+          100;
 
         if (isNearBottom || messages.length === 1) {
           messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -104,7 +103,7 @@ const MessageThread = ({
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-bg-col/20 to-transparent"
+      className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-bg-col/20 to-transparent min-h-0"
     >
       {/* Load more indicator */}
       {hasMore && (
@@ -132,8 +131,6 @@ const MessageThread = ({
           key={message.id}
           message={message}
           currentUserId={currentUserId}
-          onEdit={onEditMessage}
-          onDelete={onDeleteMessage}
         />
       ))}
 

@@ -10,6 +10,7 @@ import HighlightUploadModal from './HighlightUploadModal';
 import StoryViewer from './StoryViewer';
 import Alert from '@/components/common/Alert';
 import LoadingState from '@/components/common/LoadingState';
+import AddButton from '@/components/common/AddButton';
 
 interface HighlightProfileContentProps {
   sport: string;
@@ -122,13 +123,10 @@ export default function HighlightProfileContent({
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-text-col">Highlights</h2>
           {isOwner && (
-            <button
+            <AddButton
               onClick={() => setShowUploadModal(true)}
-              className="cursor-pointer flex items-center justify-center w-7 h-7 rounded-lg bg-accent-col text-text-col hover:opacity-80 transition-opacity"
-              aria-label="Add highlight reel"
-            >
-              <span className="text-xl font-semibold">+</span>
-            </button>
+              ariaLabel="Add highlight reel"
+            />
           )}
         </div>
 

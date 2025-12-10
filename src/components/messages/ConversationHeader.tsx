@@ -18,7 +18,7 @@ const ConversationHeader = ({ conversation }: ConversationHeaderProps) => {
     'U';
 
   return (
-    <div className="p-4 border-b border-text-col/10">
+    <div className="p-4 border-b border-text-col/10 flex-shrink-0">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-accent-col/20 flex items-center justify-center text-sm font-medium">
           {initial}

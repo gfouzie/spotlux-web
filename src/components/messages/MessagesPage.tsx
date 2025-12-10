@@ -24,8 +24,6 @@ const MessagesPage = () => {
     setActiveConversation,
     sendMessage,
     sendTyping,
-    editMessage,
-    deleteMessage,
     markAsRead,
     createOrGetConversation,
   } = useMessaging();
@@ -65,16 +63,6 @@ const MessagesPage = () => {
     sendTyping(activeConversationId, isTyping);
   };
 
-  const handleEditMessage = (messageId: number, content: string) => {
-    if (!activeConversationId) return;
-    editMessage(activeConversationId, messageId, content);
-  };
-
-  const handleDeleteMessage = (messageId: number) => {
-    if (!activeConversationId) return;
-    deleteMessage(activeConversationId, messageId);
-  };
-
   const handleMarkAsRead = (messageId: number) => {
     if (!activeConversationId) return;
     markAsRead(activeConversationId, messageId);
@@ -107,12 +95,9 @@ const MessagesPage = () => {
     typingUsers[activeConversationId].size > 0;
 
   return (
-    <div className="min-h-screen bg-bg-col text-text-col p-8">
-      <div className="max-w-7xl mx-auto h-[calc(100vh-4rem)]">
-        <MessagesHeader
-          isConnected={isConnected}
-          onNewMessage={handleNewMessage}
-        />
+    <div className="h-screen bg-bg-col text-text-col flex flex-col overflow-hidden">
+      <div className="max-w-7xl mx-auto w-full flex flex-col h-full p-8">
+        <MessagesHeader />
 
         {error && (
           <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-md text-red-500">
@@ -121,22 +106,25 @@ const MessagesPage = () => {
         )}
 
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
+          <div className="flex items-center justify-center flex-1">
             <div className="w-8 h-8 border-4 border-accent-col border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : conversations.length === 0 ? (
-          <EmptyMessagesState onNewMessage={handleNewMessage} />
+          <div className="flex-1">
+            <EmptyMessagesState onNewMessage={handleNewMessage} />
+          </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100%-5rem)]">
-            <div className="lg:col-span-1 h-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-hidden">
+            <div className="lg:col-span-1 overflow-hidden">
               <ConversationList
                 conversations={conversations}
                 activeConversationId={activeConversationId}
                 onSelectConversation={handleSelectConversation}
+                onNewMessage={handleNewMessage}
               />
             </div>
 
-            <div className="lg:col-span-2 h-full">
+            <div className="lg:col-span-2 overflow-hidden">
               <ConversationView
                 conversation={activeConversation}
                 messages={activeMessages}
@@ -145,8 +133,6 @@ const MessagesPage = () => {
                 isOtherUserTyping={!!isOtherUserTyping}
                 onSendMessage={handleSendMessage}
                 onTypingChange={handleTypingChange}
-                onEditMessage={handleEditMessage}
-                onDeleteMessage={handleDeleteMessage}
                 onMarkAsRead={handleMarkAsRead}
               />
             </div>
