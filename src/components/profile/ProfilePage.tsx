@@ -15,6 +15,9 @@ import {
 import HighlightProfileContent from '@/components/profile/highlights';
 import UserTeamsProfileContent from '@/components/profile/user-teams';
 import { ArrowLeft } from 'iconoir-react';
+import FriendButton from '@/components/friends/FriendButton';
+import MessageButton from '@/components/friends/MessageButton';
+import { friendshipsApi } from '@/api/friendships';
 
 interface ProfilePageProps {
   username?: string; // If undefined, show own profile; if provided, show that user's profile
@@ -33,6 +36,7 @@ function ProfileContent({ username }: ProfilePageProps) {
   );
   const [profileLoading, setProfileLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFriend, setIsFriend] = useState(false);
 
   // Determine if viewing own profile
   const isOwnProfile = !username;
@@ -59,6 +63,14 @@ function ProfileContent({ username }: ProfilePageProps) {
         // Fetch other user's profile by username
         const data = await userApi.getUserByUsername(username!);
         setProfileUser(data);
+
+        // Check friendship status for other users
+        try {
+          const status = await friendshipsApi.getFriendshipStatus(data.id);
+          setIsFriend(status.status === 'accepted');
+        } catch (err) {
+          console.error('Failed to load friendship status:', err);
+        }
       }
     } catch (err) {
       console.error('Failed to load profile:', err);
@@ -105,20 +117,36 @@ function ProfileContent({ username }: ProfilePageProps) {
       <div className="min-h-screen bg-bg-col py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="mb-8 flex items-center space-x-4">
-            {/* Back button for public profiles only */}
-            {!isOwnProfile && (
-              <button
-                onClick={() => router.back()}
-                className="cursor-pointer p-2 rounded-lg text-text-col hover:bg-bg-col/50 transition-colors"
-                title="Go back"
-              >
-                <ArrowLeft width={24} height={24} />
-              </button>
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {/* Back button for public profiles only */}
+              {!isOwnProfile && (
+                <button
+                  onClick={() => router.back()}
+                  className="cursor-pointer p-2 rounded-lg text-text-col hover:bg-bg-col/50 transition-colors"
+                  title="Go back"
+                >
+                  <ArrowLeft width={24} height={24} />
+                </button>
+              )}
+              <h1 className="text-3xl font-bold text-text-col">
+                {profileUser?.username || 'Profile'}
+              </h1>
+            </div>
+
+            {/* Friend and Message buttons for other users */}
+            {!isOwner && profileUser && (
+              <div className="flex items-center gap-3">
+                <MessageButton userId={profileUser.id} isFriend={isFriend} />
+                <FriendButton
+                  userId={profileUser.id}
+                  onStatusChange={() => {
+                    // Reload to check friendship status
+                    loadProfileData();
+                  }}
+                />
+              </div>
             )}
-            <h1 className="text-3xl font-bold text-text-col">
-              {profileUser?.username || 'Profile'}
-            </h1>
           </div>
 
           {/* Profile Sections */}

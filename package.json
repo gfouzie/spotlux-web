@@ -15,6 +15,7 @@
     "@types/lodash": "^4.17.21",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "iconoir-react": "^7.11.0",
     "lodash": "^4.17.21",
     "next": "15.5.3",

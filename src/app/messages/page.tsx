@@ -1,20 +1,17 @@
-import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
+'use client';
 
-const MessagesPage = () => {
+import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
+import { MessagingProvider } from '@/contexts/MessagingContext';
+import MessagesPage from '@/components/messages/MessagesPage';
+
+const Page = () => {
   return (
     <AuthenticatedLayout>
-      <div className="min-h-screen bg-bg-col text-text-col p-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold mb-8">Messages</h1>
-          <div className="bg-bg-col/50 backdrop-blur-sm rounded-xl border border-text-col/20 p-8">
-            <p className="text-text-col/70 text-center">
-              Messages functionality coming soon...
-            </p>
-          </div>
-        </div>
-      </div>
+      <MessagingProvider>
+        <MessagesPage />
+      </MessagingProvider>
     </AuthenticatedLayout>
   );
 };
 
-export default MessagesPage;
+export default Page;
