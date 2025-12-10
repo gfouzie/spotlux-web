@@ -53,15 +53,6 @@ export default function HighlightReelGrid({
             className="flex-shrink-0"
           />
         ))}
-
-        {/* Empty State for Owner */}
-        {reels?.length === 0 && isOwner && (
-          <div className="flex-1 flex items-center justify-center py-8">
-            <p className="text-sm text-text-col/60">
-              Create your first highlight reel to get started
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );
