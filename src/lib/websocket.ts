@@ -4,7 +4,12 @@ import { keysToCamel, keysToSnake } from './caseConversion';
 export type WebSocketEvent =
   | { type: 'message.sent'; message: any }
   | { type: 'message.new'; message: any }
-  | { type: 'message.read'; messageId: number; readAt: string }
+  | {
+      type: 'message.read';
+      messageId: number;
+      conversationId: number;
+      readAt: string;
+    }
   | {
       type: 'message.edited';
       messageId: number;

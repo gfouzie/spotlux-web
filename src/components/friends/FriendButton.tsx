@@ -8,6 +8,7 @@ import {
 } from '@/api/friendships';
 import Button from '@/components/common/Button';
 import Alert from '@/components/common/Alert';
+import { UserPlus, UserXmark } from 'iconoir-react';
 
 interface FriendButtonProps {
   userId: number;
@@ -160,7 +161,7 @@ export default function FriendButton({
           isLoading={isActionLoading}
           disabled={isActionLoading}
         >
-          Add Friend
+          <UserPlus width={20} height={20} />
         </Button>
       )}
 
@@ -199,7 +200,7 @@ export default function FriendButton({
           isLoading={isActionLoading}
           disabled={isActionLoading}
         >
-          Unfriend
+          <UserXmark width={20} height={20} />
         </Button>
       )}
     </div>

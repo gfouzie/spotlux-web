@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useMessaging } from '@/contexts/MessagingContext';
 import { useUser } from '@/contexts/UserContext';
 import MessagesHeader from './MessagesHeader';
@@ -19,8 +19,10 @@ const MessagesPage = () => {
     isLoading,
     error,
     typingUsers,
+    pagination,
     loadConversations,
     loadMessages,
+    loadMoreMessages,
     setActiveConversation,
     sendMessage,
     sendTyping,
@@ -29,28 +31,46 @@ const MessagesPage = () => {
   } = useMessaging();
   const { user } = useUser();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [showNewConversationModal, setShowNewConversationModal] =
     useState(false);
+  const hasProcessedUrlParam = useRef(false);
 
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
 
-  // Auto-select conversation from query parameter
+  // Auto-select conversation from query parameter on initial load
   useEffect(() => {
     const conversationParam = searchParams.get('conversation');
-    if (conversationParam) {
+    if (
+      conversationParam &&
+      conversations.length > 0 &&
+      !hasProcessedUrlParam.current
+    ) {
       const conversationId = parseInt(conversationParam);
-      if (!isNaN(conversationId) && conversations.length > 0) {
-        setActiveConversation(conversationId);
-        loadMessages(conversationId);
+      if (!isNaN(conversationId)) {
+        // Verify the conversation exists in the list
+        const conversationExists = conversations.some(
+          (conv) => conv.id === conversationId
+        );
+        if (conversationExists) {
+          setActiveConversation(conversationId);
+          loadMessages(conversationId);
+          hasProcessedUrlParam.current = true;
+        }
       }
     }
-  }, [searchParams, conversations, setActiveConversation, loadMessages]);
+  }, [conversations, searchParams, setActiveConversation, loadMessages]);
 
   const handleSelectConversation = (conversationId: number) => {
     setActiveConversation(conversationId);
     loadMessages(conversationId);
+
+    // Update URL to persist conversation across refreshes
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('conversation', conversationId.toString());
+    router.push(`/messages?${params.toString()}`, { scroll: false });
   };
 
   const handleSendMessage = (content: string, imageUrl?: string | null) => {
@@ -73,6 +93,11 @@ const MessagesPage = () => {
     if (conversationId) {
       setActiveConversation(conversationId);
       loadMessages(conversationId);
+
+      // Update URL to persist conversation across refreshes
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('conversation', conversationId.toString());
+      router.push(`/messages?${params.toString()}`, { scroll: false });
     }
     setShowNewConversationModal(false);
   };
@@ -93,6 +118,16 @@ const MessagesPage = () => {
     activeConversationId &&
     typingUsers[activeConversationId] &&
     typingUsers[activeConversationId].size > 0;
+
+  const activePagination = activeConversationId
+    ? pagination[activeConversationId]
+    : undefined;
+
+  const handleLoadMoreMessages = () => {
+    if (activeConversationId) {
+      loadMoreMessages(activeConversationId);
+    }
+  };
 
   return (
     <div className="h-screen bg-bg-col text-text-col flex flex-col overflow-hidden">
@@ -134,6 +169,9 @@ const MessagesPage = () => {
                 onSendMessage={handleSendMessage}
                 onTypingChange={handleTypingChange}
                 onMarkAsRead={handleMarkAsRead}
+                hasMore={activePagination?.hasMore || false}
+                isLoadingMore={activePagination?.isLoadingMore || false}
+                onLoadMore={handleLoadMoreMessages}
               />
             </div>
           </div>

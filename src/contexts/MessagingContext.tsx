@@ -25,6 +25,10 @@ interface MessagingState {
   isLoading: boolean;
   error: string | null;
   typingUsers: Record<number, Set<number>>; // conversationId -> Set of user IDs typing
+  pagination: Record<
+    number,
+    { hasMore: boolean; isLoadingMore: boolean; offset: number }
+  >; // conversationId -> pagination state
 }
 
 // Messaging actions
@@ -38,6 +42,13 @@ type MessagingAction =
       type: 'SET_MESSAGES';
       conversationId: number;
       messages: MessageWithSender[];
+      hasMore: boolean;
+    }
+  | {
+      type: 'PREPEND_MESSAGES';
+      conversationId: number;
+      messages: MessageWithSender[];
+      hasMore: boolean;
     }
   | {
       type: 'ADD_MESSAGE';
@@ -65,6 +76,11 @@ type MessagingAction =
       conversationId: number;
       userId: number;
       isTyping: boolean;
+    }
+  | {
+      type: 'SET_LOADING_MORE';
+      conversationId: number;
+      isLoadingMore: boolean;
     };
 
 // Messaging context interface
@@ -76,14 +92,31 @@ interface MessagingContextType {
   isLoading: boolean;
   error: string | null;
   typingUsers: Record<number, Set<number>>;
+  pagination: Record<
+    number,
+    { hasMore: boolean; isLoadingMore: boolean; offset: number }
+  >;
   setActiveConversation: (conversationId: number | null) => void;
-  sendMessage: (conversationId: number, content: string, imageUrl?: string | null) => void;
-  editMessage: (conversationId: number, messageId: number, content: string) => void;
+  sendMessage: (
+    conversationId: number,
+    content: string,
+    imageUrl?: string | null
+  ) => void;
+  editMessage: (
+    conversationId: number,
+    messageId: number,
+    content: string
+  ) => void;
   deleteMessage: (conversationId: number, messageId: number) => void;
   markAsRead: (conversationId: number, messageId: number) => void;
   sendTyping: (conversationId: number, isTyping: boolean) => void;
   loadConversations: () => Promise<void>;
-  loadMessages: (conversationId: number, offset?: number, limit?: number) => Promise<void>;
+  loadMessages: (
+    conversationId: number,
+    offset?: number,
+    limit?: number
+  ) => Promise<void>;
+  loadMoreMessages: (conversationId: number) => Promise<void>;
   createOrGetConversation: (friendId: number) => Promise<number | null>;
 }
 
@@ -96,6 +129,7 @@ const initialState: MessagingState = {
   isLoading: false,
   error: null,
   typingUsers: {},
+  pagination: {},
 };
 
 // Messaging reducer
@@ -121,7 +155,35 @@ const messagingReducer = (
           ...state.messages,
           [action.conversationId]: action.messages,
         },
+        pagination: {
+          ...state.pagination,
+          [action.conversationId]: {
+            hasMore: action.hasMore,
+            isLoadingMore: false,
+            offset: action.messages.length,
+          },
+        },
       };
+    case 'PREPEND_MESSAGES': {
+      const existing = state.messages[action.conversationId] || [];
+      return {
+        ...state,
+        messages: {
+          ...state.messages,
+          [action.conversationId]: [...action.messages, ...existing],
+        },
+        pagination: {
+          ...state.pagination,
+          [action.conversationId]: {
+            hasMore: action.hasMore,
+            isLoadingMore: false,
+            offset:
+              (state.pagination[action.conversationId]?.offset || 0) +
+              action.messages.length,
+          },
+        },
+      };
+    }
     case 'ADD_MESSAGE': {
       const existing = state.messages[action.conversationId] || [];
       return {
@@ -134,14 +196,28 @@ const messagingReducer = (
     }
     case 'UPDATE_MESSAGE': {
       const convMessages = state.messages[action.conversationId] || [];
+      const updatedMessages = convMessages.map((msg) =>
+        msg.id === action.messageId ? { ...msg, ...action.updates } : msg
+      );
+
+      // If a message was marked as read, decrement the unread count
+      let updatedConversations = state.conversations;
+      if (action.updates.isRead === true) {
+        updatedConversations = state.conversations.map((conv) => {
+          if (conv.id === action.conversationId && conv.unreadCount > 0) {
+            return { ...conv, unreadCount: conv.unreadCount - 1 };
+          }
+          return conv;
+        });
+      }
+
       return {
         ...state,
         messages: {
           ...state.messages,
-          [action.conversationId]: convMessages.map((msg) =>
-            msg.id === action.messageId ? { ...msg, ...action.updates } : msg
-          ),
+          [action.conversationId]: updatedMessages,
         },
+        conversations: updatedConversations,
       };
     }
     case 'DELETE_MESSAGE': {
@@ -162,7 +238,9 @@ const messagingReducer = (
       return {
         ...state,
         conversations: state.conversations.map((conv) =>
-          conv.id === action.conversationId ? { ...conv, ...action.updates } : conv
+          conv.id === action.conversationId
+            ? { ...conv, ...action.updates }
+            : conv
         ),
       };
     case 'SET_TYPING': {
@@ -180,13 +258,28 @@ const messagingReducer = (
         },
       };
     }
+    case 'SET_LOADING_MORE':
+      return {
+        ...state,
+        pagination: {
+          ...state.pagination,
+          [action.conversationId]: {
+            ...state.pagination[action.conversationId],
+            hasMore: state.pagination[action.conversationId]?.hasMore ?? false,
+            offset: state.pagination[action.conversationId]?.offset ?? 0,
+            isLoadingMore: action.isLoadingMore,
+          },
+        },
+      };
     default:
       return state;
   }
 };
 
 // Create context
-const MessagingContext = createContext<MessagingContextType | undefined>(undefined);
+const MessagingContext = createContext<MessagingContextType | undefined>(
+  undefined
+);
 
 // Messaging provider component
 export const MessagingProvider = ({ children }: { children: ReactNode }) => {
@@ -236,8 +329,17 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
 
         case 'message.read':
           // Update message read status
-          // Note: We'd need to find which conversation this message belongs to
-          // For now, we'll handle this when we have more context
+          if (event.messageId && event.conversationId) {
+            dispatch({
+              type: 'UPDATE_MESSAGE',
+              conversationId: event.conversationId,
+              messageId: event.messageId,
+              updates: {
+                isRead: true,
+                readAt: event.readAt || new Date().toISOString(),
+              },
+            });
+          }
           break;
 
         case 'message.edited':
@@ -317,32 +419,91 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
       console.error('[Messaging] Failed to load conversations:', error);
       dispatch({
         type: 'SET_ERROR',
-        error: error instanceof Error ? error.message : 'Failed to load conversations',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to load conversations',
       });
     } finally {
       dispatch({ type: 'SET_LOADING', loading: false });
     }
   }, []);
 
-  // Load messages for a conversation
+  // Load messages for a conversation (initial load)
   const loadMessages = useCallback(
     async (conversationId: number, offset = 0, limit = 50) => {
       try {
-        const messages = await conversationsApi.getMessages(conversationId, offset, limit);
+        const messages = await conversationsApi.getMessages(
+          conversationId,
+          offset,
+          limit
+        );
+        const reversedMessages = messages.reverse(); // Reverse to show oldest first
         dispatch({
           type: 'SET_MESSAGES',
           conversationId,
-          messages: messages.reverse(), // Reverse to show oldest first
+          messages: reversedMessages,
+          hasMore: messages.length === limit, // If we got a full page, there might be more
         });
       } catch (error) {
         console.error('[Messaging] Failed to load messages:', error);
         dispatch({
           type: 'SET_ERROR',
-          error: error instanceof Error ? error.message : 'Failed to load messages',
+          error:
+            error instanceof Error ? error.message : 'Failed to load messages',
         });
       }
     },
     []
+  );
+
+  // Load more messages for a conversation (pagination)
+  const loadMoreMessages = useCallback(
+    async (conversationId: number) => {
+      const paginationState = state.pagination[conversationId];
+      if (!paginationState?.hasMore || paginationState.isLoadingMore) {
+        return;
+      }
+
+      try {
+        dispatch({
+          type: 'SET_LOADING_MORE',
+          conversationId,
+          isLoadingMore: true,
+        });
+
+        const limit = 50;
+        const offset = paginationState.offset;
+        const messages = await conversationsApi.getMessages(
+          conversationId,
+          offset,
+          limit
+        );
+        const reversedMessages = messages.reverse(); // Reverse to show oldest first
+
+        dispatch({
+          type: 'PREPEND_MESSAGES',
+          conversationId,
+          messages: reversedMessages,
+          hasMore: messages.length === limit, // If we got a full page, there might be more
+        });
+      } catch (error) {
+        console.error('[Messaging] Failed to load more messages:', error);
+        dispatch({
+          type: 'SET_ERROR',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to load more messages',
+        });
+        dispatch({
+          type: 'SET_LOADING_MORE',
+          conversationId,
+          isLoadingMore: false,
+        });
+      }
+    },
+    [state.pagination]
   );
 
   // Set active conversation
@@ -364,54 +525,85 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
   );
 
   // Edit message via WebSocket
-  const editMessage = useCallback((_conversationId: number, messageId: number, content: string) => {
-    wsClient.send({
-      type: 'message.edit',
-      messageId,
-      content,
-    });
-  }, []);
+  const editMessage = useCallback(
+    (_conversationId: number, messageId: number, content: string) => {
+      wsClient.send({
+        type: 'message.edit',
+        messageId,
+        content,
+      });
+    },
+    []
+  );
 
   // Delete message via WebSocket
-  const deleteMessage = useCallback((_conversationId: number, messageId: number) => {
-    wsClient.send({
-      type: 'message.delete',
-      messageId,
-    });
-  }, []);
+  const deleteMessage = useCallback(
+    (_conversationId: number, messageId: number) => {
+      wsClient.send({
+        type: 'message.delete',
+        messageId,
+      });
+    },
+    []
+  );
 
   // Mark message as read via WebSocket
-  const markAsRead = useCallback((_conversationId: number, messageId: number) => {
-    wsClient.send({
-      type: 'message.read',
-      messageId,
-    });
-  }, []);
+  const markAsRead = useCallback(
+    (conversationId: number, messageId: number) => {
+      // Optimistically update local state immediately
+      dispatch({
+        type: 'UPDATE_MESSAGE',
+        conversationId,
+        messageId,
+        updates: {
+          isRead: true,
+          readAt: new Date().toISOString(),
+        },
+      });
+
+      // Send to server via WebSocket
+      wsClient.send({
+        type: 'message.read',
+        messageId,
+      });
+    },
+    []
+  );
 
   // Send typing indicator
-  const sendTyping = useCallback((conversationId: number, isTyping: boolean) => {
-    wsClient.send({
-      type: isTyping ? 'typing.start' : 'typing.stop',
-      conversationId,
-    });
-  }, []);
+  const sendTyping = useCallback(
+    (conversationId: number, isTyping: boolean) => {
+      wsClient.send({
+        type: isTyping ? 'typing.start' : 'typing.stop',
+        conversationId,
+      });
+    },
+    []
+  );
 
   // Create or get conversation with a friend
-  const createOrGetConversation = useCallback(async (friendId: number): Promise<number | null> => {
-    try {
-      const conversation = await conversationsApi.createOrGetConversation(friendId);
-      // Reload conversations to get the new/existing one with full details
-      await loadConversations();
-      return conversation.id;
-    } catch (error) {
-      console.error('[Messaging] Failed to create/get conversation:', error);
-      dispatch({
-        type: 'SET_ERROR',
-        error: error instanceof Error ? error.message : 'Failed to create conversation',
-      });
-      return null;
-    }
-  }, [loadConversations]);
+  const createOrGetConversation = useCallback(
+    async (friendId: number): Promise<number | null> => {
+      try {
+        const conversation =
+          await conversationsApi.createOrGetConversation(friendId);
+        // Reload conversations to get the new/existing one with full details
+        await loadConversations();
+        return conversation.id;
+      } catch (error) {
+        console.error('[Messaging] Failed to create/get conversation:', error);
+        dispatch({
+          type: 'SET_ERROR',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Failed to create conversation',
+        });
+        return null;
+      }
+    },
+    [loadConversations]
+  );
 
   const value: MessagingContextType = {
     conversations: state.conversations,
@@ -421,6 +613,7 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
     isLoading: state.isLoading,
     error: state.error,
     typingUsers: state.typingUsers,
+    pagination: state.pagination,
     setActiveConversation,
     sendMessage,
     editMessage,
@@ -429,10 +622,15 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
     sendTyping,
     loadConversations,
     loadMessages,
+    loadMoreMessages,
     createOrGetConversation,
   };
 
-  return <MessagingContext.Provider value={value}>{children}</MessagingContext.Provider>;
+  return (
+    <MessagingContext.Provider value={value}>
+      {children}
+    </MessagingContext.Provider>
+  );
 };
 
 // Hook to use messaging context

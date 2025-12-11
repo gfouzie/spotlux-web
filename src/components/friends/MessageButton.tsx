@@ -3,13 +3,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { conversationsApi } from '@/api/conversations';
-
+import { ChatBubble } from 'iconoir-react';
 interface MessageButtonProps {
   userId: number;
   isFriend: boolean; // Only show button if they're friends
 }
 
-export default function MessageButton({ userId, isFriend }: MessageButtonProps) {
+export default function MessageButton({
+  userId,
+  isFriend,
+}: MessageButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -19,7 +22,8 @@ export default function MessageButton({ userId, isFriend }: MessageButtonProps) 
     try {
       setIsLoading(true);
       // Create or get existing conversation
-      const conversation = await conversationsApi.createOrGetConversation(userId);
+      const conversation =
+        await conversationsApi.createOrGetConversation(userId);
       // Navigate to messages page with the conversation selected
       router.push(`/messages?conversation=${conversation.id}`);
     } catch (error) {
@@ -36,9 +40,9 @@ export default function MessageButton({ userId, isFriend }: MessageButtonProps) 
     <button
       onClick={handleMessage}
       disabled={isLoading}
-      className="px-4 py-2 bg-accent-col text-white rounded-md hover:bg-accent-col/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+      className="px-4 py-2 cursor-pointer bg-accent-col text-white rounded-md hover:bg-accent-col/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
     >
-      {isLoading ? 'Loading...' : 'Message'}
+      {isLoading ? 'Loading...' : <ChatBubble width={20} height={20} />}
     </button>
   );
 }

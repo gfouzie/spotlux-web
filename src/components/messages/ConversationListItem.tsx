@@ -44,7 +44,13 @@ const ConversationListItem = ({
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-text-col/60 truncate flex-1">
+        <p
+          className={`text-sm truncate flex-1 ${
+            conversation.unreadCount > 0
+              ? 'text-text-col/80 font-semibold'
+              : 'text-text-col/60'
+          }`}
+        >
           {conversation.lastMessage?.isDeleted
             ? '[Message deleted]'
             : conversation.lastMessage?.content || 'No messages yet'}

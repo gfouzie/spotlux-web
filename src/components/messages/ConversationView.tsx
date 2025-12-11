@@ -18,6 +18,9 @@ interface ConversationViewProps {
   onSendMessage: (content: string, imageUrl?: string | null) => void;
   onTypingChange: (isTyping: boolean) => void;
   onMarkAsRead: (messageId: number) => void;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
 }
 
 const ConversationView = ({
@@ -29,6 +32,9 @@ const ConversationView = ({
   onSendMessage,
   onTypingChange,
   onMarkAsRead,
+  hasMore = false,
+  isLoadingMore = false,
+  onLoadMore,
 }: ConversationViewProps) => {
   if (!conversation) {
     return (
@@ -53,7 +59,9 @@ const ConversationView = ({
       <MessageThread
         messages={messages}
         currentUserId={currentUserId}
-        isLoading={false}
+        isLoading={isLoadingMore}
+        hasMore={hasMore}
+        onLoadMore={onLoadMore}
         onMarkAsRead={onMarkAsRead}
       />
 

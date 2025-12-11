@@ -25,25 +25,51 @@ const MessageThread = ({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const prevScrollHeight = useRef<number>(0);
   const markedAsReadRef = useRef<Set<number>>(new Set());
+  const prevMessagesLengthRef = useRef<number>(0);
+  const isInitialLoadRef = useRef<boolean>(true);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom when conversation changes or on initial load
   useEffect(() => {
     if (messagesEndRef.current && messages.length > 0) {
       const container = messagesContainerRef.current;
       if (container) {
-        // Only auto-scroll if user is near the bottom (within 100px)
-        const isNearBottom =
-          container.scrollHeight -
-            container.scrollTop -
-            container.clientHeight <
-          100;
+        // Check if messages were prepended (pagination) or appended (new messages)
+        const messagesPrepended =
+          messages.length > prevMessagesLengthRef.current &&
+          prevScrollHeight.current > 0;
 
-        if (isNearBottom || messages.length === 1) {
-          messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        // Always scroll to bottom on initial load or conversation change
+        // For new messages, only scroll if near bottom
+        if (isInitialLoadRef.current) {
+          // Initial load - scroll to bottom immediately
+          messagesEndRef.current.scrollIntoView({ behavior: 'instant' });
+          isInitialLoadRef.current = false;
+        } else if (!messagesPrepended) {
+          // New messages arrived (not pagination)
+          const isNearBottom =
+            container.scrollHeight -
+              container.scrollTop -
+              container.clientHeight <
+            100;
+
+          if (isNearBottom) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+          }
         }
+
+        prevMessagesLengthRef.current = messages.length;
       }
     }
   }, [messages]);
+
+  // Reset initial load flag when messages array becomes empty (conversation changed)
+  useEffect(() => {
+    if (messages.length === 0) {
+      isInitialLoadRef.current = true;
+      prevMessagesLengthRef.current = 0;
+      markedAsReadRef.current.clear();
+    }
+  }, [messages.length]);
 
   // Handle scroll to load more messages
   const handleScroll = () => {
