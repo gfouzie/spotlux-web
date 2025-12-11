@@ -2,22 +2,40 @@
 
 import { Friendship } from '@/api/friendships';
 import Button from '@/components/common/Button';
+import Input from '@/components/common/Input';
 
 interface ReceivedRequestsTabProps {
   requests: Friendship[];
+  searchQuery: string;
   isLoading: boolean;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+  onSearchChange: (query: string) => void;
   onAccept: (friendshipId: number) => void;
   onReject: (friendshipId: number) => void;
+  onLoadMore: () => void;
 }
 
 const ReceivedRequestsTab = ({
   requests,
+  searchQuery,
   isLoading,
+  hasMore,
+  isLoadingMore,
+  onSearchChange,
   onAccept,
   onReject,
+  onLoadMore,
 }: ReceivedRequestsTabProps) => {
   return (
     <div>
+      <Input
+        placeholder="Search received requests..."
+        value={searchQuery}
+        onChange={(e) => onSearchChange(e.target.value)}
+        className="mb-4"
+      />
+
       {isLoading ? (
         <div className="text-center text-text-col">Loading requests...</div>
       ) : requests?.length === 0 ? (
@@ -53,6 +71,20 @@ const ReceivedRequestsTab = ({
               </div>
             </div>
           ))}
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="mt-4 text-center">
+              <Button
+                onClick={onLoadMore}
+                disabled={isLoadingMore}
+                variant="secondary"
+                size="md"
+              >
+                {isLoadingMore ? 'Loading...' : 'Load More'}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

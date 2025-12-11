@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { friendshipsApi, type Friendship } from '@/api/friendships';
 import { UserProfile } from '@/api/profile';
@@ -13,6 +13,12 @@ import SentRequestsTab from './SentRequestsTab';
 
 type TabType = 'friends' | 'received' | 'sent';
 
+interface PaginationState {
+  offset: number;
+  hasMore: boolean;
+  isLoadingMore: boolean;
+}
+
 const FriendsPage = () => {
   const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('friends');
@@ -22,75 +28,191 @@ const FriendsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const loadFriends = useCallback(async () => {
-    if (!isAuthenticated) return;
-
-    try {
-      setIsLoading(true);
-      setError(null);
-      const friends = await friendshipsApi.getMyFriends(0, 100);
-      setFriends(friends);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load friends');
-    } finally {
-      setIsLoading(false);
+  const [friendsPagination, setFriendsPagination] = useState<PaginationState>({
+    offset: 0,
+    hasMore: false,
+    isLoadingMore: false,
+  });
+  const [receivedPagination, setReceivedPagination] = useState<PaginationState>(
+    {
+      offset: 0,
+      hasMore: false,
+      isLoadingMore: false,
     }
-  }, [isAuthenticated]);
+  );
+  const [sentPagination, setSentPagination] = useState<PaginationState>({
+    offset: 0,
+    hasMore: false,
+    isLoadingMore: false,
+  });
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const loadReceivedRequests = useCallback(async () => {
-    if (!isAuthenticated) return;
+  const loadFriends = useCallback(
+    async (reset = true) => {
+      if (!isAuthenticated) return;
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const requests = await friendshipsApi.getReceivedRequests(0, 100);
-      setReceivedRequests(requests);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load requests');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isAuthenticated]);
+      const limit = 20;
+      const offset = reset ? 0 : friendsPagination.offset;
 
-  const loadSentRequests = useCallback(async () => {
-    if (!isAuthenticated) return;
+      try {
+        if (reset) {
+          setIsLoading(true);
+        } else {
+          setFriendsPagination((prev) => ({ ...prev, isLoadingMore: true }));
+        }
+        setError(null);
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const requests = await friendshipsApi.getSentRequests(0, 100);
-      setSentRequests(requests);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load sent requests'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isAuthenticated]);
+        const results = await friendshipsApi.getMyFriends(
+          offset,
+          limit,
+          searchQuery || undefined
+        );
 
+        setFriends((prev) => (reset ? results : [...prev, ...results]));
+        setFriendsPagination({
+          offset: offset + results.length,
+          hasMore: results.length === limit,
+          isLoadingMore: false,
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load friends');
+        setFriendsPagination((prev) => ({ ...prev, isLoadingMore: false }));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isAuthenticated, friendsPagination.offset, searchQuery]
+  );
+
+  const loadReceivedRequests = useCallback(
+    async (reset = true) => {
+      if (!isAuthenticated) return;
+
+      const limit = 20;
+      const offset = reset ? 0 : receivedPagination.offset;
+
+      try {
+        if (reset) {
+          setIsLoading(true);
+        } else {
+          setReceivedPagination((prev) => ({ ...prev, isLoadingMore: true }));
+        }
+        setError(null);
+
+        const results = await friendshipsApi.getReceivedRequests(
+          offset,
+          limit,
+          searchQuery || undefined
+        );
+
+        setReceivedRequests((prev) =>
+          reset ? results : [...prev, ...results]
+        );
+        setReceivedPagination({
+          offset: offset + results.length,
+          hasMore: results.length === limit,
+          isLoadingMore: false,
+        });
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to load requests'
+        );
+        setReceivedPagination((prev) => ({ ...prev, isLoadingMore: false }));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isAuthenticated, receivedPagination.offset, searchQuery]
+  );
+
+  const loadSentRequests = useCallback(
+    async (reset = true) => {
+      if (!isAuthenticated) return;
+
+      const limit = 20;
+      const offset = reset ? 0 : sentPagination.offset;
+
+      try {
+        if (reset) {
+          setIsLoading(true);
+        } else {
+          setSentPagination((prev) => ({ ...prev, isLoadingMore: true }));
+        }
+        setError(null);
+
+        const results = await friendshipsApi.getSentRequests(
+          offset,
+          limit,
+          searchQuery || undefined
+        );
+
+        setSentRequests((prev) => (reset ? results : [...prev, ...results]));
+        setSentPagination({
+          offset: offset + results.length,
+          hasMore: results.length === limit,
+          isLoadingMore: false,
+        });
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to load sent requests'
+        );
+        setSentPagination((prev) => ({ ...prev, isLoadingMore: false }));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isAuthenticated, sentPagination.offset, searchQuery]
+  );
+
+  // Load data when tab changes
   useEffect(() => {
     if (isAuthenticated) {
       switch (activeTab) {
         case 'friends':
-          loadFriends();
+          loadFriends(true);
           break;
         case 'received':
-          loadReceivedRequests();
+          loadReceivedRequests(true);
           break;
         case 'sent':
-          loadSentRequests();
+          loadSentRequests(true);
           break;
       }
     }
-  }, [
-    activeTab,
-    isAuthenticated,
-    loadFriends,
-    loadReceivedRequests,
-    loadSentRequests,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, isAuthenticated]);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for debounced search
+    searchTimeoutRef.current = setTimeout(() => {
+      switch (activeTab) {
+        case 'friends':
+          loadFriends(true);
+          break;
+        case 'received':
+          loadReceivedRequests(true);
+          break;
+        case 'sent':
+          loadSentRequests(true);
+          break;
+      }
+    }, 300); // 300ms debounce
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   const handleAcceptRequest = async (friendshipId: number) => {
     if (!isAuthenticated) return;
@@ -131,6 +253,24 @@ const FriendsPage = () => {
     setSearchQuery('');
   };
 
+  const handleLoadMoreFriends = () => {
+    if (!friendsPagination.isLoadingMore && friendsPagination.hasMore) {
+      loadFriends(false);
+    }
+  };
+
+  const handleLoadMoreReceived = () => {
+    if (!receivedPagination.isLoadingMore && receivedPagination.hasMore) {
+      loadReceivedRequests(false);
+    }
+  };
+
+  const handleLoadMoreSent = () => {
+    if (!sentPagination.isLoadingMore && sentPagination.hasMore) {
+      loadSentRequests(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <FriendsHeader />
@@ -154,22 +294,38 @@ const FriendsPage = () => {
           friends={friends}
           searchQuery={searchQuery}
           isLoading={isLoading}
+          hasMore={friendsPagination.hasMore}
+          isLoadingMore={friendsPagination.isLoadingMore}
           onSearchChange={setSearchQuery}
           onUnfriend={handleUnfriend}
+          onLoadMore={handleLoadMoreFriends}
         />
       )}
 
       {activeTab === 'received' && (
         <ReceivedRequestsTab
           requests={receivedRequests}
+          searchQuery={searchQuery}
           isLoading={isLoading}
+          hasMore={receivedPagination.hasMore}
+          isLoadingMore={receivedPagination.isLoadingMore}
+          onSearchChange={setSearchQuery}
           onAccept={handleAcceptRequest}
           onReject={handleRejectRequest}
+          onLoadMore={handleLoadMoreReceived}
         />
       )}
 
       {activeTab === 'sent' && (
-        <SentRequestsTab requests={sentRequests} isLoading={isLoading} />
+        <SentRequestsTab
+          requests={sentRequests}
+          searchQuery={searchQuery}
+          isLoading={isLoading}
+          hasMore={sentPagination.hasMore}
+          isLoadingMore={sentPagination.isLoadingMore}
+          onSearchChange={setSearchQuery}
+          onLoadMore={handleLoadMoreSent}
+        />
       )}
     </div>
   );

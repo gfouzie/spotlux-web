@@ -68,12 +68,17 @@ export const friendshipsApi = {
   // Get received friend requests
   async getReceivedRequests(
     offset: number = 0,
-    limit: number = 20
+    limit: number = 20,
+    searchText?: string
   ): Promise<FriendshipWithRequester[]> {
     const params = new URLSearchParams({
       offset: offset.toString(),
       limit: limit.toString(),
     });
+
+    if (searchText) {
+      params.append('searchText', searchText);
+    }
 
     return authRequest<FriendshipWithRequester[]>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/received?${params}`,
@@ -86,12 +91,17 @@ export const friendshipsApi = {
   // Get sent friend requests
   async getSentRequests(
     offset: number = 0,
-    limit: number = 20
+    limit: number = 20,
+    searchText?: string
   ): Promise<FriendshipWithAddressee[]> {
     const params = new URLSearchParams({
       offset: offset.toString(),
       limit: limit.toString(),
     });
+
+    if (searchText) {
+      params.append('searchText', searchText);
+    }
 
     return authRequest<FriendshipWithAddressee[]>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/sent?${params}`,

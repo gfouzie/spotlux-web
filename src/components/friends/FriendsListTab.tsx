@@ -10,22 +10,23 @@ interface FriendsListTabProps {
   friends: UserProfile[];
   searchQuery: string;
   isLoading: boolean;
+  hasMore: boolean;
+  isLoadingMore: boolean;
   onSearchChange: (query: string) => void;
   onUnfriend: (userId: number) => void;
+  onLoadMore: () => void;
 }
 
 const FriendsListTab = ({
   friends,
   searchQuery,
   isLoading,
+  hasMore,
+  isLoadingMore,
   onSearchChange,
   onUnfriend,
+  onLoadMore,
 }: FriendsListTabProps) => {
-  const filteredFriends = friends?.filter((friend) =>
-    `${friend.firstName} ${friend.lastName} ${friend.username}`
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  );
 
   return (
     <div>
@@ -38,7 +39,7 @@ const FriendsListTab = ({
 
       {isLoading ? (
         <div className="text-center text-text-col">Loading friends...</div>
-      ) : filteredFriends?.length === 0 ? (
+      ) : friends?.length === 0 ? (
         <div className="text-center text-text-col/50">
           {searchQuery
             ? 'No friends found matching your search'
@@ -46,7 +47,7 @@ const FriendsListTab = ({
         </div>
       ) : (
         <div className="space-y-2">
-          {filteredFriends?.map((friend) => (
+          {friends?.map((friend) => (
             <div
               key={friend.id}
               className="p-4 bg-bg-col/30 rounded border border-bg-col hover:bg-bg-col/50 flex justify-between items-center"
@@ -88,6 +89,20 @@ const FriendsListTab = ({
               </Button>
             </div>
           ))}
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="mt-4 text-center">
+              <Button
+                onClick={onLoadMore}
+                disabled={isLoadingMore}
+                variant="secondary"
+                size="md"
+              >
+                {isLoadingMore ? 'Loading...' : 'Load More'}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
