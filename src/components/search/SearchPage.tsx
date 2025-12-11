@@ -147,7 +147,9 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-bg-col py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-text-col mb-6">Find People</h1>
+        <h1 className="text-3xl font-bold text-text-col mb-6">
+          Find Your Friends
+        </h1>
 
         {error && (
           <Alert variant="error" className="mb-6">

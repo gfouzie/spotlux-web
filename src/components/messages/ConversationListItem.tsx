@@ -53,7 +53,11 @@ const ConversationListItem = ({
         >
           {conversation.lastMessage?.isDeleted
             ? '[Message deleted]'
-            : conversation.lastMessage?.content || 'No messages yet'}
+            : conversation.lastMessage?.content && conversation.lastMessage.content.trim()
+              ? conversation.lastMessage.content
+              : conversation.lastMessage?.imageUrl
+                ? '📷 Photo'
+                : 'No messages yet'}
         </p>
         {lastMessageTime && (
           <p className="text-xs text-text-col/40 ml-2 flex-shrink-0">

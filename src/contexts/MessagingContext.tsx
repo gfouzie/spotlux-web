@@ -186,12 +186,33 @@ const messagingReducer = (
     }
     case 'ADD_MESSAGE': {
       const existing = state.messages[action.conversationId] || [];
+
+      // Update the conversation's lastMessage and lastMessageAt
+      const updatedConversations = state.conversations.map((conv) => {
+        if (conv.id === action.conversationId) {
+          return {
+            ...conv,
+            lastMessage: action.message,
+            lastMessageAt: action.message.createdAt,
+          };
+        }
+        return conv;
+      });
+
+      // Sort conversations by lastMessageAt (most recent first)
+      const sortedConversations = [...updatedConversations].sort((a, b) => {
+        const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        return bTime - aTime;
+      });
+
       return {
         ...state,
         messages: {
           ...state.messages,
           [action.conversationId]: [...existing, action.message],
         },
+        conversations: sortedConversations,
       };
     }
     case 'UPDATE_MESSAGE': {
@@ -200,16 +221,32 @@ const messagingReducer = (
         msg.id === action.messageId ? { ...msg, ...action.updates } : msg
       );
 
-      // If a message was marked as read, decrement the unread count
-      let updatedConversations = state.conversations;
-      if (action.updates.isRead === true) {
-        updatedConversations = state.conversations.map((conv) => {
-          if (conv.id === action.conversationId && conv.unreadCount > 0) {
-            return { ...conv, unreadCount: conv.unreadCount - 1 };
-          }
+      // Update conversations based on what changed
+      const updatedConversations = state.conversations.map((conv) => {
+        if (conv.id !== action.conversationId) {
           return conv;
-        });
-      }
+        }
+
+        const updates: Partial<ConversationWithDetails> = {};
+
+        // If a message was marked as read, decrement the unread count
+        if (action.updates.isRead === true && conv.unreadCount > 0) {
+          updates.unreadCount = conv.unreadCount - 1;
+        }
+
+        // If this was the last message and it was edited, update lastMessage
+        if (
+          conv.lastMessage?.id === action.messageId &&
+          action.updates.content !== undefined
+        ) {
+          updates.lastMessage = {
+            ...conv.lastMessage,
+            ...action.updates,
+          };
+        }
+
+        return Object.keys(updates).length > 0 ? { ...conv, ...updates } : conv;
+      });
 
       return {
         ...state,
@@ -222,16 +259,37 @@ const messagingReducer = (
     }
     case 'DELETE_MESSAGE': {
       const convMessages = state.messages[action.conversationId] || [];
+      const updatedMessages = convMessages.map((msg) =>
+        msg.id === action.messageId
+          ? { ...msg, isDeleted: true, content: '[Message deleted]' }
+          : msg
+      );
+
+      // Update the conversation's lastMessage if this was the most recent message
+      const updatedConversations = state.conversations.map((conv) => {
+        if (
+          conv.id === action.conversationId &&
+          conv.lastMessage?.id === action.messageId
+        ) {
+          return {
+            ...conv,
+            lastMessage: {
+              ...conv.lastMessage,
+              isDeleted: true,
+              content: '[Message deleted]',
+            },
+          };
+        }
+        return conv;
+      });
+
       return {
         ...state,
         messages: {
           ...state.messages,
-          [action.conversationId]: convMessages.map((msg) =>
-            msg.id === action.messageId
-              ? { ...msg, isDeleted: true, content: '[Message deleted]' }
-              : msg
-          ),
+          [action.conversationId]: updatedMessages,
         },
+        conversations: updatedConversations,
       };
     }
     case 'UPDATE_CONVERSATION':
