@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   setTokenProvider(() => state.accessToken);
 
-  // Store tokens in memory (not localStorage for security)
+  // Set tokens (access token in memory, refresh token persisted to localStorage)
   const setTokens = useCallback((accessToken: string, refreshToken: string) => {
     dispatch({ type: 'LOGIN_SUCCESS', accessToken, refreshToken });
   }, []);
@@ -134,12 +134,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Auto-refresh token on mount (if refresh token exists in sessionStorage)
+  // Auto-refresh token on mount (if refresh token exists in localStorage)
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Try to get refresh token from sessionStorage
-        const storedRefreshToken = sessionStorage.getItem('refreshToken');
+        // Try to get refresh token from localStorage
+        const storedRefreshToken = localStorage.getItem('refreshToken');
         if (storedRefreshToken) {
           const response = await authApi.refresh(storedRefreshToken);
           dispatch({
@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         // Invalid or expired refresh token
-        sessionStorage.removeItem('refreshToken');
+        localStorage.removeItem('refreshToken');
         dispatch({ type: 'LOGOUT' });
       }
     };
@@ -161,12 +161,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initializeAuth();
   }, []);
 
-  // Store refresh token in sessionStorage when it changes
+  // Store refresh token in localStorage when it changes
   useEffect(() => {
     if (state.refreshToken) {
-      sessionStorage.setItem('refreshToken', state.refreshToken);
+      localStorage.setItem('refreshToken', state.refreshToken);
     } else {
-      sessionStorage.removeItem('refreshToken');
+      localStorage.removeItem('refreshToken');
     }
   }, [state.refreshToken]);
 
