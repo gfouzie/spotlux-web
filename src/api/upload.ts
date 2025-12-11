@@ -49,6 +49,13 @@ interface HighlightThumbnailPresignedUrlRequest extends BasePresignedUrlRequest 
 }
 
 /**
+ * Message image upload request
+ */
+interface MessageImagePresignedUrlRequest extends BasePresignedUrlRequest {
+  uploadType: 'message_image';
+}
+
+/**
  * Discriminated union of all presigned URL request types
  */
 export type PresignedUrlRequest =
@@ -56,7 +63,8 @@ export type PresignedUrlRequest =
   | TeamPicturePresignedUrlRequest
   | HighlightVideoPresignedUrlRequest
   | HighlightReelThumbnailPresignedUrlRequest
-  | HighlightThumbnailPresignedUrlRequest;
+  | HighlightThumbnailPresignedUrlRequest
+  | MessageImagePresignedUrlRequest;
 
 /**
  * Presigned URL response interface
@@ -107,13 +115,21 @@ interface HighlightThumbnailUploadCompleteRequest extends BaseUploadCompleteRequ
 }
 
 /**
+ * Message image upload completion request
+ */
+interface MessageImageUploadCompleteRequest extends BaseUploadCompleteRequest {
+  uploadType: 'message_image';
+}
+
+/**
  * Discriminated union of all upload completion request types
  */
 export type UploadCompleteRequest =
   | ProfilePictureUploadCompleteRequest
   | TeamPictureUploadCompleteRequest
   | HighlightReelThumbnailUploadCompleteRequest
-  | HighlightThumbnailUploadCompleteRequest;
+  | HighlightThumbnailUploadCompleteRequest
+  | MessageImageUploadCompleteRequest;
 
 /**
  * Profile picture upload response interface
@@ -392,5 +408,51 @@ export const uploadApi = {
         method: 'DELETE',
       }
     );
+  },
+
+  /**
+   * Upload message image using presigned URL flow
+   * Returns the file URL for use in message content
+   */
+  uploadMessageImage: async (
+    file: File
+  ): Promise<{ fileUrl: string; s3Key: string }> => {
+    // Step 1: Request presigned URL from backend
+    const presignedRequest: PresignedUrlRequest = {
+      filename: file.name,
+      contentType: file.type,
+      uploadType: 'message_image',
+    };
+
+    const presignedData = await authRequest<PresignedUrlResponse>(
+      `${config.apiBaseUrl}/api/v1/upload/presigned-url`,
+      {
+        method: 'POST',
+        body: JSON.stringify(presignedRequest),
+      }
+    );
+
+    // Step 2: Upload directly to S3
+    await uploadToS3(file, presignedData);
+
+    // Step 3: Notify backend of completion
+    const completeRequest: UploadCompleteRequest = {
+      s3Key: presignedData.s3Key,
+      uploadType: 'message_image',
+    };
+
+    await authRequest<ProfilePictureUploadResponse>(
+      `${config.apiBaseUrl}/api/v1/upload/complete`,
+      {
+        method: 'POST',
+        body: JSON.stringify(completeRequest),
+      }
+    );
+
+    // Return the file URL for use in the message
+    return {
+      fileUrl: presignedData.fileUrl,
+      s3Key: presignedData.s3Key,
+    };
   },
 };

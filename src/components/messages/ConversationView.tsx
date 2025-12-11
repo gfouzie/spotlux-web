@@ -21,6 +21,7 @@ interface ConversationViewProps {
   hasMore?: boolean;
   isLoadingMore?: boolean;
   onLoadMore?: () => void;
+  onBackToList?: () => void;
 }
 
 const ConversationView = ({
@@ -35,6 +36,7 @@ const ConversationView = ({
   hasMore = false,
   isLoadingMore = false,
   onLoadMore,
+  onBackToList,
 }: ConversationViewProps) => {
   if (!conversation) {
     return (
@@ -54,7 +56,7 @@ const ConversationView = ({
 
   return (
     <div className="bg-card-col rounded-lg flex flex-col h-full overflow-hidden">
-      <ConversationHeader conversation={conversation} />
+      <ConversationHeader conversation={conversation} onBackToList={onBackToList} />
 
       <MessageThread
         messages={messages}

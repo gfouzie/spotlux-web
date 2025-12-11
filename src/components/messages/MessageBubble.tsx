@@ -45,32 +45,35 @@ const MessageBubble = ({ message, currentUserId }: MessageBubbleProps) => {
           </div>
         )}
 
-        {/* Message bubble */}
-        <div className="relative max-w-full">
-          <div
-            className={`px-4 border-[0.5px] py-2.5 max-w-full ${
-              isSent
-                ? 'bg-card-col border-accent-col rounded-2xl rounded-br-md'
-                : 'bg-card-col border-text-col/10 rounded-2xl rounded-bl-md'
-            }`}
-          >
-            {/* Message text */}
-            <p
-              className={`text-sm break-words overflow-wrap-anywhere max-w-full ${isDeleted ? 'italic opacity-60' : ''}`}
-              style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
-            >
-              {message.content}
-            </p>
+        {/* Message content */}
+        <div className="relative max-w-full flex flex-col gap-1">
+          {/* Image if present - shown separately without bubble */}
+          {message.imageUrl && !isDeleted && (
+            <img
+              src={message.imageUrl}
+              alt="Message attachment"
+              className="rounded-2xl max-w-[280px] max-h-[280px] object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              style={{ aspectRatio: 'auto' }}
+            />
+          )}
 
-            {/* Image if present */}
-            {message.imageUrl && !isDeleted && (
-              <img
-                src={message.imageUrl}
-                alt="Message attachment"
-                className="mt-2 rounded-md max-w-full h-auto"
-              />
-            )}
-          </div>
+          {/* Message text bubble */}
+          {message.content && message.content.trim() && (
+            <div
+              className={`px-4 border-[0.5px] py-2.5 max-w-full ${
+                isSent
+                  ? 'bg-card-col border-accent-col rounded-2xl rounded-br-md'
+                  : 'bg-card-col border-text-col/10 rounded-2xl rounded-bl-md'
+              }`}
+            >
+              <p
+                className={`text-sm break-words overflow-wrap-anywhere max-w-full ${isDeleted ? 'italic opacity-60' : ''}`}
+                style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+              >
+                {message.content}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Message metadata */}

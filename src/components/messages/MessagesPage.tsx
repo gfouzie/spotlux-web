@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useMessaging } from '@/contexts/MessagingContext';
 import { useUser } from '@/contexts/UserContext';
-import MessagesHeader from './MessagesHeader';
 import ConversationList from './ConversationList';
 import ConversationView from './ConversationView';
 import EmptyMessagesState from './EmptyMessagesState';
@@ -95,6 +94,14 @@ const MessagesPage = () => {
     router.push(`/messages?${params.toString()}`, { scroll: false });
   };
 
+  const handleBackToList = () => {
+    setActiveConversation(null);
+    // Clear conversation from URL on mobile
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('conversation');
+    router.push(`/messages?${params.toString()}`, { scroll: false });
+  };
+
   const handleSendMessage = (content: string, imageUrl?: string | null) => {
     if (!activeConversationId) return;
     sendMessage(activeConversationId, content, imageUrl);
@@ -154,8 +161,6 @@ const MessagesPage = () => {
   return (
     <div className="h-screen bg-bg-col text-text-col flex flex-col overflow-hidden">
       <div className="max-w-7xl mx-auto w-full flex flex-col h-full p-8">
-        <MessagesHeader />
-
         {error && (
           <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-md text-red-500">
             {error}
@@ -172,7 +177,12 @@ const MessagesPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-hidden">
-            <div className="lg:col-span-1 overflow-hidden">
+            {/* Conversation List - Hidden on mobile when conversation is active */}
+            <div
+              className={`lg:col-span-1 overflow-hidden ${
+                activeConversationId ? 'hidden lg:block' : 'block'
+              }`}
+            >
               <ConversationList
                 conversations={conversations}
                 activeConversationId={activeConversationId}
@@ -181,7 +191,12 @@ const MessagesPage = () => {
               />
             </div>
 
-            <div className="lg:col-span-2 overflow-hidden">
+            {/* Conversation View - Hidden on mobile when no conversation selected */}
+            <div
+              className={`lg:col-span-2 overflow-hidden ${
+                activeConversationId ? 'block' : 'hidden lg:block'
+              }`}
+            >
               <ConversationView
                 conversation={activeConversation}
                 messages={activeMessages}
@@ -194,6 +209,7 @@ const MessagesPage = () => {
                 hasMore={activePagination?.hasMore || false}
                 isLoadingMore={activePagination?.isLoadingMore || false}
                 onLoadMore={handleLoadMoreMessages}
+                onBackToList={handleBackToList}
               />
             </div>
           </div>
