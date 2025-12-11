@@ -40,17 +40,18 @@ const MessagesPage = () => {
     loadConversations();
   }, [loadConversations]);
 
-  // Auto-select conversation from query parameter on initial load
+  // Auto-select conversation from query parameter on initial load, or default to first conversation
   useEffect(() => {
+    if (conversations.length === 0 || hasProcessedUrlParam.current) {
+      return;
+    }
+
     const conversationParam = searchParams.get('conversation');
-    if (
-      conversationParam &&
-      conversations.length > 0 &&
-      !hasProcessedUrlParam.current
-    ) {
+
+    if (conversationParam) {
+      // Try to open conversation from URL parameter
       const conversationId = parseInt(conversationParam);
       if (!isNaN(conversationId)) {
-        // Verify the conversation exists in the list
         const conversationExists = conversations.some(
           (conv) => conv.id === conversationId
         );
@@ -58,10 +59,31 @@ const MessagesPage = () => {
           setActiveConversation(conversationId);
           loadMessages(conversationId);
           hasProcessedUrlParam.current = true;
+          return;
         }
       }
     }
-  }, [conversations, searchParams, setActiveConversation, loadMessages]);
+
+    // No URL parameter or conversation not found - default to first conversation
+    const firstConversation = conversations[0];
+    if (firstConversation) {
+      setActiveConversation(firstConversation.id);
+      loadMessages(firstConversation.id);
+
+      // Update URL to reflect the selected conversation
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('conversation', firstConversation.id.toString());
+      router.push(`/messages?${params.toString()}`, { scroll: false });
+
+      hasProcessedUrlParam.current = true;
+    }
+  }, [
+    conversations,
+    searchParams,
+    setActiveConversation,
+    loadMessages,
+    router,
+  ]);
 
   const handleSelectConversation = (conversationId: number) => {
     setActiveConversation(conversationId);
