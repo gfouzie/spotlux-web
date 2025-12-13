@@ -6,10 +6,12 @@ import {
   useEffect,
   useReducer,
   useCallback,
+  useRef,
   ReactNode,
 } from 'react';
 import { useAuth } from './AuthContext';
 import { wsClient, WebSocketEvent } from '@/lib/websocket';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import {
   conversationsApi,
   ConversationWithDetails,
@@ -344,71 +346,54 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(messagingReducer, initialState);
   const { isAuthenticated, accessToken } = useAuth();
 
-  // Connect to WebSocket when authenticated
+  // Keep a ref to the current state to avoid stale closures
+  const stateRef = useRef(state);
   useEffect(() => {
-    if (!isAuthenticated || !accessToken) {
-      // User logged out, disconnect
-      wsClient.disconnect();
-      dispatch({ type: 'SET_CONNECTED', connected: false });
-      return;
-    }
+    stateRef.current = state;
+  }, [state]);
 
-    // User is authenticated, connect
-    wsClient.connect(accessToken);
+  // WebSocket event handler (stable reference via useCallback)
+  const handleWebSocketEvent = useCallback((event: WebSocketEvent) => {
+    switch (event.type) {
+      case 'message.new':
+      case 'message.sent':
+        // Add message to conversation
+        if (event.message) {
+          dispatch({
+            type: 'ADD_MESSAGE',
+            conversationId: event.message.conversationId,
+            message: event.message,
+          });
+        }
+        break;
 
-    // Subscribe to connection status changes
-    const unsubscribe = wsClient.onConnectionStatusChange((connected) => {
-      dispatch({ type: 'SET_CONNECTED', connected });
-    });
+      case 'message.read':
+        // Update message read status
+        if (event.messageId && event.conversationId) {
+          dispatch({
+            type: 'UPDATE_MESSAGE',
+            conversationId: event.conversationId,
+            messageId: event.messageId,
+            updates: {
+              isRead: true,
+              readAt: event.readAt || new Date().toISOString(),
+            },
+          });
+        }
+        break;
 
-    // Cleanup: only unsubscribe, don't disconnect
-    // The singleton WebSocket client should stay connected across component remounts
-    // It will only disconnect when user logs out (handled above)
-    return () => {
-      unsubscribe();
-    };
-  }, [isAuthenticated, accessToken]);
-
-  // Subscribe to WebSocket events
-  useEffect(() => {
-    const handleWebSocketEvent = (event: WebSocketEvent) => {
-      switch (event.type) {
-        case 'message.new':
-        case 'message.sent':
-          // Add message to conversation
-          if (event.message) {
-            dispatch({
-              type: 'ADD_MESSAGE',
-              conversationId: event.message.conversationId,
-              message: event.message,
-            });
-          }
-          break;
-
-        case 'message.read':
-          // Update message read status
-          if (event.messageId && event.conversationId) {
-            dispatch({
-              type: 'UPDATE_MESSAGE',
-              conversationId: event.conversationId,
-              messageId: event.messageId,
-              updates: {
-                isRead: true,
-                readAt: event.readAt || new Date().toISOString(),
-              },
-            });
-          }
-          break;
-
-        case 'message.edited':
-          // Update message content
-          if (event.messageId && event.content) {
-            // We'd need to find the conversation for this message
-            // For simplicity, update all conversations
-            Object.keys(state.messages).forEach((convId) => {
+      case 'message.edited':
+        // Update message content - search through all loaded conversations using current state
+        if (event.messageId && event.content) {
+          // Use stateRef to get current messages without causing re-subscription
+          const conversationIds = Object.keys(stateRef.current.messages).map(Number);
+          conversationIds.forEach((convId) => {
+            const messages = stateRef.current.messages[convId] || [];
+            const messageExists = messages.some((msg) => msg.id === event.messageId);
+            if (messageExists) {
               dispatch({
                 type: 'UPDATE_MESSAGE',
-                conversationId: parseInt(convId),
+                conversationId: convId,
                 messageId: event.messageId,
                 updates: {
                   content: event.content,
@@ -416,56 +401,70 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
                   updatedAt: event.updatedAt,
                 },
               });
-            });
-          }
-          break;
+            }
+          });
+        }
+        break;
 
-        case 'message.deleted':
-          // Mark message as deleted
-          if (event.messageId) {
-            Object.keys(state.messages).forEach((convId) => {
+      case 'message.deleted':
+        // Mark message as deleted
+        if (event.messageId) {
+          // Use stateRef to get current messages without causing re-subscription
+          const conversationIds = Object.keys(stateRef.current.messages).map(Number);
+          conversationIds.forEach((convId) => {
+            const messages = stateRef.current.messages[convId] || [];
+            const messageExists = messages.some((msg) => msg.id === event.messageId);
+            if (messageExists) {
               dispatch({
                 type: 'DELETE_MESSAGE',
-                conversationId: parseInt(convId),
+                conversationId: convId,
                 messageId: event.messageId,
               });
-            });
-          }
-          break;
+            }
+          });
+        }
+        break;
 
-        case 'typing.start':
-          if (event.conversationId && event.userId) {
-            dispatch({
-              type: 'SET_TYPING',
-              conversationId: event.conversationId,
-              userId: event.userId,
-              isTyping: true,
-            });
-          }
-          break;
+      case 'typing.start':
+        if (event.conversationId && event.userId) {
+          dispatch({
+            type: 'SET_TYPING',
+            conversationId: event.conversationId,
+            userId: event.userId,
+            isTyping: true,
+          });
+        }
+        break;
 
-        case 'typing.stop':
-          if (event.conversationId && event.userId) {
-            dispatch({
-              type: 'SET_TYPING',
-              conversationId: event.conversationId,
-              userId: event.userId,
-              isTyping: false,
-            });
-          }
-          break;
+      case 'typing.stop':
+        if (event.conversationId && event.userId) {
+          dispatch({
+            type: 'SET_TYPING',
+            conversationId: event.conversationId,
+            userId: event.userId,
+            isTyping: false,
+          });
+        }
+        break;
 
-        case 'error':
-          console.error('[Messaging] WebSocket error:', event.message);
-          dispatch({ type: 'SET_ERROR', error: event.message });
-          break;
-      }
-    };
+      case 'error':
+        console.error('[Messaging] WebSocket error:', event.message);
+        dispatch({ type: 'SET_ERROR', error: event.message });
+        break;
+    }
+  }, []); // dispatch is stable, stateRef is used for current state
 
-    const unsubscribe = wsClient.subscribe(handleWebSocketEvent);
-    return unsubscribe;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty deps - event handler uses dispatch which is stable
+  // Use the new useWebSocket hook to manage connection and subscription
+  // This fixes the race condition by ensuring subscription happens before connection
+  const isConnected = useWebSocket(
+    isAuthenticated && accessToken ? accessToken : null,
+    handleWebSocketEvent
+  );
+
+  // Update connection state when it changes
+  useEffect(() => {
+    dispatch({ type: 'SET_CONNECTED', connected: isConnected });
+  }, [isConnected]);
 
   // Load conversations
   const loadConversations = useCallback(async () => {

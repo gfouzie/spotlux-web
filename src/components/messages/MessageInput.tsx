@@ -3,7 +3,10 @@
 import { useState, useRef, KeyboardEvent } from 'react';
 import Image from 'next/image';
 import { uploadApi } from '@/api/upload';
-import { compressImage, validateImageFile } from '@/lib/compression/imageCompression';
+import {
+  compressImage,
+  validateImageFile,
+} from '@/lib/compression/imageCompression';
 import Button from '@/components/common/Button';
 import { Send, MediaImage, Xmark } from 'iconoir-react';
 
@@ -205,7 +208,7 @@ const MessageInput = ({
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || isUploading || !!selectedImage}
-          className="h-12 w-12 flex items-center justify-center rounded-lg hover:bg-bg-col/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+          className="h-12 w-12 cursor-pointer flex items-center justify-center rounded-lg hover:bg-bg-col/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
           title="Attach image"
           type="button"
         >

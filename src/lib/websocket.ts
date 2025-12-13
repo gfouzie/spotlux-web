@@ -186,6 +186,7 @@ export class WebSocketClient {
       this.ws.onmessage = (event) => {
         try {
           const rawData = JSON.parse(event.data);
+
           // Convert snake_case keys from backend to camelCase for frontend
           const data = keysToCamel(rawData);
 
@@ -198,7 +199,7 @@ export class WebSocketClient {
             }
           });
         } catch (error) {
-          console.error('[WebSocket] Failed to parse message:', error);
+          console.error('[WebSocket] Failed to parse message:', error, event.data);
         }
       };
 
