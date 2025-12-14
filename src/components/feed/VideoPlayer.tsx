@@ -30,7 +30,7 @@ export default function VideoPlayer({
         playsInline
         autoPlay
         loop
-        preload="none"
+        preload="metadata"
       />
 
       {/* Video Buffering Indicator */}

@@ -25,7 +25,6 @@ export default function FeedPage() {
   } = useFeedData();
 
   const currentHighlight = highlights?.[currentIndex];
-  const nextHighlight = highlights?.[currentIndex + 1];
 
   // Navigation
   const { goToNext, goToPrevious, isFirst, isLast } = useVideoNavigation({
@@ -34,12 +33,10 @@ export default function FeedPage() {
     onNavigate: setCurrentIndex,
   });
 
-  // Optimized video playback
+  // Simple video playback - no caching for now
   const { videoRef, isBuffering, progress } = useOptimizedVideo({
     videoUrl: currentHighlight?.videoUrl,
     onEnded: goToNext,
-    shouldPreloadNext: true,
-    nextVideoUrl: nextHighlight?.videoUrl,
   });
 
   // Track view when highlight changes

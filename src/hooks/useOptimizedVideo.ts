@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { getVideo, preloadVideo } from '@/lib/videoCache';
+import { useEffect, useRef, useState } from 'react';
+import { getVideo } from '@/lib/videoCache';
 
 interface UseOptimizedVideoOptions {
   videoUrl?: string;
   onEnded?: () => void;
-  shouldPreloadNext?: boolean;
-  nextVideoUrl?: string;
 }
 
 interface UseOptimizedVideoReturn {
@@ -15,45 +13,61 @@ interface UseOptimizedVideoReturn {
 }
 
 /**
- * Custom hook for optimized video playback with caching and preloading
- *
- * Features:
- * - Browser caching (Cache API) for previously viewed videos
- * - Intelligent preloading of next video (at 50% or after 2 seconds)
- * - Buffering state management
- * - Progress tracking
+ * Video playback hook with caching
+ * - Caches videos using Cache API (max 5 videos, LRU eviction)
+ * - Debounced buffering indicator (200ms delay)
  * - Automatic blob URL cleanup
  */
 export function useOptimizedVideo({
   videoUrl,
   onEnded,
-  shouldPreloadNext = true,
-  nextVideoUrl,
 }: UseOptimizedVideoOptions): UseOptimizedVideoReturn {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isBuffering, setIsBuffering] = useState(true);
+  const [isBuffering, setIsBuffering] = useState(false);
   const [progress, setProgress] = useState(0);
-  const hasTriggeredPreload = useRef(false);
-  const blobUrlsRef = useRef<string[]>([]);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const bufferingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentBlobUrlRef = useRef<string | null>(null);
 
-  // Preload next video callback
-  const triggerNextVideoPreload = useCallback(() => {
-    if (nextVideoUrl && shouldPreloadNext) {
-      preloadVideo(nextVideoUrl).catch((err) => {
-        console.error('Failed to preload next video:', err);
-      });
+  // Load video with caching
+  useEffect(() => {
+    if (!videoUrl) {
+      setVideoSrc(null);
+      return;
     }
-  }, [nextVideoUrl, shouldPreloadNext]);
 
-  // Main video playback logic
+    let cancelled = false;
+
+    // Load video from cache or network
+    getVideo(videoUrl).then((src) => {
+      if (!cancelled) {
+        // Clean up old blob URL if it exists
+        if (currentBlobUrlRef.current && currentBlobUrlRef.current.startsWith('blob:')) {
+          URL.revokeObjectURL(currentBlobUrlRef.current);
+        }
+
+        // Store new blob URL reference
+        if (src.startsWith('blob:')) {
+          currentBlobUrlRef.current = src;
+        } else {
+          currentBlobUrlRef.current = null;
+        }
+
+        setVideoSrc(src);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [videoUrl]);
+
+  // Video event handlers
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !videoUrl) return;
+    if (!video || !videoSrc) return;
 
-    let isMounted = true;
-    hasTriggeredPreload.current = false;
-    setIsBuffering(true);
-
+    // Simple event handlers
     const handleEnded = () => {
       if (onEnded) onEnded();
     };
@@ -61,78 +75,67 @@ export function useOptimizedVideo({
     const handleTimeUpdate = () => {
       const currentProgress = (video.currentTime / video.duration) * 100;
       setProgress(currentProgress);
-
-      // Trigger preload when video reaches 50% or after 2 seconds
-      if (!hasTriggeredPreload.current && shouldPreloadNext) {
-        const shouldPreload =
-          currentProgress >= 50 || video.currentTime >= 2;
-        if (shouldPreload) {
-          hasTriggeredPreload.current = true;
-          triggerNextVideoPreload();
-        }
-      }
-    };
-
-    const handleLoadedMetadata = () => {
-      setIsBuffering(false);
-      video.play().catch((err) => {
-        console.error('Failed to autoplay:', err);
-      });
     };
 
     const handleWaiting = () => {
-      setIsBuffering(true);
+      // Only show buffering after 200ms delay (prevents flashing)
+      if (bufferingTimeoutRef.current) {
+        clearTimeout(bufferingTimeoutRef.current);
+      }
+      bufferingTimeoutRef.current = setTimeout(() => {
+        setIsBuffering(true);
+      }, 200);
     };
 
-    const handleCanPlay = () => {
+    const handlePlaying = () => {
+      // Clear any pending buffering timeout
+      if (bufferingTimeoutRef.current) {
+        clearTimeout(bufferingTimeoutRef.current);
+        bufferingTimeoutRef.current = null;
+      }
       setIsBuffering(false);
     };
 
-    // Load video from cache or network
-    const loadVideo = async () => {
-      try {
-        const cachedVideoUrl = await getVideo(videoUrl);
-        if (isMounted) {
-          // Track blob URL for cleanup
-          if (cachedVideoUrl.startsWith('blob:')) {
-            blobUrlsRef.current.push(cachedVideoUrl);
-          }
-          video.src = cachedVideoUrl;
-          video.load();
-        }
-      } catch (err) {
-        console.error('Failed to load video:', err);
-        if (isMounted) {
-          // Fallback to direct URL
-          video.src = videoUrl;
-          video.load();
-        }
+    const handleCanPlay = () => {
+      // Clear any pending buffering timeout
+      if (bufferingTimeoutRef.current) {
+        clearTimeout(bufferingTimeoutRef.current);
+        bufferingTimeoutRef.current = null;
       }
+      setIsBuffering(false);
     };
 
+    // Only set src if it's different (prevent unnecessary reloads)
+    if (video.src !== videoSrc) {
+      video.src = videoSrc;
+    }
+
+    // Add event listeners
     video.addEventListener('ended', handleEnded);
     video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('playing', handlePlaying);
     video.addEventListener('canplay', handleCanPlay);
 
-    loadVideo();
-
     return () => {
-      isMounted = false;
+      // Clean up timeout
+      if (bufferingTimeoutRef.current) {
+        clearTimeout(bufferingTimeoutRef.current);
+      }
       video.removeEventListener('ended', handleEnded);
       video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       video.removeEventListener('waiting', handleWaiting);
+      video.removeEventListener('playing', handlePlaying);
       video.removeEventListener('canplay', handleCanPlay);
     };
-  }, [videoUrl, onEnded, shouldPreloadNext, triggerNextVideoPreload]);
+  }, [videoSrc, onEnded]);
 
   // Cleanup blob URLs on unmount
   useEffect(() => {
     return () => {
-      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
-      blobUrlsRef.current = [];
+      if (currentBlobUrlRef.current && currentBlobUrlRef.current.startsWith('blob:')) {
+        URL.revokeObjectURL(currentBlobUrlRef.current);
+      }
     };
   }, []);
 

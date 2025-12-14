@@ -28,16 +28,13 @@ export default function StoryViewer({
   const [isMuted, setIsMuted] = useState(false);
 
   const currentHighlight = highlights?.[currentIndex];
-  const nextHighlight = highlights?.[currentIndex + 1];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === highlights?.length - 1;
 
-  // Optimized video playback with caching
+  // Simple video playback - no caching for now
   const { videoRef, isBuffering, progress } = useOptimizedVideo({
     videoUrl: currentHighlight?.videoUrl,
     onEnded: () => goToNext(),
-    shouldPreloadNext: true,
-    nextVideoUrl: nextHighlight?.videoUrl,
   });
 
   // Navigation handlers
@@ -188,7 +185,7 @@ export default function StoryViewer({
           muted={isMuted}
           playsInline
           autoPlay
-          preload="none"
+          preload="metadata"
         />
 
         {/* Buffering Indicator */}

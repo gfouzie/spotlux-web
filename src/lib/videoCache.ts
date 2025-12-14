@@ -4,7 +4,7 @@
  */
 
 const CACHE_NAME = 'spotlux-video-cache';
-const MAX_CACHED_VIDEOS = 10; // LRU limit
+const MAX_CACHED_VIDEOS = 5; // LRU limit
 
 interface CacheMetadata {
   url: string;
@@ -14,7 +14,11 @@ interface CacheMetadata {
 /**
  * Get or create the video cache
  */
-async function getCache(): Promise<Cache> {
+async function getCache(): Promise<Cache | null> {
+  // Check if Cache API is available (browser only, not SSR)
+  if (typeof window === 'undefined' || !window.caches) {
+    return null;
+  }
   return await caches.open(CACHE_NAME);
 }
 
@@ -22,6 +26,7 @@ async function getCache(): Promise<Cache> {
  * Get cache metadata from localStorage
  */
 function getCacheMetadata(): CacheMetadata[] {
+  if (typeof window === 'undefined') return [];
   try {
     const data = localStorage.getItem('video-cache-metadata');
     return data ? JSON.parse(data) : [];
@@ -34,6 +39,7 @@ function getCacheMetadata(): CacheMetadata[] {
  * Save cache metadata to localStorage
  */
 function saveCacheMetadata(metadata: CacheMetadata[]): void {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.setItem('video-cache-metadata', JSON.stringify(metadata));
   } catch (err) {
@@ -58,7 +64,9 @@ async function updateMetadata(url: string): Promise<void> {
     const toEvict = metadata.shift(); // Remove oldest
     if (toEvict) {
       const cache = await getCache();
-      await cache.delete(toEvict.url);
+      if (cache) {
+        await cache.delete(toEvict.url);
+      }
     }
   }
 
@@ -71,6 +79,7 @@ async function updateMetadata(url: string): Promise<void> {
 export async function isVideoCached(url: string): Promise<boolean> {
   try {
     const cache = await getCache();
+    if (!cache) return false;
     const response = await cache.match(url);
     return response !== undefined;
   } catch (err) {
@@ -86,6 +95,12 @@ export async function isVideoCached(url: string): Promise<boolean> {
 export async function getVideo(url: string): Promise<string> {
   try {
     const cache = await getCache();
+
+    // If cache not available (SSR or unsupported browser), return original URL
+    if (!cache) {
+      return url;
+    }
+
     let response = await cache.match(url);
 
     if (response) {
@@ -129,6 +144,8 @@ export async function preloadVideo(url: string): Promise<void> {
     }
 
     const cache = await getCache();
+    if (!cache) return; // Cache not available
+
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -146,8 +163,11 @@ export async function preloadVideo(url: string): Promise<void> {
  * Clear all cached videos
  */
 export async function clearVideoCache(): Promise<void> {
+  if (typeof window === 'undefined') return;
   try {
-    await caches.delete(CACHE_NAME);
+    if (window.caches) {
+      await caches.delete(CACHE_NAME);
+    }
     localStorage.removeItem('video-cache-metadata');
   } catch (err) {
     console.error('Failed to clear video cache:', err);
