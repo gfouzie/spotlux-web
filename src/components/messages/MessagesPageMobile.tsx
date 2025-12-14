@@ -1,6 +1,9 @@
 'use client';
 
-import { ConversationWithDetails, MessageWithSender } from '@/api/conversations';
+import {
+  ConversationWithDetails,
+  MessageWithSender,
+} from '@/api/conversations';
 import ConversationList from './ConversationList';
 import ConversationView from './ConversationView';
 import EmptyMessagesState from './EmptyMessagesState';
@@ -57,7 +60,7 @@ const MessagesPageMobile = ({
 
   return (
     <div
-      className="h-[calc(100dvh-8rem)] bg-bg-col text-text-col flex flex-col overflow-hidden fixed inset-0 top-[3.5rem]"
+      className="bg-bg-col text-text-col flex flex-col overflow-hidden fixed inset-0 top-[3.5rem] bottom-[4.5rem]"
       style={{ touchAction: 'none' }}
     >
       {error && (

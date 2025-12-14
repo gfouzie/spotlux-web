@@ -111,13 +111,17 @@ export async function getVideo(url: string): Promise<string> {
     }
 
     // Cache miss - fetch from network
-    console.log('Fetching video from:', url);
     response = await fetch(url, {
       mode: 'cors',
       credentials: 'omit', // S3 URLs don't need credentials
     });
     if (!response.ok) {
-      console.error('Video fetch failed:', url, response.status, response.statusText);
+      console.error(
+        'Video fetch failed:',
+        url,
+        response.status,
+        response.statusText
+      );
       throw new Error(`Failed to fetch video: ${response.statusText}`);
     }
 
