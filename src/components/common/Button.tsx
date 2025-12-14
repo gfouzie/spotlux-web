@@ -37,11 +37,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       'disabled:cursor-not-allowed disabled:opacity-50 disabled:text-text-col/50'
     );
 
-    // Size variants
+    // Size variants (responsive for mobile)
     const sizeStyles = {
-      sm: 'px-3 py-2 text-sm',
-      md: 'px-4 py-3 text-base',
-      lg: 'px-6 py-4 text-lg',
+      sm: 'px-2.5 py-1.5 lg:px-3 lg:py-2 text-xs lg:text-sm',
+      md: 'px-3 py-2 lg:px-4 lg:py-3 text-sm lg:text-base',
+      lg: 'px-4 py-2.5 lg:px-6 lg:py-4 text-base lg:text-lg',
     };
 
     // Variant styles

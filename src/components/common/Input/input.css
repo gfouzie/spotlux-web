@@ -33,3 +33,22 @@
   box-shadow: 0 0 0 2px var(--accent-col) !important;
   -webkit-box-shadow: 0 0 0 2px var(--accent-col) !important;
 }
+
+/* Date input specific styles */
+.spotlux-input[type='date'] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Date input calendar icon */
+.spotlux-input[type='date']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.spotlux-input[type='date']:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}

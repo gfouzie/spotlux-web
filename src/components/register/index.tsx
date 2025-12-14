@@ -207,7 +207,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-4">
         <Input
           id="email"
           type="email"

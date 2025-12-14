@@ -10,28 +10,28 @@ export default function LoggedOutHeader() {
 
   console.log(logoSrc);
   return (
-    <header className="flex justify-between items-center p-6 lg:px-12 bg-bg-col text-text-col">
+    <header className="flex justify-between items-center p-4 lg:p-6 lg:px-12 bg-bg-col text-text-col">
       <Link href="/" className="hover:opacity-80 transition-opacity">
         <Image
           src={logoSrc}
           alt="Spotlux Logo"
-          width={180}
-          height={45}
-          className="object-contain"
+          width={120}
+          height={30}
+          className="object-contain lg:w-[180px] lg:h-[45px]"
           priority
         />
       </Link>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 lg:gap-4">
         <Link
           href="/register"
-          className="text-text-col hover:text-accent-col transition-colors font-medium"
+          className="text-text-col hover:text-accent-col transition-colors font-medium text-sm lg:text-base"
         >
           Sign Up
         </Link>
         <Link
           href="/login"
-          className="bg-accent-col text-bg-col px-6 py-2 rounded-lg font-semibold hover:bg-accent-col/90 transition-colors"
+          className="bg-accent-col text-bg-col px-3 py-1.5 lg:px-6 lg:py-2 rounded-lg font-semibold hover:bg-accent-col/90 transition-colors text-sm lg:text-base"
         >
           Sign In
         </Link>

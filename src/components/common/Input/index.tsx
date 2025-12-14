@@ -19,17 +19,17 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const [isFocused, setIsFocused] = useState(false);
 
     return (
-      <div className="w-full">
+      <div className="w-full min-w-0">
         {label && (
           <label
             htmlFor={props.id}
-            className="block text-sm font-medium mb-2 text-text-col"
+            className="block text-xs lg:text-sm font-medium mb-1.5 lg:mb-2 text-text-col"
           >
             {label}
           </label>
         )}
 
-        <div className="relative">
+        <div className="relative w-full min-w-0">
           {icon && (
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-col/60">
               {icon}
@@ -45,9 +45,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               // Base styles
               'spotlux-input', // ← Component-specific class for autofill styles
-              'w-full px-4 py-3 rounded-lg transition-all duration-200',
+              'w-full px-3 py-2 lg:px-4 lg:py-3 rounded-lg transition-all duration-200',
               'bg-bg-col border border-text-col/30',
-              'text-text-col placeholder-text-col/50',
+              'text-sm lg:text-base text-text-col placeholder-text-col/50',
               'focus:outline-none focus:ring-2 focus:ring-accent-col focus:border-transparent',
 
               // Icon padding

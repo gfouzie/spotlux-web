@@ -21,27 +21,29 @@ export default function AuthFormContainer({
     theme === 'light' ? '/spotlux_logo_light.png' : '/spotlux_logo_dark.png';
 
   return (
-    <div className="flex items-center justify-center py-16">
+    <div className="flex items-center justify-center py-6 lg:py-16 px-4">
       <div className="w-full max-w-md relative">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-2 lg:mb-8">
           <Image
             src={logoSrc}
             alt="Spotlux Logo"
-            width={600}
-            height={150}
-            className="object-contain"
+            width={200}
+            height={50}
+            className="object-contain lg:w-[600px] lg:h-[150px]"
             priority
           />
         </div>
 
-        <h1 className="text-2xl mb-2 text-center">SHINING ON THE FUTURE</h1>
+        <h1 className="text-lg lg:text-2xl mb-2 text-center">
+          SHINING ON THE FUTURE
+        </h1>
 
         {/* Spotlight Effect */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-8 w-[640px] h-8 bg-text-col/70 z-10 spotlight-oval" />
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-8 w-full lg:w-[640px] h-6 lg:h-8 bg-text-col/70 z-10 spotlight-oval" />
 
         {/* Form Container */}
-        <div className="space-y-4 bg-card-col px-4 py-6 rounded-md relative z-20">
+        <div className="space-y-3 lg:space-y-4 bg-card-col px-3 py-4 lg:px-4 lg:py-6 rounded-md relative z-20">
           {children}
         </div>
 
