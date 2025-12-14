@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { MessageWithSender } from '@/api/conversations';
 import MessageBubble from './MessageBubble';
+import TypingIndicator from './TypingIndicator';
 
 interface MessageThreadProps {
   messages: MessageWithSender[];
@@ -11,6 +12,7 @@ interface MessageThreadProps {
   onLoadMore?: () => void;
   hasMore?: boolean;
   onMarkAsRead?: (messageId: number) => void;
+  isOtherUserTyping?: boolean;
 }
 
 const MessageThread = ({
@@ -20,6 +22,7 @@ const MessageThread = ({
   onLoadMore,
   hasMore = false,
   onMarkAsRead,
+  isOtherUserTyping = false,
 }: MessageThreadProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -75,6 +78,13 @@ const MessageThread = ({
       }
     }
   }, [messages]);
+
+  // Auto-scroll when typing indicator appears/disappears
+  useEffect(() => {
+    if (isOtherUserTyping) {
+      scrollToBottom('smooth');
+    }
+  }, [isOtherUserTyping]);
 
   // Reset initial load flag when messages array becomes empty (conversation changed)
   useEffect(() => {
@@ -182,6 +192,9 @@ const MessageThread = ({
           currentUserId={currentUserId}
         />
       ))}
+
+      {/* Typing indicator */}
+      {isOtherUserTyping && <TypingIndicator />}
 
       {/* Scroll anchor */}
       <div ref={messagesEndRef} />

@@ -56,7 +56,10 @@ const MessagesPageMobile = ({
   );
 
   return (
-    <div className="h-[calc(100dvh-8rem)] bg-bg-col text-text-col flex flex-col overflow-hidden">
+    <div
+      className="h-[calc(100dvh-8rem)] bg-bg-col text-text-col flex flex-col overflow-hidden fixed inset-0 top-[3.5rem]"
+      style={{ touchAction: 'none' }}
+    >
       {error && (
         <div className="flex-shrink-0 m-2 p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-500 text-sm">
           {error}
@@ -64,15 +67,15 @@ const MessagesPageMobile = ({
       )}
 
       {isLoading ? (
-        <div className="flex items-center justify-center flex-1">
+        <div className="flex items-center justify-center flex-1 min-h-0">
           <div className="w-8 h-8 border-4 border-accent-col border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : conversations.length === 0 ? (
-        <div className="flex-1">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <EmptyMessagesState onNewMessage={onNewMessage} />
         </div>
       ) : activeConversationId ? (
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <ConversationView
             conversation={activeConversation}
             messages={messages}
@@ -89,7 +92,7 @@ const MessagesPageMobile = ({
           />
         </div>
       ) : (
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <ConversationList
             conversations={conversations}
             activeConversationId={activeConversationId}

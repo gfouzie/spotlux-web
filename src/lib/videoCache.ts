@@ -111,8 +111,13 @@ export async function getVideo(url: string): Promise<string> {
     }
 
     // Cache miss - fetch from network
-    response = await fetch(url);
+    console.log('Fetching video from:', url);
+    response = await fetch(url, {
+      mode: 'cors',
+      credentials: 'omit', // S3 URLs don't need credentials
+    });
     if (!response.ok) {
+      console.error('Video fetch failed:', url, response.status, response.statusText);
       throw new Error(`Failed to fetch video: ${response.statusText}`);
     }
 
@@ -127,7 +132,7 @@ export async function getVideo(url: string): Promise<string> {
     const blob = await responseClone.blob();
     return URL.createObjectURL(blob);
   } catch (err) {
-    console.error('Failed to get video from cache:', err);
+    console.error('Failed to get video from cache:', err, 'URL:', url);
     // Fallback to original URL
     return url;
   }
@@ -146,7 +151,10 @@ export async function preloadVideo(url: string): Promise<void> {
     const cache = await getCache();
     if (!cache) return; // Cache not available
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      mode: 'cors',
+      credentials: 'omit', // S3 URLs don't need credentials
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to preload video: ${response.statusText}`);

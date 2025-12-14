@@ -80,10 +80,10 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
     }
 
     const sizeStyles = {
-      sm: 'max-w-md',
-      md: 'max-w-lg',
-      lg: 'max-w-2xl',
-      xl: 'max-w-4xl',
+      sm: 'max-w-md mx-4',
+      md: 'max-w-lg mx-4',
+      lg: 'max-w-2xl mx-4',
+      xl: 'max-w-4xl mx-4',
       full: 'max-w-full mx-4',
     };
 
@@ -107,7 +107,7 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
           className={cn(
             'relative w-full bg-card-col rounded-lg shadow-xl',
             'transform transition-all duration-200',
-            'max-h-[90vh] overflow-hidden flex flex-col',
+            'max-h-[75vh] lg:max-h-[90vh] overflow-hidden flex flex-col',
             sizeStyles[size],
             className
           )}

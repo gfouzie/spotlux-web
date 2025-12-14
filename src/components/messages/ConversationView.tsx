@@ -7,7 +7,6 @@ import {
 import ConversationHeader from './ConversationHeader';
 import MessageThread from './MessageThread';
 import MessageInput from './MessageInput';
-import TypingIndicator from './TypingIndicator';
 
 interface ConversationViewProps {
   conversation: ConversationWithDetails | undefined;
@@ -49,14 +48,12 @@ const ConversationView = ({
     );
   }
 
-  const displayName =
-    conversation.otherUser.firstName && conversation.otherUser.lastName
-      ? `${conversation.otherUser.firstName} ${conversation.otherUser.lastName}`
-      : conversation.otherUser.username;
-
   return (
     <div className="bg-card-col flex flex-col h-full overflow-hidden">
-      <ConversationHeader conversation={conversation} onBackToList={onBackToList} />
+      <ConversationHeader
+        conversation={conversation}
+        onBackToList={onBackToList}
+      />
 
       <div className="flex-1 min-h-0 overflow-hidden">
         <MessageThread
@@ -66,10 +63,9 @@ const ConversationView = ({
           hasMore={hasMore}
           onLoadMore={onLoadMore}
           onMarkAsRead={onMarkAsRead}
+          isOtherUserTyping={isOtherUserTyping}
         />
       </div>
-
-      {isOtherUserTyping && <TypingIndicator username={displayName} />}
 
       <MessageInput
         onSendMessage={onSendMessage}

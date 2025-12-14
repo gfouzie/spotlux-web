@@ -85,6 +85,17 @@ const formatHometown = (
   return parts.length > 0 ? parts.join(', ') : 'Not set';
 };
 
+/**
+ * Format hometown for mobile (city, state only)
+ */
+const formatHometownMobile = (
+  city: string | null,
+  state: string | null
+): string => {
+  const parts = [city, state].filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : 'Not set';
+};
+
 const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
   user,
   isOwnProfile = false,
@@ -95,7 +106,10 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const initials = getUserInitials(user?.firstName || null, user?.lastName || null);
+  const initials = getUserInitials(
+    user?.firstName || null,
+    user?.lastName || null
+  );
   const currentProfileImageUrl = user?.profileImageUrl;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,7 +191,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
           <div className="flex items-center gap-6">
             {/* Left: Profile Picture and Friends Link */}
             <div className="flex flex-col flex-shrink-0">
-              <div className="relative w-20 h-20 mb-3">
+              <div className="relative w-16 h-16 lg:w-20 lg:h-20 mb-3">
                 {/* Hidden file input */}
                 {isOwnProfile && (
                   <input
@@ -195,23 +209,23 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
                     {isOwnProfile ? (
                       <label
                         htmlFor="profile-picture-upload"
-                        className="cursor-pointer block w-20 h-20 rounded-full overflow-hidden hover:opacity-80 transition-opacity"
+                        className="cursor-pointer block w-16 h-16 lg:w-20 lg:h-20 rounded-full overflow-hidden hover:opacity-80 transition-opacity"
                       >
                         <Image
                           src={currentProfileImageUrl}
                           alt="Profile"
                           fill
-                          sizes="80px"
+                          sizes="(max-width: 1024px) 64px, 80px"
                           className="object-cover border-2 border-accent-col rounded-full"
                         />
                       </label>
                     ) : (
-                      <div className="w-20 h-20 rounded-full overflow-hidden">
+                      <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full overflow-hidden">
                         <Image
                           src={currentProfileImageUrl}
                           alt="Profile"
                           fill
-                          sizes="80px"
+                          sizes="(max-width: 1024px) 64px, 80px"
                           className="object-cover border-2 border-accent-col rounded-full"
                         />
                       </div>
@@ -235,14 +249,14 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
                     {isOwnProfile ? (
                       <label
                         htmlFor="profile-picture-upload"
-                        className="cursor-pointer w-20 h-20 rounded-full bg-accent-col/20 flex items-center justify-center hover:bg-accent-col/30 transition-colors border-2 border-accent-col/50"
+                        className="cursor-pointer w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-accent-col/20 flex items-center justify-center hover:bg-accent-col/30 transition-colors border-2 border-accent-col/50"
                       >
                         <span className="text-xl lg:text-2xl font-semibold text-text-col">
                           {initials}
                         </span>
                       </label>
                     ) : (
-                      <div className="w-20 h-20 rounded-full bg-accent-col/20 flex items-center justify-center border-2 border-accent-col/50">
+                      <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-accent-col/20 flex items-center justify-center border-2 border-accent-col/50">
                         <span className="text-xl lg:text-2xl font-semibold text-text-col">
                           {initials}
                         </span>
@@ -256,7 +270,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
                 onClick={() => setShowFriendsModal(true)}
                 className="cursor-pointer text-sm text-accent-col hover:text-accent-col/80 transition-colors font-medium text-left"
               >
-                View all friends
+                View Friends
               </button>
             </div>
 
@@ -273,6 +287,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
 
           {/* Right: Stats vertically aligned */}
           <div className="flex flex-col gap-1 text-right mt-8">
+            {/* Birthday */}
             <div className="flex items-center justify-end">
               <span className="hidden md:flex text-sm text-text-col opacity-70 mr-1">
                 Born:{' '}
@@ -281,24 +296,43 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
                 {formatBirthday(user?.birthday || null)}
               </span>
             </div>
-            <div className="flex items-center justify-end">
-              <span className="hidden md:block text-sm text-text-col opacity-70 mr-1">
+
+            {/* Height & Weight - Combined on mobile, separate on desktop */}
+            <div className="md:hidden flex items-center justify-end">
+              <span className="text-sm text-text-col">
+                {formatHeight(user?.height || null)} •{' '}
+                {formatWeight(user?.weight || null)}
+              </span>
+            </div>
+
+            <div className="hidden md:flex items-center justify-end">
+              <span className="text-sm text-text-col opacity-70 mr-1">
                 Height:{' '}
               </span>
               <span className="text-sm text-text-col">
                 {formatHeight(user?.height || null)}
               </span>
             </div>
-            <div className="flex items-center justify-end">
-              <span className="hidden md:block text-sm text-text-col opacity-70 mr-1">
+            <div className="hidden md:flex items-center justify-end">
+              <span className="text-sm text-text-col opacity-70 mr-1">
                 Weight:{' '}
               </span>
               <span className="text-sm text-text-col">
                 {formatWeight(user?.weight || null)}
               </span>
             </div>
-            <div className="flex items-center justify-end">
-              <span className="hidden md:block text-sm text-text-col opacity-70 mr-1">
+
+            {/* Hometown - City/State on mobile, full on desktop */}
+            <div className="md:hidden flex items-center justify-end">
+              <span className="text-sm text-text-col">
+                {formatHometownMobile(
+                  user?.hometownCity || null,
+                  user?.hometownState || null
+                )}
+              </span>
+            </div>
+            <div className="hidden md:flex items-center justify-end">
+              <span className="text-sm text-text-col opacity-70 mr-1">
                 Hometown:{' '}
               </span>
               <span className="text-sm text-text-col">
