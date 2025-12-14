@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Highlight } from '@/api/highlights';
+import { useOptimizedVideo } from '@/hooks/useOptimizedVideo';
 import {
   Xmark,
   NavArrowLeft,
@@ -9,6 +10,7 @@ import {
   SoundOff,
   SoundHigh,
 } from 'iconoir-react';
+
 interface StoryViewerProps {
   highlights: Highlight[];
   initialIndex?: number;
@@ -24,18 +26,24 @@ export default function StoryViewer({
 }: StoryViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isMuted, setIsMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const currentHighlight = highlights?.[currentIndex];
+  const nextHighlight = highlights?.[currentIndex + 1];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === highlights?.length - 1;
+
+  // Optimized video playback with caching
+  const { videoRef, isBuffering, progress } = useOptimizedVideo({
+    videoUrl: currentHighlight?.videoUrl,
+    onEnded: () => goToNext(),
+    shouldPreloadNext: true,
+    nextVideoUrl: nextHighlight?.videoUrl,
+  });
 
   // Navigation handlers
   const goToNext = useCallback(() => {
     if (!isLast) {
       setCurrentIndex((prev) => prev + 1);
-      setProgress(0);
     } else {
       onClose();
     }
@@ -44,11 +52,10 @@ export default function StoryViewer({
   const goToPrevious = useCallback(() => {
     if (!isFirst) {
       setCurrentIndex((prev) => prev - 1);
-      setProgress(0);
     }
   }, [isFirst]);
 
-  // Keyboard navigation
+  // Keyboard navigation (horizontal + Escape)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
@@ -62,9 +69,9 @@ export default function StoryViewer({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [goToNext, goToPrevious, onClose, isFirst]);
+  }, [goToNext, goToPrevious, onClose]);
 
-  // Touch/swipe navigation
+  // Touch/swipe navigation (horizontal)
   useEffect(() => {
     let touchStartX = 0;
     let touchEndX = 0;
@@ -97,40 +104,6 @@ export default function StoryViewer({
       window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [goToNext, goToPrevious]);
-
-  // Video playback and progress tracking
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const handleEnded = () => {
-      goToNext();
-    };
-
-    const handleTimeUpdate = () => {
-      const progress = (video.currentTime / video.duration) * 100;
-      setProgress(progress);
-    };
-
-    const handleLoadedMetadata = () => {
-      video.play().catch((err) => {
-        console.error('Failed to autoplay:', err);
-      });
-    };
-
-    video.addEventListener('ended', handleEnded);
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-
-    // Reset and play when video changes
-    video.load();
-
-    return () => {
-      video.removeEventListener('ended', handleEnded);
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-    };
-  }, [currentIndex, goToNext]);
 
   // Prevent body scroll
   useEffect(() => {
@@ -211,12 +184,19 @@ export default function StoryViewer({
       <div className="absolute inset-0 flex items-center justify-center">
         <video
           ref={videoRef}
-          src={currentHighlight?.videoUrl}
           className="max-w-full max-h-full object-contain"
           muted={isMuted}
           playsInline
           autoPlay
+          preload="none"
         />
+
+        {/* Buffering Indicator */}
+        {isBuffering && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+            <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+          </div>
+        )}
       </div>
 
       {/* Navigation Arrows */}
@@ -224,7 +204,7 @@ export default function StoryViewer({
         <button
           type="button"
           onClick={goToPrevious}
-          className="cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+          className="cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 transition-colors z-10"
           aria-label="Previous clip"
         >
           <NavArrowLeft className="w-6 h-6 text-white" />
@@ -235,7 +215,7 @@ export default function StoryViewer({
         <button
           type="button"
           onClick={goToNext}
-          className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+          className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 transition-colors z-10"
           aria-label="Next clip"
         >
           <NavArrowRight className="w-6 h-6 text-white" />
@@ -244,7 +224,7 @@ export default function StoryViewer({
 
       {/* Prompt Overlay */}
       {currentHighlight?.prompt?.name && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 z-10">
           <div className="max-w-2xl mx-auto">
             <p className="text-sm text-white/60 mb-1">Prompt</p>
             <p className="text-lg text-white font-medium">

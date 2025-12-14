@@ -10,6 +10,13 @@ export interface PromptMinimal {
 }
 
 /**
+ * Minimal creator data (nested in Highlight from feed)
+ */
+export interface HighlightCreator {
+  username: string;
+}
+
+/**
  * Highlight interface
  * Uses camelCase (automatically converted from snake_case by API middleware)
  */
@@ -20,6 +27,7 @@ export interface Highlight {
   orderIndex: number;
   promptId?: number;
   prompt?: PromptMinimal;
+  creator?: HighlightCreator;
   createdAt: string;
   updatedAt?: string;
 }
