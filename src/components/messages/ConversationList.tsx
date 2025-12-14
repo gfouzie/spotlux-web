@@ -20,7 +20,7 @@ const ConversationList = ({
   return (
     <div className="bg-card-col p-4 h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <h2 className="text-lg font-semibold">Conversations</h2>
+        <h2>Conversations</h2>
         <AddButton onClick={onNewMessage} ariaLabel="New Message" />
       </div>
 

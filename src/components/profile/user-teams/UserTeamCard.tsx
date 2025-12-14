@@ -60,7 +60,7 @@ const UserTeamCard: React.FC<UserTeamCardProps> = ({
 
       {/* Team Info */}
       <div className="flex-1 min-w-0">
-        <h4 className="text-base font-semibold text-text-col truncate">
+        <h4 className="truncate">
           {team.name} {team.level ? `• ${team.level}` : ''}
         </h4>
         <p className="text-sm text-text-col/70 mt-1">

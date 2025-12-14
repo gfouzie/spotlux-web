@@ -14,7 +14,7 @@ const AddButton = ({ onClick, ariaLabel, className = '' }: AddButtonProps) => {
       aria-label={ariaLabel}
       title={ariaLabel}
     >
-      <span className="text-xl font-semibold">+</span>
+      <span className="text-lg lg:text-xl font-semibold">+</span>
     </button>
   );
 };

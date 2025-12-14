@@ -59,7 +59,7 @@ export default function SentRequestsCard({ refreshTrigger, onStatusChange }: Sen
 
   return (
     <div className="bg-card-col rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-text-col mb-4">
+      <h3 className="mb-4">
         Sent Requests
       </h3>
 

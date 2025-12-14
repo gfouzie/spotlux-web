@@ -44,7 +44,7 @@ const TeamCard: React.FC<TeamCardProps> = ({ team, onClick }) => {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-accent-col/20">
-              <span className="text-xl font-semibold text-text-col">
+              <span className="text-lg lg:text-xl font-semibold text-text-col">
                 {initials}
               </span>
             </div>
@@ -53,7 +53,7 @@ const TeamCard: React.FC<TeamCardProps> = ({ team, onClick }) => {
 
         {/* Team Info */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-text-col truncate">
+          <h3 className="truncate">
             {team.name}
           </h3>
           <p className="text-sm text-text-col/60 capitalize">{team.sport}</p>

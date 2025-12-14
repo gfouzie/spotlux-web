@@ -90,7 +90,7 @@ const TeamsList: React.FC = () => {
     <div className="bg-component-col rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-text-col">Teams List</h2>
+          <h2>Teams List</h2>
           <p className="text-text-col/60 text-sm mt-1">
             {teams?.length} team{teams?.length !== 1 ? 's' : ''}{' '}
             {selectedSport !== 'all' && `in ${selectedSport}`}

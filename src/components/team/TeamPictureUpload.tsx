@@ -89,7 +89,7 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
 
   return (
     <div className="bg-component-col rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-text-col mb-4">Team Picture</h2>
+      <h2 className="mb-4">Team Picture</h2>
 
       <div className="flex flex-col items-center space-y-4">
         {/* Team Picture Display */}
@@ -103,7 +103,7 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-accent-col/20">
-              <span className="text-4xl font-semibold text-text-col">
+              <span className="text-2xl lg:text-4xl font-semibold text-text-col">
                 {initials}
               </span>
             </div>

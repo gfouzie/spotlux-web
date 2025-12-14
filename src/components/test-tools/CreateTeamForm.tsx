@@ -106,7 +106,7 @@ const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onTeamCreated }) => {
 
   return (
     <div className="bg-component-col rounded-lg p-6">
-      <h2 className="text-2xl font-bold text-text-col mb-6">Create New Team</h2>
+      <h2 className="mb-6">Create New Team</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Team Name */}

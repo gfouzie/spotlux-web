@@ -237,13 +237,13 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
                         htmlFor="profile-picture-upload"
                         className="cursor-pointer w-20 h-20 rounded-full bg-accent-col/20 flex items-center justify-center hover:bg-accent-col/30 transition-colors border-2 border-accent-col/50"
                       >
-                        <span className="text-2xl font-semibold text-text-col">
+                        <span className="text-xl lg:text-2xl font-semibold text-text-col">
                           {initials}
                         </span>
                       </label>
                     ) : (
                       <div className="w-20 h-20 rounded-full bg-accent-col/20 flex items-center justify-center border-2 border-accent-col/50">
-                        <span className="text-2xl font-semibold text-text-col">
+                        <span className="text-xl lg:text-2xl font-semibold text-text-col">
                           {initials}
                         </span>
                       </div>

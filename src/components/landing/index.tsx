@@ -32,7 +32,7 @@ export default function LandingPage() {
       {/* Features Section */}
       <section className="py-16 px-6 lg:px-12">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
+          <h2 className="text-center mb-12">
             Built for <span className="text-accent-col">Athletes</span> &{' '}
             <span className="text-accent-col">Scouts</span>
           </h2>
@@ -42,7 +42,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-accent-col/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Play width={24} height={24} className="text-accent-col" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">
+              <h3 className="mb-2">
                 Showcase Highlights
               </h3>
               <p className="text-text-col/70">
@@ -55,7 +55,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-accent-col/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Search width={24} height={24} className="text-accent-col" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Get Discovered</h3>
+              <h3 className="mb-2">Get Discovered</h3>
               <p className="text-text-col/70">
                 Connect directly with scouts and recruiters looking for talent
                 in your sport.
@@ -66,7 +66,7 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-accent-col/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Star width={24} height={24} className="text-accent-col" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Stand Out</h3>
+              <h3 className="mb-2">Stand Out</h3>
               <p className="text-text-col/70">
                 Professional profiles that highlight your skills, stats, and
                 achievements.

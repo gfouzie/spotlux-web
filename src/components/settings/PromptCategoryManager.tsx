@@ -104,7 +104,7 @@ export default function PromptCategoryManager() {
   return (
     <div className="bg-card-col rounded-lg p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-text-col">
+        <h2>
           Prompt Categories
         </h2>
         {!showCreateForm && (
@@ -141,7 +141,7 @@ export default function PromptCategoryManager() {
           onSubmit={handleSubmit}
           className="mb-6 p-4 bg-bg-col/30 rounded border border-bg-col"
         >
-          <h3 className="text-lg font-medium text-text-col mb-4">
+          <h3 className="font-medium mb-4">
             {editingId ? 'Edit Category' : 'Create New Category'}
           </h3>
 

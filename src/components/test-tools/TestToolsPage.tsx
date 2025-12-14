@@ -21,7 +21,7 @@ const TestToolsPage: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-text-col">Test Tools</h1>
+            <h1>Test Tools</h1>
             <p className="text-text-col/60 mt-2">
               Development utilities and testing features
             </p>

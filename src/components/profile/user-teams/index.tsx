@@ -98,7 +98,7 @@ export default function UserTeamsProfileContent({
       {/* Header with Add Button */}
       {hasTeams && (
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-text-col">Teams</h2>
+          <h2>Teams</h2>
           {isOwner && (
             <AddButton onClick={handleAddTeam} ariaLabel="Add team" />
           )}

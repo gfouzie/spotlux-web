@@ -93,7 +93,7 @@ function ProfileContent({ username }: ProfilePageProps) {
         <div className="min-h-screen bg-bg-col py-8">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col items-center justify-center h-64">
-              <h1 className="text-3xl font-bold text-text-col mb-4">
+              <h1 className="mb-4">
                 User Not Found
               </h1>
               <p className="text-text-col/60 mb-6">
@@ -129,7 +129,7 @@ function ProfileContent({ username }: ProfilePageProps) {
                   <ArrowLeft width={24} height={24} />
                 </button>
               )}
-              <h1 className="text-3xl font-bold text-text-col">
+              <h1>
                 {profileUser?.username || 'Profile'}
               </h1>
             </div>

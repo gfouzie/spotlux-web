@@ -30,7 +30,7 @@ const UserSettings = ({ user }: UserSettingsProps) => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-text-col mb-4">
+        <h2 className="mb-4">
           Account Settings
         </h2>
         <p className="text-sm text-text-col/70">
@@ -40,7 +40,7 @@ const UserSettings = ({ user }: UserSettingsProps) => {
 
       {/* User Info Display */}
       <div className="bg-bg-col/50 backdrop-blur-sm rounded-xl border border-text-col/20 p-6">
-        <h3 className="text-lg font-medium text-text-col mb-4">
+        <h3 className="font-medium mb-4">
           Profile Information
         </h3>
 
@@ -72,7 +72,7 @@ const UserSettings = ({ user }: UserSettingsProps) => {
 
       {/* Appearance Settings */}
       <div className="bg-bg-col/50 backdrop-blur-sm rounded-xl border border-text-col/20 p-6">
-        <h3 className="text-lg font-medium text-text-col mb-4">Appearance</h3>
+        <h3 className="font-medium mb-4">Appearance</h3>
 
         <div className="space-y-3">
           <div className="flex justify-between items-center py-2">
@@ -91,7 +91,7 @@ const UserSettings = ({ user }: UserSettingsProps) => {
 
       {/* Additional Settings Sections */}
       <div className="bg-bg-col/50 backdrop-blur-sm rounded-xl border border-text-col/20 p-6">
-        <h3 className="text-lg font-medium text-text-col mb-4">
+        <h3 className="font-medium mb-4">
           Security & Privacy
         </h3>
 
@@ -128,7 +128,7 @@ const UserSettings = ({ user }: UserSettingsProps) => {
 
       {/* API Integration Info */}
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
-        <h3 className="text-lg font-medium text-blue-500 mb-2">
+        <h3 className="font-medium text-blue-500 mb-2">
           API Integration
         </h3>
         <p className="text-sm text-blue-500/80 mb-3">

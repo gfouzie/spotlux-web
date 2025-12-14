@@ -118,7 +118,7 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-xl font-semibold text-text-col"
+                  className="text-lg lg:text-xl font-semibold"
                 >
                   {title}
                 </h2>

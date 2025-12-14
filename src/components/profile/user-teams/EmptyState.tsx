@@ -11,7 +11,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onAddTeam }) => {
   return (
     <div className="flex flex-col items-center justify-center py-6 px-4">
       <div className="text-center max-w-md">
-        <h3 className="text-xl font-semibold text-text-col mb-2">
+        <h3 className="mb-2">
           No Teams Yet
         </h3>
         <p className="text-text-col/60">

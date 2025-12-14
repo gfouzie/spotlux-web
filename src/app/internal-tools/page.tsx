@@ -31,7 +31,7 @@ export default function InternalToolsPage() {
     <AuthenticatedLayout>
       <div className="max-w-6xl mx-auto p-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-text-col mb-2">
+          <h1 className="mb-2">
             Internal Tools
           </h1>
           <p className="text-text-col/60">
@@ -53,7 +53,7 @@ export default function InternalToolsPage() {
                     <IconComponent className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-text-col mb-2">
+                    <h2 className="mb-2">
                       {tool.name}
                     </h2>
                     <p className="text-text-col/60 text-sm">

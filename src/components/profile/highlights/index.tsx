@@ -121,7 +121,7 @@ export default function HighlightProfileContent({
 
         {/* Header with Add Button */}
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-text-col">Highlights</h2>
+          <h2>Highlights</h2>
           {isOwner && (
             <AddButton
               onClick={() => setShowUploadModal(true)}

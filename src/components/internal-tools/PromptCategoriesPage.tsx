@@ -106,7 +106,7 @@ const PromptCategoriesPage = () => {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-text-col">
+          <h1>
             Prompt Categories
           </h1>
           <p className="text-text-col/60 mt-1">
@@ -147,7 +147,7 @@ const PromptCategoriesPage = () => {
           onSubmit={handleSubmit}
           className="mb-6 p-4 bg-bg-col/30 rounded border border-bg-col"
         >
-          <h3 className="text-lg font-medium text-text-col mb-4">
+          <h3 className="mb-4">
             {editingId ? 'Edit Category' : 'Create New Category'}
           </h3>
 

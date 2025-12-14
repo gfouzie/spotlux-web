@@ -49,7 +49,7 @@ const SimpleUpload = () => {
 
   return (
     <div className="bg-bg-col/50 backdrop-blur-sm rounded-xl border border-text-col/20 p-6 max-w-md mx-auto">
-      <h3 className="text-lg font-medium text-text-col mb-4">
+      <h3 className="mb-4">
         Simple S3 Upload
       </h3>
 

@@ -167,7 +167,7 @@ const PromptsPage = () => {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-text-col">Prompts Management</h1>
+        <h1>Prompts Management</h1>
         {!showCreateForm && !editingId && (
           <Button onClick={() => setShowCreateForm(true)}>
             Create New Prompt
@@ -186,7 +186,7 @@ const PromptsPage = () => {
           onSubmit={editingId !== null ? handleUpdate : handleCreate}
           className="mb-6 p-4 bg-bg-col/30 rounded border border-bg-col"
         >
-          <h2 className="text-lg font-semibold text-text-col mb-4">
+          <h2 className="mb-4">
             {editingId !== null ? 'Edit Prompt' : 'Create New Prompt'}
           </h2>
           <div className="space-y-4">
@@ -274,7 +274,7 @@ const PromptsPage = () => {
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-text-col">
+                  <h3>
                     {prompt.name}
                   </h3>
                   <div className="text-sm text-text-col/60 mt-1">

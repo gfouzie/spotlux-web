@@ -18,7 +18,7 @@ const SettingsPage = () => {
     <AuthenticatedLayout>
       <div className="min-h-screen bg-bg-col text-text-col p-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          <h1 className="text-4xl font-bold">Settings</h1>
+          <h1>Settings</h1>
           <UserSettings user={mockUser} />
         </div>
       </div>

@@ -70,6 +70,72 @@ body {
     sans-serif;
 }
 
+/* Global Typography System */
+
+/* Headings */
+h1 {
+  font-size: 1.875rem; /* 30px / text-3xl */
+  font-weight: 700; /* font-bold */
+  line-height: 1.2;
+  color: rgb(var(--text-col));
+}
+
+h2 {
+  font-size: 1.5rem; /* 24px / text-2xl */
+  font-weight: 700; /* font-bold */
+  line-height: 1.3;
+  color: rgb(var(--text-col));
+}
+
+h3 {
+  font-size: 1.125rem; /* 18px / text-lg */
+  font-weight: 600; /* font-semibold */
+  line-height: 1.4;
+  color: rgb(var(--text-col));
+}
+
+h4 {
+  font-size: 1rem; /* 16px / text-base */
+  font-weight: 600; /* font-semibold */
+  line-height: 1.5;
+  color: rgb(var(--text-col));
+}
+
+h5,
+h6 {
+  font-size: 0.875rem; /* 14px / text-sm */
+  font-weight: 600; /* font-semibold */
+  line-height: 1.5;
+  color: rgb(var(--text-col));
+}
+
+/* Paragraphs */
+p {
+  font-size: 0.875rem; /* 14px / text-sm */
+  font-weight: 400;
+  line-height: 1.6;
+  color: rgb(var(--text-col) / 0.9);
+}
+
+/* Mobile responsive (1024px+) */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+  h2 {
+    font-size: 1.125rem;
+  }
+  h3 {
+    font-size: 1rem;
+  }
+  h4 {
+    font-size: 0.875rem;
+  }
+  p {
+    font-size: 0.75rem;
+  }
+}
+
 .spotlight-oval {
   border-radius: 50%;
   clip-path: ellipse(50% 50% at 50% 50%);
