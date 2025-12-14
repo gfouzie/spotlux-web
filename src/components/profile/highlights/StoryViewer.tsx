@@ -243,12 +243,12 @@ export default function StoryViewer({
       )}
 
       {/* Prompt Overlay */}
-      {currentHighlight?.promptName && (
+      {currentHighlight?.prompt?.name && (
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
           <div className="max-w-2xl mx-auto">
             <p className="text-sm text-white/60 mb-1">Prompt</p>
             <p className="text-lg text-white font-medium">
-              {currentHighlight?.promptName}
+              {currentHighlight.prompt.name}
             </p>
           </div>
         </div>

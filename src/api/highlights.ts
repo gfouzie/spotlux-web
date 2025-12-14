@@ -2,6 +2,14 @@ import { config } from '@/lib/config';
 import { authRequest } from './shared';
 
 /**
+ * Minimal prompt data (nested in Highlight)
+ */
+export interface PromptMinimal {
+  id: number;
+  name: string;
+}
+
+/**
  * Highlight interface
  * Uses camelCase (automatically converted from snake_case by API middleware)
  */
@@ -11,7 +19,7 @@ export interface Highlight {
   videoUrl: string;
   orderIndex: number;
   promptId?: number;
-  promptName?: string;
+  prompt?: PromptMinimal;
   createdAt: string;
   updatedAt?: string;
 }
