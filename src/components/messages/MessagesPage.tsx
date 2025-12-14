@@ -4,10 +4,9 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useMessaging } from '@/contexts/MessagingContext';
 import { useUser } from '@/contexts/UserContext';
-import ConversationList from './ConversationList';
-import ConversationView from './ConversationView';
-import EmptyMessagesState from './EmptyMessagesState';
-import NewConversationModal from './NewConversationModal';
+import MessagesPageMobile from './MessagesPageMobile';
+import MessagesPageDesktop from './MessagesPageDesktop';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const MessagesPage = () => {
   const {
@@ -139,10 +138,6 @@ const MessagesPage = () => {
     ? messages[activeConversationId] || []
     : [];
 
-  const activeConversation = conversations.find(
-    (conv) => conv.id === activeConversationId
-  );
-
   const isOtherUserTyping =
     activeConversationId &&
     typingUsers[activeConversationId] &&
@@ -158,71 +153,35 @@ const MessagesPage = () => {
     }
   };
 
-  return (
-    <div className="h-screen bg-bg-col text-text-col flex flex-col overflow-hidden">
-      <div className="max-w-7xl mx-auto w-full flex flex-col h-full p-8">
-        {error && (
-          <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-md text-red-500">
-            {error}
-          </div>
-        )}
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
 
-        {isLoading ? (
-          <div className="flex items-center justify-center flex-1">
-            <div className="w-8 h-8 border-4 border-accent-col border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : conversations.length === 0 ? (
-          <div className="flex-1">
-            <EmptyMessagesState onNewMessage={handleNewMessage} />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 overflow-hidden">
-            {/* Conversation List - Hidden on mobile when conversation is active */}
-            <div
-              className={`lg:col-span-1 overflow-hidden ${
-                activeConversationId ? 'hidden lg:block' : 'block'
-              }`}
-            >
-              <ConversationList
-                conversations={conversations}
-                activeConversationId={activeConversationId}
-                onSelectConversation={handleSelectConversation}
-                onNewMessage={handleNewMessage}
-              />
-            </div>
+  const sharedProps = {
+    conversations,
+    activeConversationId,
+    messages: activeMessages,
+    currentUserId: user?.id || 0,
+    isConnected,
+    isLoading,
+    error,
+    isOtherUserTyping: !!isOtherUserTyping,
+    hasMore: activePagination?.hasMore || false,
+    isLoadingMore: activePagination?.isLoadingMore || false,
+    showNewConversationModal,
+    onSelectConversation: handleSelectConversation,
+    onSendMessage: handleSendMessage,
+    onTypingChange: handleTypingChange,
+    onMarkAsRead: handleMarkAsRead,
+    onLoadMoreMessages: handleLoadMoreMessages,
+    onNewMessage: handleNewMessage,
+    onCreateConversation: handleCreateConversation,
+    onCloseModal: () => setShowNewConversationModal(false),
+  };
 
-            {/* Conversation View - Hidden on mobile when no conversation selected */}
-            <div
-              className={`lg:col-span-2 overflow-hidden ${
-                activeConversationId ? 'block' : 'hidden lg:block'
-              }`}
-            >
-              <ConversationView
-                conversation={activeConversation}
-                messages={activeMessages}
-                currentUserId={user?.id || 0}
-                isConnected={isConnected}
-                isOtherUserTyping={!!isOtherUserTyping}
-                onSendMessage={handleSendMessage}
-                onTypingChange={handleTypingChange}
-                onMarkAsRead={handleMarkAsRead}
-                hasMore={activePagination?.hasMore || false}
-                isLoadingMore={activePagination?.isLoadingMore || false}
-                onLoadMore={handleLoadMoreMessages}
-                onBackToList={handleBackToList}
-              />
-            </div>
-          </div>
-        )}
+  if (isDesktop) {
+    return <MessagesPageDesktop {...sharedProps} />;
+  }
 
-        <NewConversationModal
-          isOpen={showNewConversationModal}
-          onClose={() => setShowNewConversationModal(false)}
-          onSelectFriend={handleCreateConversation}
-        />
-      </div>
-    </div>
-  );
+  return <MessagesPageMobile {...sharedProps} onBackToList={handleBackToList} />;
 };
 
 export default MessagesPage;

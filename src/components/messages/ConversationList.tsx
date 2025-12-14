@@ -18,7 +18,7 @@ const ConversationList = ({
   onNewMessage,
 }: ConversationListProps) => {
   return (
-    <div className="bg-card-col rounded-lg p-4 h-full flex flex-col overflow-hidden">
+    <div className="bg-card-col p-4 h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h2 className="text-lg font-semibold">Conversations</h2>
         <AddButton onClick={onNewMessage} ariaLabel="New Message" />

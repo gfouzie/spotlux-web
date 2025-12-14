@@ -40,7 +40,7 @@ const ConversationView = ({
 }: ConversationViewProps) => {
   if (!conversation) {
     return (
-      <div className="bg-card-col rounded-lg flex items-center justify-center h-full">
+      <div className="bg-card-col flex items-center justify-center h-full">
         <div className="text-center text-text-col/60">
           <p className="text-lg mb-2">Select a conversation</p>
           <p className="text-sm">Choose a conversation to start messaging</p>
@@ -55,17 +55,19 @@ const ConversationView = ({
       : conversation.otherUser.username;
 
   return (
-    <div className="bg-card-col rounded-lg flex flex-col h-full overflow-hidden">
+    <div className="bg-card-col flex flex-col h-full overflow-hidden">
       <ConversationHeader conversation={conversation} onBackToList={onBackToList} />
 
-      <MessageThread
-        messages={messages}
-        currentUserId={currentUserId}
-        isLoading={isLoadingMore}
-        hasMore={hasMore}
-        onLoadMore={onLoadMore}
-        onMarkAsRead={onMarkAsRead}
-      />
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <MessageThread
+          messages={messages}
+          currentUserId={currentUserId}
+          isLoading={isLoadingMore}
+          hasMore={hasMore}
+          onLoadMore={onLoadMore}
+          onMarkAsRead={onMarkAsRead}
+        />
+      </div>
 
       {isOtherUserTyping && <TypingIndicator username={displayName} />}
 

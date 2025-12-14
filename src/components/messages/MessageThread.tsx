@@ -31,8 +31,14 @@ const MessageThread = ({
 
   // Helper function to scroll to bottom
   const scrollToBottom = (behavior: 'instant' | 'smooth' = 'smooth') => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior });
+    const container = messagesContainerRef.current;
+    if (container) {
+      // Directly set scrollTop instead of scrollIntoView to prevent page scrolling
+      const scrollOptions: ScrollToOptions = {
+        top: container.scrollHeight,
+        behavior: behavior === 'instant' ? 'auto' : 'smooth',
+      };
+      container.scrollTo(scrollOptions);
     }
   };
 
@@ -146,7 +152,7 @@ const MessageThread = ({
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-bg-col/20 to-transparent min-h-0"
+      className="h-full overflow-y-auto p-4 bg-gradient-to-b from-bg-col/20 to-transparent"
     >
       {/* Load more indicator */}
       {hasMore && (
