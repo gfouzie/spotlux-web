@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { apiRequest } from './shared';
 
 /**
@@ -18,7 +19,7 @@ export const validationApi = {
   checkUsernameAvailability: async (
     username: string
   ): Promise<AvailabilityResponse> => {
-    const params = new URLSearchParams({ username });
+    const params = buildQueryParams({ username });
     return apiRequest<AvailabilityResponse>(
       `${config.apiBaseUrl}/api/v1/check-username?${params.toString()}`
     );

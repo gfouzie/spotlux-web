@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './shared';
 
 export interface Conversation {
@@ -75,9 +76,9 @@ export const conversationsApi = {
    * Get all conversations for current user
    */
   async getConversations(offset = 0, limit = 20): Promise<ConversationWithDetails[]> {
-    const params = new URLSearchParams({
-      offset: offset.toString(),
-      limit: limit.toString(),
+    const params = buildQueryParams({
+      offset,
+      limit,
     });
 
     const url = `${config.apiBaseUrl}/api/v1/conversations?${params}`;
@@ -104,9 +105,9 @@ export const conversationsApi = {
     offset = 0,
     limit = 50
   ): Promise<MessageWithSender[]> {
-    const params = new URLSearchParams({
-      offset: offset.toString(),
-      limit: limit.toString(),
+    const params = buildQueryParams({
+      offset,
+      limit,
     });
 
     const url = `${config.apiBaseUrl}/api/v1/conversations/${conversationId}/messages?${params}`;
@@ -124,10 +125,10 @@ export const conversationsApi = {
     offset = 0,
     limit = 50
   ): Promise<MessageWithSender[]> {
-    const params = new URLSearchParams({
+    const params = buildQueryParams({
       query,
-      offset: offset.toString(),
-      limit: limit.toString(),
+      offset,
+      limit,
     });
 
     const url = `${config.apiBaseUrl}/api/v1/conversations/${conversationId}/search?${params}`;

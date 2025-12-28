@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { apiRequest, authRequest } from './shared';
 import { type LoginResponse } from './auth';
 
@@ -93,13 +94,11 @@ export const userApi = {
    * Get list of users with pagination and optional search (authenticated)
    */
   getUsers: async (params?: GetUsersParams): Promise<User[]> => {
-    const queryParams = new URLSearchParams();
-
-    if (params?.offset !== undefined)
-      queryParams.append('offset', params.offset.toString());
-    if (params?.limit !== undefined)
-      queryParams.append('limit', params.limit.toString());
-    if (params?.search) queryParams.append('search', params.search);
+    const queryParams = buildQueryParams({
+      offset: params?.offset,
+      limit: params?.limit,
+      search: params?.search,
+    });
 
     const url = `${config.apiBaseUrl}/api/v1/users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<User[]>(url);

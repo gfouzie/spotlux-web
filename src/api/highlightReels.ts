@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './shared';
 
 /**
@@ -57,17 +58,14 @@ export const highlightReelsApi = {
   getHighlightReels: async (
     params?: GetHighlightReelsParams
   ): Promise<HighlightReel[]> => {
-    const queryParams = new URLSearchParams();
-
-    if (params?.offset !== undefined)
-      queryParams.append('offset', params.offset.toString());
-    if (params?.limit !== undefined)
-      queryParams.append('limit', params.limit.toString());
-    if (params?.userId !== undefined)
-      queryParams.append('user_id', params.userId.toString());
-    if (params?.sport) queryParams.append('sport', params.sport);
-    if (params?.visibility) queryParams.append('visibility', params.visibility);
-    if (params?.searchText) queryParams.append('searchText', params.searchText);
+    const queryParams = buildQueryParams({
+      offset: params?.offset,
+      limit: params?.limit,
+      user_id: params?.userId,
+      sport: params?.sport,
+      visibility: params?.visibility,
+      searchText: params?.searchText,
+    });
 
     const url = `${config.apiBaseUrl}/api/v1/highlight_reels${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<HighlightReel[]>(url);

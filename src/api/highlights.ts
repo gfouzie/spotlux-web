@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './shared';
 
 /**
@@ -82,20 +83,13 @@ export const highlightsApi = {
    * Get highlights with pagination and filtering
    */
   getHighlights: async (params?: GetHighlightsParams): Promise<Highlight[]> => {
-    const queryParams = new URLSearchParams();
-
-    if (params?.highlightReelId)
-      queryParams.append(
-        'highlight_reel_id',
-        params.highlightReelId.toString()
-      );
-    if (params?.promptId)
-      queryParams.append('prompt_id', params.promptId.toString());
-    if (params?.offset !== undefined)
-      queryParams.append('offset', params.offset.toString());
-    if (params?.limit !== undefined)
-      queryParams.append('limit', params.limit.toString());
-    if (params?.searchText) queryParams.append('searchText', params.searchText);
+    const queryParams = buildQueryParams({
+      highlight_reel_id: params?.highlightReelId,
+      prompt_id: params?.promptId,
+      offset: params?.offset,
+      limit: params?.limit,
+      searchText: params?.searchText,
+    });
 
     const url = `${config.apiBaseUrl}/api/v1/highlights${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<Highlight[]>(url);

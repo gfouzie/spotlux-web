@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './shared';
 
 export interface Prompt {
@@ -47,14 +48,12 @@ export const promptsApi = {
    * Get prompts with pagination and filtering
    */
   async getPrompts(params?: GetPromptsParams): Promise<Prompt[]> {
-    const queryParams = new URLSearchParams();
-
-    if (params?.sport) queryParams.append('sport', params.sport);
-    if (params?.offset !== undefined)
-      queryParams.append('offset', params.offset.toString());
-    if (params?.limit !== undefined)
-      queryParams.append('limit', params.limit.toString());
-    if (params?.searchText) queryParams.append('searchText', params.searchText);
+    const queryParams = buildQueryParams({
+      sport: params?.sport,
+      offset: params?.offset,
+      limit: params?.limit,
+      searchText: params?.searchText,
+    });
 
     const url = `${config.apiBaseUrl}/api/v1/prompts${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<Prompt[]>(url, {

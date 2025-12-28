@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './shared';
 import {
   HighlightMatchup,
@@ -42,14 +43,11 @@ export const matchupsApi = {
    * Get matchups with pagination and filtering
    */
   getMatchups: async (params?: GetMatchupsParams): Promise<HighlightMatchup[]> => {
-    const queryParams = new URLSearchParams();
-
-    if (params?.promptId !== undefined)
-      queryParams.append('prompt_id', params.promptId.toString());
-    if (params?.offset !== undefined)
-      queryParams.append('offset', params.offset.toString());
-    if (params?.limit !== undefined)
-      queryParams.append('limit', params.limit.toString());
+    const queryParams = buildQueryParams({
+      prompt_id: params?.promptId,
+      offset: params?.offset,
+      limit: params?.limit,
+    });
 
     const url = `${config.apiBaseUrl}/api/v1/highlight-matchups${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<HighlightMatchup[]>(url);
@@ -59,7 +57,7 @@ export const matchupsApi = {
    * Get the current featured prompt for a specific sport
    */
   getCurrentFeaturedPrompt: async (sport: string): Promise<FeaturedPrompt | null> => {
-    const queryParams = new URLSearchParams({ sport });
+    const queryParams = buildQueryParams({ sport });
     const url = `${config.apiBaseUrl}/api/v1/featured-prompts/current?${queryParams.toString()}`;
     return authRequest<FeaturedPrompt | null>(url);
   },

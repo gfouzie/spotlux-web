@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './shared';
 
 /**
@@ -42,13 +43,11 @@ export const promptCategoriesApi = {
   getPromptCategories: async (
     params?: GetPromptCategoriesParams
   ): Promise<PromptCategory[]> => {
-    const queryParams = new URLSearchParams();
-
-    if (params?.offset !== undefined)
-      queryParams.append('offset', params.offset.toString());
-    if (params?.limit !== undefined)
-      queryParams.append('limit', params.limit.toString());
-    if (params?.searchText) queryParams.append('searchText', params.searchText);
+    const queryParams = buildQueryParams({
+      offset: params?.offset,
+      limit: params?.limit,
+      searchText: params?.searchText,
+    });
 
     const url = `${config.apiBaseUrl}/api/v1/prompt_categories${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<PromptCategory[]>(url);

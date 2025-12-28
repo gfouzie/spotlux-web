@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './shared';
 import { Team } from '@/types/team';
 
@@ -98,17 +99,14 @@ export const teamsApi = {
    * Get teams with pagination and filtering
    */
   getTeams: async (params?: GetTeamsParams): Promise<Team[]> => {
-    const queryParams = new URLSearchParams();
-
-    if (params?.sport) queryParams.append('sport', params.sport);
-    if (params?.country) queryParams.append('country', params.country);
-    if (params?.offset !== undefined)
-      queryParams.append('offset', params.offset.toString());
-    if (params?.limit !== undefined)
-      queryParams.append('limit', params.limit.toString());
-    if (params?.leagueId)
-      queryParams.append('league_id', params.leagueId.toString());
-    if (params?.searchText) queryParams.append('searchText', params.searchText);
+    const queryParams = buildQueryParams({
+      sport: params?.sport,
+      country: params?.country,
+      offset: params?.offset,
+      limit: params?.limit,
+      league_id: params?.leagueId,
+      searchText: params?.searchText,
+    });
 
     const url = `${config.apiBaseUrl}/api/v1/teams${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return authRequest<Team[]>(url);

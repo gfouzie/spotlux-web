@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './shared';
 import { UserProfile } from './profile';
 
@@ -71,14 +72,11 @@ export const friendshipsApi = {
     limit: number = 20,
     searchText?: string
   ): Promise<FriendshipWithRequester[]> {
-    const params = new URLSearchParams({
-      offset: offset.toString(),
-      limit: limit.toString(),
+    const params = buildQueryParams({
+      offset,
+      limit,
+      searchText,
     });
-
-    if (searchText) {
-      params.append('searchText', searchText);
-    }
 
     return authRequest<FriendshipWithRequester[]>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/received?${params}`,
@@ -94,14 +92,11 @@ export const friendshipsApi = {
     limit: number = 20,
     searchText?: string
   ): Promise<FriendshipWithAddressee[]> {
-    const params = new URLSearchParams({
-      offset: offset.toString(),
-      limit: limit.toString(),
+    const params = buildQueryParams({
+      offset,
+      limit,
+      searchText,
     });
-
-    if (searchText) {
-      params.append('searchText', searchText);
-    }
 
     return authRequest<FriendshipWithAddressee[]>(
       `${config.apiBaseUrl}/api/v1/user/friends/requests/sent?${params}`,
@@ -147,14 +142,11 @@ export const friendshipsApi = {
     limit: number = 20,
     searchText?: string
   ): Promise<UserProfile[]> {
-    const params = new URLSearchParams({
-      offset: offset.toString(),
-      limit: limit.toString(),
+    const params = buildQueryParams({
+      offset,
+      limit,
+      searchText,
     });
-
-    if (searchText) {
-      params.append('searchText', searchText);
-    }
 
     return authRequest<UserProfile[]>(
       `${config.apiBaseUrl}/api/v1/user/friends?${params}`,
@@ -181,14 +173,11 @@ export const friendshipsApi = {
     limit: number = 20,
     searchText?: string
   ): Promise<UserProfile[]> {
-    const params = new URLSearchParams({
-      offset: offset.toString(),
-      limit: limit.toString(),
+    const params = buildQueryParams({
+      offset,
+      limit,
+      searchText,
     });
-
-    if (searchText) {
-      params.append('searchText', searchText);
-    }
 
     return authRequest<UserProfile[]>(
       `${config.apiBaseUrl}/api/v1/users/${userId}/friends?${params}`,
@@ -214,9 +203,9 @@ export const friendshipsApi = {
     offset: number = 0,
     limit: number = 20
   ): Promise<UserProfile[]> {
-    const params = new URLSearchParams({
-      offset: offset.toString(),
-      limit: limit.toString(),
+    const params = buildQueryParams({
+      offset,
+      limit,
     });
 
     return authRequest<UserProfile[]>(

@@ -50,3 +50,48 @@ export function inchesToFeetInches(totalInches: number | null | undefined): {
     inches: inches.toString(),
   };
 }
+
+/**
+ * Build URLSearchParams from an object, only including defined values
+ *
+ * Handles proper type conversion:
+ * - Numbers: Converted to strings (including 0)
+ * - Strings: Only added if truthy (non-empty)
+ * - Null/undefined: Skipped
+ *
+ * @param params - Object with query parameter key-value pairs
+ * @returns URLSearchParams with only defined values
+ *
+ * @example
+ * const params = buildQueryParams({
+ *   sport: 'basketball',
+ *   offset: 0,        // Included (0 is valid)
+ *   limit: 10,
+ *   searchText: '',   // Excluded (empty string)
+ *   country: undefined // Excluded
+ * });
+ * // Result: sport=basketball&offset=0&limit=10
+ */
+export function buildQueryParams(
+  params: Record<string, string | number | boolean | null | undefined>
+): URLSearchParams {
+  const queryParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    // For numbers: include if defined (0 is valid)
+    if (typeof value === 'number') {
+      queryParams.append(key, value.toString());
+    }
+    // For booleans: include if defined
+    else if (typeof value === 'boolean') {
+      queryParams.append(key, value.toString());
+    }
+    // For strings: include if truthy (non-empty)
+    else if (typeof value === 'string' && value) {
+      queryParams.append(key, value);
+    }
+    // Skip null/undefined
+  });
+
+  return queryParams;
+}

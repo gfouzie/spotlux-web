@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './shared';
 import { Highlight } from './highlights';
 
@@ -20,12 +21,10 @@ export const feedApi = {
   getFeedHighlights: async (
     params?: GetFeedHighlightsParams
   ): Promise<Highlight[]> => {
-    const queryParams = new URLSearchParams();
-
-    if (params?.offset !== undefined)
-      queryParams.append('offset', params.offset.toString());
-    if (params?.limit !== undefined)
-      queryParams.append('limit', params.limit.toString());
+    const queryParams = buildQueryParams({
+      offset: params?.offset,
+      limit: params?.limit,
+    });
 
     const url = `${config.apiBaseUrl}/api/v1/feed/highlights${
       queryParams.toString() ? `?${queryParams.toString()}` : ''
