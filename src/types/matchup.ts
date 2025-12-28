@@ -1,0 +1,73 @@
+/**
+ * Prompt interface (minimal, for nested objects)
+ * Uses camelCase (automatically converted from snake_case by API middleware)
+ */
+export interface PromptMinimal {
+  id: number;
+  name: string;
+  description: string | null;
+  sport: string;
+  promptCategoryId: number | null;
+  promptCategoryName: string | null;
+  createdByUserId: number;
+  createdAt: string;
+}
+
+/**
+ * FeaturedPrompt interface matching the backend FeaturedPromptRead schema
+ */
+export interface FeaturedPrompt {
+  id: number;
+  promptId: number;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  prompt: PromptMinimal | null;
+}
+
+/**
+ * HighlightMatchup interface matching the backend HighlightMatchupRead schema
+ */
+export interface HighlightMatchup {
+  id: number;
+  promptId: number;
+  highlightAId: number;
+  highlightBId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * HighlightMatchupView interface matching the backend HighlightMatchupViewRead schema
+ */
+export interface HighlightMatchupView {
+  id: number;
+  matchupId: number;
+  userId: number;
+  viewedAt: string;
+}
+
+/**
+ * HighlightMatchupVote interface matching the backend HighlightMatchupVoteRead schema
+ */
+export interface HighlightMatchupVote {
+  id: number;
+  matchupId: number;
+  userId: number;
+  votedForHighlightId: number;
+  voteComment: string | null;
+  commentProcessed: boolean;
+  votedAt: string;
+}
+
+/**
+ * HighlightMatchupResults interface matching the backend HighlightMatchupResultsRead schema
+ */
+export interface HighlightMatchupResults {
+  matchupId: number;
+  highlightAId: number;
+  highlightBId: number;
+  highlightAVotes: number;
+  highlightBVotes: number;
+  totalVotes: number;
+}
