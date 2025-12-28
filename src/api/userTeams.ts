@@ -1,5 +1,5 @@
 import { config } from '@/lib/config';
-import { authRequest, apiRequest } from './shared';
+import { authRequest, apiRequest } from './client';
 import type {
   UserTeam,
   UserTeamFull,

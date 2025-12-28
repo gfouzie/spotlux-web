@@ -1,6 +1,6 @@
 import { config } from '@/lib/config';
 import { buildQueryParams } from '@/lib/utils';
-import { apiRequest, authRequest } from './shared';
+import { apiRequest, authRequest } from './client';
 import { type LoginResponse } from './auth';
 
 /**

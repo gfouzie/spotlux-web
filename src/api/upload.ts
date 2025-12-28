@@ -1,5 +1,5 @@
 import { config } from '@/lib/config';
-import { authRequest } from './shared';
+import { authRequest } from './client';
 
 /**
  * Base interface for presigned URL requests

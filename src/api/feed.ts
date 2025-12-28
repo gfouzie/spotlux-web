@@ -1,6 +1,6 @@
 import { config } from '@/lib/config';
 import { buildQueryParams } from '@/lib/utils';
-import { authRequest } from './shared';
+import { authRequest } from './client';
 import { Highlight } from './highlights';
 
 /**

@@ -1,5 +1,5 @@
 import { config } from '@/lib/config';
-import { authRequest } from './shared';
+import { authRequest } from './client';
 import { Message } from './conversations';
 
 export interface SendMessageRequest {

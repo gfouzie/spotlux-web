@@ -1,5 +1,5 @@
 import { config } from '@/lib/config';
-import { apiRequest } from './shared';
+import { apiRequest } from './client';
 
 /**
  * API functions for sports operations

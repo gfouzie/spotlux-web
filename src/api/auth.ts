@@ -1,5 +1,5 @@
 import { config } from '@/lib/config';
-import { apiRequest, authRequest } from './shared';
+import { apiRequest, authRequest } from './client';
 
 /**
  * Login credentials interface

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { ApiError } from '@/api';
+import { ApiError } from '@/api/client';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input/index';
 import PrivateInput from '@/components/common/Input/PrivateInput';

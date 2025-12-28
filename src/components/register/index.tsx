@@ -3,7 +3,9 @@
 import { useReducer, useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { debounce } from 'lodash';
-import { userApi, ApiError, validationApi } from '@/api';
+import { userApi } from '@/api/user';
+import { ApiError } from '@/api/client';
+import { validationApi } from '@/api/validation';
 import { useAuth } from '@/contexts/AuthContext';
 import Input from '@/components/common/Input/index';
 import PrivateInput from '@/components/common/Input/PrivateInput';

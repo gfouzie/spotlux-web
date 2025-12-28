@@ -1,6 +1,6 @@
 import { config } from '@/lib/config';
 import { buildQueryParams } from '@/lib/utils';
-import { apiRequest } from './shared';
+import { apiRequest } from './client';
 
 /**
  * Availability response interface

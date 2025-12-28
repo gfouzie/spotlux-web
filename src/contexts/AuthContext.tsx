@@ -8,7 +8,7 @@ import {
   useCallback,
   ReactNode,
 } from 'react';
-import { authApi, type LoginResponse, type LoginCredentials } from '@/api';
+import { authApi, type LoginCredentials } from '@/api/auth';
 import { setTokenProvider } from '@/api/client';
 
 // Auth state interface

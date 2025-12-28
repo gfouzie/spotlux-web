@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import Button from '@/components/common/Button';
 import { uploadApi } from '@/api/upload';
-import { ApiError } from '@/api/shared';
+import { ApiError } from '@/api/client';
 
 interface UploadResult {
   success: boolean;
