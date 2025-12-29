@@ -35,6 +35,19 @@ export interface HighlightMatchup {
   highlightBId: number;
   createdAt: string;
   updatedAt: string;
+  // Optional joined highlight data (when fetched with video URLs for feed)
+  highlightA?: {
+    id: number;
+    videoUrl: string;
+    prompt?: { id: number; name: string };
+    creator?: { username: string };
+  };
+  highlightB?: {
+    id: number;
+    videoUrl: string;
+    prompt?: { id: number; name: string };
+    creator?: { username: string };
+  };
 }
 
 /**

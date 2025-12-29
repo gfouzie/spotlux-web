@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { feedApi } from '@/api/feed';
-import { Highlight } from '@/api/highlights';
+import { matchupsApi } from '@/api/matchups';
+import { FeedItem } from '@/types/feed';
 
 const INITIAL_LOAD_COUNT = 10;
 const LOAD_MORE_COUNT = 5;
 const LOAD_MORE_THRESHOLD = 3;
 
 interface UseFeedDataReturn {
-  highlights: Highlight[];
+  feedItems: FeedItem[];
   isLoading: boolean;
   hasMore: boolean;
   error: string | null;
@@ -15,34 +16,37 @@ interface UseFeedDataReturn {
   setCurrentIndex: (index: number) => void;
   loadInitialHighlights: () => Promise<void>;
   trackView: (highlightId: number) => Promise<void>;
+  trackMatchupView: (matchupId: number) => Promise<void>;
 }
 
 /**
  * Custom hook for feed data management
  *
  * Features:
- * - Initial feed loading
+ * - Initial feed loading (highlights + matchups)
  * - Infinite scroll (automatic load more)
  * - View tracking
  * - Error handling
+ *
+ * Returns FeedItem[] which can contain both highlights and matchups.
  */
 export function useFeedData(): UseFeedDataReturn {
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load initial highlights
+  // Load initial feed items
   const loadInitialHighlights = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await feedApi.getFeedHighlights({
+      const data = await feedApi.getMixedFeed({
         offset: 0,
         limit: INITIAL_LOAD_COUNT,
       });
-      setHighlights(data);
+      setFeedItems(data);
       setHasMore(data.length >= INITIAL_LOAD_COUNT);
     } catch (err) {
       console.error('Failed to load feed:', err);
@@ -52,29 +56,29 @@ export function useFeedData(): UseFeedDataReturn {
     }
   }, []);
 
-  // Load more highlights when approaching end
+  // Load more feed items when approaching end
   const loadMoreHighlights = useCallback(async () => {
     if (isLoading || !hasMore) return;
 
     try {
       setIsLoading(true);
-      const data = await feedApi.getFeedHighlights({
-        offset: highlights.length,
+      const data = await feedApi.getMixedFeed({
+        offset: feedItems.length,
         limit: LOAD_MORE_COUNT,
       });
 
       if (data.length > 0) {
-        setHighlights((prev) => [...prev, ...data]);
+        setFeedItems((prev) => [...prev, ...data]);
         setHasMore(data.length >= LOAD_MORE_COUNT);
       } else {
         setHasMore(false);
       }
     } catch (err) {
-      console.error('Failed to load more highlights:', err);
+      console.error('Failed to load more feed items:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, hasMore, highlights.length]);
+  }, [isLoading, hasMore, feedItems.length]);
 
   // Track view for current highlight
   const trackView = useCallback(async (highlightId: number) => {
@@ -82,7 +86,17 @@ export function useFeedData(): UseFeedDataReturn {
       await feedApi.trackHighlightView(highlightId);
       console.log(`Tracked view for highlight ${highlightId}`);
     } catch (err) {
-      console.error('Failed to track view:', err);
+      console.error('Failed to track highlight view:', err);
+    }
+  }, []);
+
+  // Track view for current matchup
+  const trackMatchupView = useCallback(async (matchupId: number) => {
+    try {
+      await matchupsApi.markMatchupAsViewed(matchupId);
+      console.log(`Tracked view for matchup ${matchupId}`);
+    } catch (err) {
+      console.error('Failed to track matchup view:', err);
     }
   }, []);
 
@@ -93,13 +107,14 @@ export function useFeedData(): UseFeedDataReturn {
 
   // Check if we need to load more (infinite scroll)
   useEffect(() => {
-    if (hasMore && highlights.length - currentIndex <= LOAD_MORE_THRESHOLD) {
+    if (hasMore && feedItems.length - currentIndex <= LOAD_MORE_THRESHOLD) {
       loadMoreHighlights();
     }
-  }, [currentIndex, highlights.length, hasMore, loadMoreHighlights]);
+  }, [currentIndex, feedItems.length, hasMore, loadMoreHighlights]);
+
 
   return {
-    highlights,
+    feedItems,
     isLoading,
     hasMore,
     error,
@@ -107,5 +122,6 @@ export function useFeedData(): UseFeedDataReturn {
     setCurrentIndex,
     loadInitialHighlights,
     trackView,
+    trackMatchupView,
   };
 }

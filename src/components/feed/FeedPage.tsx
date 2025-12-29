@@ -7,6 +7,7 @@ import { useVideoNavigation } from '@/hooks/useVideoNavigation';
 import VideoPlayer from './VideoPlayer';
 import VideoControls from './VideoControls';
 import VideoOverlay from './VideoOverlay';
+import MatchupCard from '@/components/matchup/MatchupCard';
 
 export default function FeedPage() {
   const [isMuted, setIsMuted] = useState(false);
@@ -14,7 +15,7 @@ export default function FeedPage() {
 
   // Feed data management
   const {
-    highlights,
+    feedItems,
     isLoading,
     hasMore,
     error,
@@ -22,14 +23,17 @@ export default function FeedPage() {
     setCurrentIndex,
     loadInitialHighlights,
     trackView,
+    trackMatchupView,
   } = useFeedData();
 
-  const currentHighlight = highlights?.[currentIndex];
+  const currentItem = feedItems?.[currentIndex];
+  const currentHighlight =
+    currentItem?.type === 'highlight' ? currentItem.data : null;
 
   // Navigation
   const { goToNext, goToPrevious, isFirst, isLast } = useVideoNavigation({
     currentIndex,
-    totalItems: highlights.length,
+    totalItems: feedItems.length,
     onNavigate: setCurrentIndex,
   });
 
@@ -39,15 +43,22 @@ export default function FeedPage() {
     onEnded: goToNext,
   });
 
-  // Track view when highlight changes
+  // Track view when item changes (highlight or matchup)
   useEffect(() => {
-    if (currentHighlight && !isTrackingView.current) {
-      isTrackingView.current = true;
-      trackView(currentHighlight.id).finally(() => {
+    if (!currentItem || isTrackingView.current) return;
+
+    isTrackingView.current = true;
+
+    if (currentItem.type === 'highlight') {
+      trackView(currentItem.data.id).finally(() => {
+        isTrackingView.current = false;
+      });
+    } else if (currentItem.type === 'matchup') {
+      trackMatchupView(currentItem.data.id).finally(() => {
         isTrackingView.current = false;
       });
     }
-  }, [currentHighlight, trackView]);
+  }, [currentItem, trackView, trackMatchupView]);
 
   const toggleMute = () => {
     if (videoRef.current) {
@@ -57,7 +68,7 @@ export default function FeedPage() {
   };
 
   // Loading state
-  if (isLoading && highlights.length === 0) {
+  if (isLoading && feedItems.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-text-col">Loading feed...</div>
@@ -66,7 +77,7 @@ export default function FeedPage() {
   }
 
   // Error state
-  if (error && highlights.length === 0) {
+  if (error && feedItems.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -84,11 +95,11 @@ export default function FeedPage() {
   }
 
   // Empty state
-  if (!isLoading && highlights.length === 0) {
+  if (!isLoading && feedItems.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center text-text-col">
-          <p className="mb-2">No highlights to show</p>
+          <p className="mb-2">No content to show</p>
           <p className="text-sm text-text-col/60">
             Follow friends or wait for public content
           </p>
@@ -97,50 +108,78 @@ export default function FeedPage() {
     );
   }
 
+  // Handle matchup vote completion
+  const handleMatchupVote = (highlightId: number) => {
+    console.log(`User voted for highlight ${highlightId} in matchup`);
+    // Move to next item after voting
+    goToNext();
+  };
+
+  // Render current feed item (highlight or matchup)
+  const renderFeedItem = () => {
+    if (!currentItem) return null;
+
+    // Render matchup
+    if (currentItem.type === 'matchup') {
+      return (
+        <MatchupCard matchup={currentItem.data} onVote={handleMatchupVote} />
+      );
+    }
+
+    // Render highlight
+    return (
+      <>
+        {/* Video Player */}
+        <VideoPlayer
+          videoRef={videoRef}
+          isMuted={isMuted}
+          isBuffering={isBuffering}
+        />
+
+        {/* Video Controls */}
+        <VideoControls
+          isMuted={isMuted}
+          onToggleMute={toggleMute}
+          onNext={goToNext}
+          onPrevious={goToPrevious}
+          currentIndex={currentIndex}
+          total={feedItems.length}
+          hasMore={hasMore}
+          isFirst={isFirst}
+          isLast={isLast}
+        />
+
+        {/* Video Overlay */}
+        <VideoOverlay
+          creator={currentHighlight?.creator}
+          prompt={currentHighlight?.prompt}
+        />
+      </>
+    );
+  };
+
   return (
     <div className="relative bg-black min-h-screen">
-      {/* Progress Bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-white/30 z-10">
-        <div
-          className="h-full bg-white transition-all duration-100"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      {/* Progress Bar (only for highlights) */}
+      {currentItem?.type === 'highlight' && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-white/30 z-10">
+          <div
+            className="h-full bg-white transition-all duration-100"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
 
-      {/* Video Container */}
+      {/* Feed Item Container */}
       <div
         className="flex items-center justify-center"
         style={{ height: 'calc(100vh - 4rem)' }}
       >
         <div className="relative max-w-2xl w-full h-full">
-          {/* Video Player */}
-          <VideoPlayer
-            videoRef={videoRef}
-            isMuted={isMuted}
-            isBuffering={isBuffering}
-          />
-
-          {/* Video Controls */}
-          <VideoControls
-            isMuted={isMuted}
-            onToggleMute={toggleMute}
-            onNext={goToNext}
-            onPrevious={goToPrevious}
-            currentIndex={currentIndex}
-            total={highlights.length}
-            hasMore={hasMore}
-            isFirst={isFirst}
-            isLast={isLast}
-          />
-
-          {/* Video Overlay */}
-          <VideoOverlay
-            creator={currentHighlight?.creator}
-            prompt={currentHighlight?.prompt}
-          />
+          {renderFeedItem()}
 
           {/* Loading indicator for infinite scroll */}
-          {isLoading && highlights.length > 0 && (
+          {isLoading && feedItems.length > 0 && (
             <div className="absolute bottom-28 left-1/2 -translate-x-1/2 bg-black/50 rounded-full px-4 py-2 z-10">
               <span className="text-white text-sm">Loading more...</span>
             </div>
