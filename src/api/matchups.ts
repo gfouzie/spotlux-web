@@ -3,7 +3,6 @@ import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './client';
 import {
   HighlightMatchup,
-  HighlightMatchupView,
   HighlightMatchupVote,
   HighlightMatchupResults,
   FeaturedPrompt,
@@ -22,6 +21,9 @@ export interface GetMatchupsParams {
  * Vote creation data interface
  */
 export interface CreateVoteData {
+  promptId: number;
+  highlightAId: number;
+  highlightBId: number;
   votedForHighlightId: number;
   voteComment?: string | null;
 }
@@ -63,26 +65,14 @@ export const matchupsApi = {
   },
 
   /**
-   * Mark a matchup as viewed (idempotent)
-   */
-  markMatchupAsViewed: async (matchupId: number): Promise<HighlightMatchupView> => {
-    return authRequest<HighlightMatchupView>(
-      `${config.apiBaseUrl}/api/v1/highlight-matchups/${matchupId}/view`,
-      {
-        method: 'POST',
-      }
-    );
-  },
-
-  /**
    * Vote on a matchup
+   *
+   * For transient matchups (generated on-demand), sends the full matchup details.
+   * The backend will find or create the HighlightMatchup record before creating the vote.
    */
-  voteOnMatchup: async (
-    matchupId: number,
-    data: CreateVoteData
-  ): Promise<HighlightMatchupVote> => {
+  voteOnMatchup: async (data: CreateVoteData): Promise<HighlightMatchupVote> => {
     return authRequest<HighlightMatchupVote>(
-      `${config.apiBaseUrl}/api/v1/highlight-matchups/${matchupId}/vote`,
+      `${config.apiBaseUrl}/api/v1/highlight-matchups/vote`,
       {
         method: 'POST',
         body: JSON.stringify(data),

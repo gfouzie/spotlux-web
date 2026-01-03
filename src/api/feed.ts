@@ -48,7 +48,6 @@ export const feedApi = {
    *
    * Returns matchups with full highlight objects (including videoUrl) for rendering.
    * Excludes matchups the user has already voted on.
-   * TODO: Backend needs to implement /api/v1/feed/matchups endpoint with joined data
    */
   getFeedMatchups: async (
     params?: GetFeedMatchupsParams
@@ -57,11 +56,8 @@ export const feedApi = {
       offset: params?.offset,
       limit: params?.limit,
       sport: params?.sport,
-      include_highlights: true, // Request joined highlight data
     });
 
-    // TODO: This endpoint needs to be implemented on the backend
-    // For now, this will return empty array or error
     const url = `${config.apiBaseUrl}/api/v1/feed/matchups${
       queryParams.toString() ? `?${queryParams.toString()}` : ''
     }`;
@@ -69,63 +65,78 @@ export const feedApi = {
   },
 
   /**
-   * Get mixed feed of highlights and matchups
+   * Get mixed feed of highlights and matchups with cursor-based pagination
    *
    * Returns a personalized feed combining highlights and matchups in FeedItem format.
-   * TODO: For now, this only returns highlights until backend matchup endpoint is ready
+   * Backend coordinates to ensure no duplicates - each highlight appears once.
+   * Interleaves matchups every 3 items (highlights at positions 0,1,3,4,6,7... matchups at 2,5,8...)
+   * Uses cursor-based pagination to permanently exclude viewed content.
    */
   getMixedFeed: async (params?: {
-    offset?: number;
     limit?: number;
+    cursor?: string;
     sport?: string;
-  }): Promise<FeedItem[]> => {
-    // TODO: Once backend supports matchups endpoint, fetch and interleave both types
-    // For now, just return highlights wrapped in FeedItem format
-    const highlights = await feedApi.getFeedHighlights({
-      offset: params?.offset,
-      limit: params?.limit,
-    });
+  }): Promise<{
+    items: FeedItem[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  }> => {
+    // Parse unified cursor into separate cursors for backend
+    let highlightCursor: number | undefined;
+    let matchupCursor: string | undefined;
 
-    const feedItems: FeedItem[] = highlights.map((highlight) => ({
-      type: 'highlight' as const,
-      id: `highlight-${highlight.id}`,
-      data: highlight,
-    }));
-
-    // TEMP: Add a mock matchup for testing (insert after 2nd item)
-    // TODO: Remove this when backend /api/v1/feed/matchups is implemented
-    if (params?.offset === 0 && highlights.length >= 2) {
-      const mockMatchup: FeedItem = {
-        type: 'matchup' as const,
-        id: 'matchup-mock-1',
-        data: {
-          id: 999,
-          promptId: 1,
-          highlightAId: highlights[0].id,
-          highlightBId: highlights[1].id,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          // Use actual highlight data for the mock
-          highlightA: {
-            id: highlights[0].id,
-            videoUrl: highlights[0].videoUrl,
-            prompt: highlights[0].prompt,
-            creator: highlights[0].creator,
-          },
-          highlightB: {
-            id: highlights[1].id,
-            videoUrl: highlights[1].videoUrl,
-            prompt: highlights[1].prompt,
-            creator: highlights[1].creator,
-          },
-        },
-      };
-
-      // Insert matchup after 2nd highlight
-      feedItems.splice(2, 0, mockMatchup);
+    if (params?.cursor) {
+      const parts = params.cursor.split('|');
+      if (parts.length === 2) {
+        highlightCursor = parts[0] !== 'none' ? parseInt(parts[0]) : undefined;
+        matchupCursor = parts[1] !== 'none' ? parts[1] : undefined;
+      }
     }
 
-    return feedItems;
+    const queryParams = buildQueryParams({
+      limit: params?.limit,
+      highlight_cursor: highlightCursor,
+      matchup_cursor: matchupCursor,
+      sport: params?.sport,
+    });
+
+    const url = `${config.apiBaseUrl}/api/v1/feed${
+      queryParams.toString() ? `?${queryParams.toString()}` : ''
+    }`;
+
+    const response = await authRequest<{
+      items: Array<{
+        type: 'highlight' | 'matchup';
+        highlight: Highlight | null;
+        matchup: HighlightMatchup | null;
+      }>;
+      nextCursor: string | null;
+      hasMore: boolean;
+    }>(url);
+
+    // Backend handles interleaving - just convert format
+    const feedItems: FeedItem[] = response.items.map((item) => {
+      if (item.type === 'highlight' && item.highlight) {
+        return {
+          type: 'highlight' as const,
+          id: `highlight-${item.highlight.id}`,
+          data: item.highlight,
+        };
+      } else if (item.type === 'matchup' && item.matchup) {
+        return {
+          type: 'matchup' as const,
+          id: `matchup-${item.matchup.id}`,
+          data: item.matchup,
+        };
+      }
+      throw new Error('Invalid feed item received from backend');
+    });
+
+    return {
+      items: feedItems,
+      nextCursor: response.nextCursor,
+      hasMore: response.hasMore,
+    };
   },
 
   /**
@@ -141,5 +152,17 @@ export const feedApi = {
         method: 'POST',
       }
     );
+  },
+
+  /**
+   * Reset all feed history for the current user (DEV TOOL)
+   *
+   * Clears viewed highlights, voted matchups, and viewed matchups.
+   * Allows re-testing the feed without uploading new content.
+   */
+  resetFeedHistory: async (): Promise<void> => {
+    return authRequest<void>(`${config.apiBaseUrl}/api/v1/feed/reset`, {
+      method: 'DELETE',
+    });
   },
 };

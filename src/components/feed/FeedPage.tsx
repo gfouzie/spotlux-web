@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useSwipeable } from 'react-swipeable';
 import { useFeedData } from '@/hooks/useFeedData';
-import { useOptimizedVideo } from '@/hooks/useOptimizedVideo';
+import { useBufferedVideos } from '@/hooks/useBufferedVideos';
 import { useVideoNavigation } from '@/hooks/useVideoNavigation';
-import VideoPlayer from './VideoPlayer';
 import VideoControls from './VideoControls';
 import VideoOverlay from './VideoOverlay';
 import MatchupCard from '@/components/matchup/MatchupCard';
@@ -12,6 +12,8 @@ import MatchupCard from '@/components/matchup/MatchupCard';
 export default function FeedPage() {
   const [isMuted, setIsMuted] = useState(false);
   const isTrackingView = useRef(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [isSnapping, setIsSnapping] = useState(false);
 
   // Feed data management
   const {
@@ -23,12 +25,9 @@ export default function FeedPage() {
     setCurrentIndex,
     loadInitialHighlights,
     trackView,
-    trackMatchupView,
   } = useFeedData();
 
   const currentItem = feedItems?.[currentIndex];
-  const currentHighlight =
-    currentItem?.type === 'highlight' ? currentItem.data : null;
 
   // Navigation
   const { goToNext, goToPrevious, isFirst, isLast } = useVideoNavigation({
@@ -37,35 +36,126 @@ export default function FeedPage() {
     onNavigate: setCurrentIndex,
   });
 
-  // Simple video playback - no caching for now
-  const { videoRef, isBuffering, progress } = useOptimizedVideo({
-    videoUrl: currentHighlight?.videoUrl,
-    onEnded: goToNext,
+  // Buffered video management for smooth infinite scroll
+  const { getVideoRef, isInBufferRange } = useBufferedVideos({
+    currentIndex,
+    feedItemsLength: feedItems.length,
+    bufferRange: 1,
   });
 
-  // Track view when item changes (highlight or matchup)
+  // Track view when item changes (only for highlights)
+  // Note: Matchup highlights are auto-marked as viewed server-side when they appear in the feed
   useEffect(() => {
     if (!currentItem || isTrackingView.current) return;
 
-    isTrackingView.current = true;
-
+    // Only track individual highlights (matchups are auto-tracked server-side)
     if (currentItem.type === 'highlight') {
+      isTrackingView.current = true;
       trackView(currentItem.data.id).finally(() => {
         isTrackingView.current = false;
       });
-    } else if (currentItem.type === 'matchup') {
-      trackMatchupView(currentItem.data.id).finally(() => {
-        isTrackingView.current = false;
-      });
     }
-  }, [currentItem, trackView, trackMatchupView]);
+  }, [currentItem, trackView]);
 
   const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
+    const currentVideoRef = getVideoRef(currentIndex);
+    if (currentVideoRef.current) {
+      currentVideoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
   };
+
+  // Calculate available viewport height accounting for header and footer
+  // Mobile: Header ~36px, Footer ~54px, Parent padding-bottom: 56px (pb-14)
+  // Content should fit: viewport - header - footer = viewport - 90px
+  // Parent's pb-14 creates space below us, so we don't need to account for it in our height
+  const HEADER_HEIGHT = 36; // px
+  const FOOTER_HEIGHT = 54; // px
+  const [containerHeight, setContainerHeight] = useState(0);
+
+  useEffect(() => {
+    const calculateHeight = () => {
+      if (typeof window === 'undefined') return 0;
+      const isMobile = window.innerWidth < 768;
+
+      if (isMobile) {
+        // Full viewport minus header minus footer
+        return window.innerHeight - HEADER_HEIGHT - FOOTER_HEIGHT;
+      }
+
+      // Desktop: full viewport
+      return window.innerHeight;
+    };
+
+    setContainerHeight(calculateHeight());
+
+    const handleResize = () => {
+      setContainerHeight(calculateHeight());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const targetScrollY = -currentIndex * containerHeight;
+
+  // Sync scroll position when currentIndex changes (without animation during drag)
+  useEffect(() => {
+    if (!isSnapping) {
+      setScrollPosition(targetScrollY);
+    }
+  }, [currentIndex, targetScrollY, isSnapping]);
+
+  // Swipe/drag handlers for infinite scroll navigation
+  // Note: Swipe handlers are only applied when NOT viewing a matchup (matchups handle their own swipe voting)
+  const isCurrentItemMatchup = currentItem?.type === 'matchup';
+
+  const swipeHandlers = useSwipeable({
+    onSwiping: (eventData) => {
+      // Update scroll position as user swipes (relative to current index position)
+      const delta = eventData.deltaY;
+      setScrollPosition(targetScrollY + delta);
+    },
+    onSwipedUp: () => {
+      if (!isLast) {
+        setIsSnapping(true);
+        // Animate to next position first
+        const nextTargetY = -(currentIndex + 1) * containerHeight;
+        setScrollPosition(nextTargetY);
+        // Update index after animation completes
+        setTimeout(() => {
+          goToNext();
+          setIsSnapping(false);
+        }, 300);
+      } else {
+        // Snap back to current position
+        setScrollPosition(targetScrollY);
+      }
+    },
+    onSwipedDown: () => {
+      if (!isFirst) {
+        setIsSnapping(true);
+        // Animate to previous position first
+        const prevTargetY = -(currentIndex - 1) * containerHeight;
+        setScrollPosition(prevTargetY);
+        // Update index after animation completes
+        setTimeout(() => {
+          goToPrevious();
+          setIsSnapping(false);
+        }, 300);
+      } else {
+        // Snap back to current position
+        setScrollPosition(targetScrollY);
+      }
+    },
+    onSwiped: () => {
+      // Snap back to current position if swipe didn't meet threshold
+      setScrollPosition(targetScrollY);
+    },
+    trackMouse: true,
+    preventScrollOnSwipe: true,
+    delta: 50,
+  });
 
   // Loading state
   if (isLoading && feedItems.length === 0) {
@@ -94,7 +184,7 @@ export default function FeedPage() {
     );
   }
 
-  // Empty state
+  // Empty state - no content at all
   if (!isLoading && feedItems.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -108,83 +198,171 @@ export default function FeedPage() {
     );
   }
 
+  // Empty state - all caught up (viewed all available content)
+  // Only show when user has scrolled PAST the last item (not when they're viewing the last item)
+  if (
+    !isLoading &&
+    feedItems.length > 0 &&
+    !hasMore &&
+    currentIndex > feedItems.length - 1
+  ) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="text-center text-white px-6">
+          <div className="text-6xl mb-4">✓</div>
+          <p className="text-xl font-semibold mb-2">
+            You&apos;re all caught up!
+          </p>
+          <p className="text-sm text-white/60 mb-6">
+            Check back later for new content
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentIndex(0); // Return to start
+            }}
+            className="cursor-pointer px-6 py-3 bg-accent-col text-white rounded-full hover:bg-accent-col/80"
+          >
+            Back to Top
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Handle matchup vote completion
   const handleMatchupVote = (highlightId: number) => {
-    console.log(`User voted for highlight ${highlightId} in matchup`);
     // Move to next item after voting
     goToNext();
   };
 
-  // Render current feed item (highlight or matchup)
-  const renderFeedItem = () => {
-    if (!currentItem) return null;
+  // Render a single feed item at a specific index
+  const renderFeedItemAtIndex = (index: number) => {
+    const item = feedItems[index];
+    if (!item) return null;
+
+    const isCurrentItem = index === currentIndex;
+    const inBuffer = isInBufferRange(index);
 
     // Render matchup
-    if (currentItem.type === 'matchup') {
+    if (item.type === 'matchup') {
       return (
-        <MatchupCard matchup={currentItem.data} onVote={handleMatchupVote} />
+        <div
+          key={`feed-item-${index}`}
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            top: `${index * containerHeight}px`,
+            height: `${containerHeight}px`,
+          }}
+        >
+          <div className="relative max-w-2xl w-full h-full">
+            {inBuffer ? (
+              <MatchupCard matchup={item.data} onVote={handleMatchupVote} />
+            ) : (
+              <div className="absolute inset-0 bg-black flex items-center justify-center">
+                <div className="text-white text-sm">Matchup</div>
+              </div>
+            )}
+          </div>
+        </div>
       );
     }
 
     // Render highlight
+    const highlight = item.data;
+    const videoRef = getVideoRef(index);
+
     return (
-      <>
-        {/* Video Player */}
-        <VideoPlayer
-          videoRef={videoRef}
-          isMuted={isMuted}
-          isBuffering={isBuffering}
-        />
-
-        {/* Video Controls */}
-        <VideoControls
-          isMuted={isMuted}
-          onToggleMute={toggleMute}
-          onNext={goToNext}
-          onPrevious={goToPrevious}
-          currentIndex={currentIndex}
-          total={feedItems.length}
-          hasMore={hasMore}
-          isFirst={isFirst}
-          isLast={isLast}
-        />
-
-        {/* Video Overlay */}
-        <VideoOverlay
-          creator={currentHighlight?.creator}
-          prompt={currentHighlight?.prompt}
-        />
-      </>
-    );
-  };
-
-  return (
-    <div className="relative bg-black min-h-screen">
-      {/* Progress Bar (only for highlights) */}
-      {currentItem?.type === 'highlight' && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-white/30 z-10">
-          <div
-            className="h-full bg-white transition-all duration-100"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      )}
-
-      {/* Feed Item Container */}
       <div
-        className="flex items-center justify-center"
-        style={{ height: 'calc(100vh - 4rem)' }}
+        key={`feed-item-${index}`}
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          top: `${index * containerHeight}px`,
+          height: `${containerHeight}px`,
+        }}
       >
         <div className="relative max-w-2xl w-full h-full">
-          {renderFeedItem()}
+          {/* Render video for items in buffer range */}
+          {inBuffer && (
+            <>
+              {/* Video element with ref */}
+              <video
+                ref={videoRef}
+                src={highlight.videoUrl}
+                className="absolute inset-0 w-full h-full object-contain"
+                autoPlay={isCurrentItem}
+                muted={isMuted}
+                playsInline
+                loop
+                preload="auto"
+              />
 
-          {/* Loading indicator for infinite scroll */}
-          {isLoading && feedItems.length > 0 && (
-            <div className="absolute bottom-28 left-1/2 -translate-x-1/2 bg-black/50 rounded-full px-4 py-2 z-10">
-              <span className="text-white text-sm">Loading more...</span>
+              {/* Controls and overlay only for current item */}
+              {isCurrentItem && (
+                <>
+                  <VideoControls
+                    onNext={goToNext}
+                    onPrevious={goToPrevious}
+                    isFirst={isFirst}
+                    currentIndex={currentIndex}
+                  />
+
+                  <VideoOverlay
+                    creator={highlight.creator}
+                    prompt={highlight.prompt}
+                  />
+                </>
+              )}
+            </>
+          )}
+
+          {/* Placeholder for items outside buffer range */}
+          {!inBuffer && (
+            <div className="absolute inset-0 bg-black flex items-center justify-center">
+              <div className="text-white text-sm">Loading...</div>
             </div>
           )}
         </div>
+      </div>
+    );
+  };
+
+  // Calculate which items to render (current + adjacent for smooth transitions)
+  const itemsToRender = [];
+  const renderRange = 2; // Render 2 items before and after current for smoother scrolling
+
+  for (
+    let i = Math.max(0, currentIndex - renderRange);
+    i <= Math.min(feedItems.length - 1, currentIndex + renderRange);
+    i++
+  ) {
+    itemsToRender.push(i);
+  }
+
+  return (
+    <div
+      className="relative bg-black overflow-hidden"
+      style={{ height: `${containerHeight}px` }}
+    >
+      {/* Infinite Scroll Container */}
+      <div {...(isCurrentItemMatchup ? {} : swipeHandlers)} className="relative w-full h-full">
+        <div
+          className="absolute inset-0"
+          style={{
+            transform: `translateY(${scrollPosition}px)`,
+            transition: isSnapping ? 'transform 0.3s ease-out' : 'none',
+          }}
+        >
+          {/* Render visible feed items */}
+          {itemsToRender.map((index) => renderFeedItemAtIndex(index))}
+        </div>
+
+        {/* Loading indicator for infinite scroll */}
+        {isLoading && feedItems.length > 0 && (
+          <div className="absolute bottom-28 left-1/2 -translate-x-1/2 bg-black/50 rounded-full px-4 py-2 z-10">
+            <span className="text-white text-sm">Loading more...</span>
+          </div>
+        )}
       </div>
     </div>
   );

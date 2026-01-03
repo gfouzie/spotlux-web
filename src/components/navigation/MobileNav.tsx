@@ -49,13 +49,13 @@ const MobileNav = ({ className = '' }: MobileNavProps) => {
       <div
         className={`bg-bg-col/80 backdrop-blur-sm border-b border-text-col/20 ${className}`}
       >
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-3 py-1.5">
           <Link href="/" className="hover:opacity-80 transition-opacity">
             <Image
               src={logoSrc}
               alt="Spotlux"
-              width={120}
-              height={30}
+              width={100}
+              height={24}
               className="object-contain"
               priority
             />
@@ -89,24 +89,23 @@ const MobileNav = ({ className = '' }: MobileNavProps) => {
 
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-bg-col/80 backdrop-blur-sm border-t border-text-col/20 lg:hidden z-40">
-        <div className="flex items-center justify-around px-2 py-2">
+        <div className="flex items-center justify-around px-1 py-1.5">
           {navigationItems.map((item) => {
             const IconComponent = item.icon;
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center px-3 py-2 rounded-lg transition-colors relative ${
+                className={`flex flex-col items-center px-2 py-1 rounded-lg transition-colors relative ${
                   isActive(item.href)
                     ? 'text-text-col'
                     : 'text-text-col hover:text-accent-col/70'
                 }`}
               >
                 {isActive(item.href) && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-accent-col rounded-t-full" />
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-accent-col rounded-t-full" />
                 )}
                 <IconComponent width={24} height={24} />
-                <span className="text-xs font-medium mt-1">{item.name}</span>
               </Link>
             );
           })}

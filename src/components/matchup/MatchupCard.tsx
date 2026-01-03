@@ -31,27 +31,47 @@ type ActiveCard = 'A' | 'B';
 export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Start muted to comply with browser autoplay policy
   const [activeCard, setActiveCard] = useState<ActiveCard>('A');
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [votedHighlight, setVotedHighlight] = useState<'A' | 'B' | null>(null);
 
   // Voting state management
-  const { isVoting, voteError, castVote } = useMatchupVoting({ matchupId: matchup.id });
+  const { isVoting, voteError, castVote } = useMatchupVoting({
+    promptId: matchup.promptId,
+    highlightAId: matchup.highlightAId,
+    highlightBId: matchup.highlightBId,
+  });
 
-  // Auto-switch between videos when one ends
+  // Auto-switch between videos when one ends (no looping individual videos)
   useEffect(() => {
     const videoA = videoARef.current;
     const videoB = videoBRef.current;
 
-    const handleAEnded = () => {
+    const handleAEnded = async () => {
+      // When A ends, switch to B (even if A was already active)
       setActiveCard('B');
-      videoB?.play();
+      if (videoB) {
+        videoB.currentTime = 0; // Restart from beginning
+        try {
+          await videoB.play();
+        } catch {
+          // Silently ignore - video will play when ready
+        }
+      }
     };
 
-    const handleBEnded = () => {
+    const handleBEnded = async () => {
+      // When B ends, switch to A (even if B was already active)
       setActiveCard('A');
-      videoA?.play();
+      if (videoA) {
+        videoA.currentTime = 0; // Restart from beginning
+        try {
+          await videoA.play();
+        } catch {
+          // Silently ignore - video will play when ready
+        }
+      }
     };
 
     videoA?.addEventListener('ended', handleAEnded);
@@ -65,11 +85,35 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
 
   // Play active card when it changes
   useEffect(() => {
+    const playVideo = async (video: HTMLVideoElement | null) => {
+      if (!video) return;
+
+      // Wait for video to be ready before playing
+      if (video.readyState >= 3) {
+        // HAVE_FUTURE_DATA or greater - can play
+        try {
+          await video.play();
+        } catch {
+          // Silently ignore autoplay errors (will play when user interacts)
+        }
+      } else {
+        // Wait for canplay event
+        const playWhenReady = async () => {
+          try {
+            await video.play();
+          } catch {
+            // Silently ignore autoplay errors
+          }
+        };
+        video.addEventListener('canplay', playWhenReady, { once: true });
+      }
+    };
+
     if (activeCard === 'A') {
-      videoARef.current?.play();
+      playVideo(videoARef.current);
       videoBRef.current?.pause();
     } else {
-      videoBRef.current?.play();
+      playVideo(videoBRef.current);
       videoARef.current?.pause();
     }
   }, [activeCard]);
@@ -87,7 +131,8 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
   const handleCommentSubmit = async (comment: string) => {
     if (!votedHighlight) return;
 
-    const highlightId = votedHighlight === 'A' ? matchup.highlightAId : matchup.highlightBId;
+    const highlightId =
+      votedHighlight === 'A' ? matchup.highlightAId : matchup.highlightBId;
     await castVote(highlightId, comment);
 
     setShowCommentModal(false);
@@ -96,16 +141,10 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
     }, 500);
   };
 
-  const handleCommentSkip = async () => {
-    if (!votedHighlight) return;
-
-    const highlightId = votedHighlight === 'A' ? matchup.highlightAId : matchup.highlightBId;
-    await castVote(highlightId);
-
+  const handleCommentCancel = () => {
+    // User cancelled - don't submit vote, just close modal
     setShowCommentModal(false);
-    setTimeout(() => {
-      onVote?.(highlightId);
-    }, 500);
+    setVotedHighlight(null);
   };
 
   const toggleMute = () => {
@@ -125,17 +164,16 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
 
   return (
     <>
-      <div className="relative bg-black w-full h-full flex flex-col" {...swipeHandlers}>
+      <div
+        className="relative bg-black w-full h-full flex flex-col"
+        {...swipeHandlers}
+      >
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/90 to-transparent p-4 z-30">
           <div className="text-center">
-            <p className="text-white/60 text-xs uppercase tracking-wider mb-1">
-              Head 2 Head
-            </p>
-            <h2 className="text-white text-lg font-medium">
+            <h2 className="text-accent-col text-lg font-medium">
               {matchup.highlightA?.prompt?.name ||
-               matchup.highlightB?.prompt?.name ||
-               `Prompt #${matchup.promptId}`}
+                matchup.highlightB?.prompt?.name}
             </h2>
           </div>
         </div>
@@ -197,9 +235,7 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
           variant="default"
           aria-label={isMuted ? 'Unmute' : 'Mute'}
         >
-          <span className="text-white text-sm">
-            {isMuted ? '🔇' : '🔊'}
-          </span>
+          <span className="text-white text-sm">{isMuted ? '🔇' : '🔊'}</span>
         </CircleButton>
 
         {/* Swipe Hint (Mobile) */}
@@ -217,7 +253,7 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
         isOpen={showCommentModal}
         votedFor={votedHighlight || 'A'}
         onSubmit={handleCommentSubmit}
-        onSkip={handleCommentSkip}
+        onCancel={handleCommentCancel}
         isSubmitting={isVoting}
         error={voteError}
       />

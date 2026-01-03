@@ -53,13 +53,13 @@ export default function MatchupVideoCard({
   position,
 }: MatchupVideoCardProps) {
   const positionStyles = position === 'top-left'
-    ? { top: '5%', left: '5%' }
-    : { bottom: '5%', right: '5%' };
+    ? { top: '8%', left: '8%' }
+    : { bottom: '8%', right: '8%' };
 
   return (
     <div
       onClick={onClick}
-      className={`cursor-pointer absolute w-[85%] h-[85%] rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ${
+      className={`cursor-pointer absolute w-[65%] h-[75%] rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ${
         isActive
           ? 'z-20 scale-105 ring-4 ring-accent-col/50'
           : 'z-10 scale-100 opacity-90'
@@ -73,7 +73,6 @@ export default function MatchupVideoCard({
           className="w-full h-full object-cover"
           muted={isMuted}
           playsInline
-          loop
           preload="metadata"
         />
       ) : (
@@ -90,7 +89,6 @@ export default function MatchupVideoCard({
             className="w-full h-full object-cover opacity-0"
             muted={isMuted}
             playsInline
-            loop
             preload="metadata"
           />
         </>

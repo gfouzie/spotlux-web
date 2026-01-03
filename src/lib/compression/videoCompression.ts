@@ -21,7 +21,7 @@ export interface ProgressCallback {
 const DEFAULT_OPTIONS: Required<VideoCompressionOptions> = {
   crf: 28, // Good balance of quality and size
   maxResolution: 1920, // 1080p max
-  preset: 'medium',
+  preset: 'fast', // Faster = less memory usage (was 'medium')
 };
 
 let ffmpegInstance: FFmpeg | null = null;
@@ -50,7 +50,7 @@ async function loadFFmpeg(): Promise<FFmpeg> {
   try {
     const ffmpeg = new FFmpeg();
 
-    // Load ffmpeg core from CDN
+    // Load ffmpeg core from CDN (single-threaded version - works without special headers)
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
     await ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
@@ -90,7 +90,11 @@ export async function compressVideo(
     // Load FFmpeg (lazy-loaded, cached after first load)
     const ffmpeg = await loadFFmpeg();
 
-    // Listen to progress events
+    // Listen to progress and log events for debugging
+    ffmpeg.on('log', ({ message }) => {
+      console.log('[FFmpeg]:', message);
+    });
+
     if (onProgress) {
       ffmpeg.on('progress', ({ progress }) => {
         // FFmpeg progress is 0-1, convert to 0-100
@@ -99,8 +103,10 @@ export async function compressVideo(
     }
 
     const originalSize = file.size;
-    const inputName = 'input.mp4';
-    const outputName = 'output.mp4';
+    // Use unique filenames to avoid conflicts from previous compressions
+    const timestamp = Date.now();
+    const inputName = `input_${timestamp}.mp4`;
+    const outputName = `output_${timestamp}.mp4`;
 
     // Write input file to FFmpeg's virtual filesystem
     await ffmpeg.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
@@ -116,7 +122,9 @@ export async function compressVideo(
       '-crf',
       opts.crf.toString(),
       '-vf',
-      `scale='min(${opts.maxResolution},iw)':'min(${opts.maxResolution},ih)':force_original_aspect_ratio=decrease`, // Scale down if needed
+      // Scale down if needed, ensuring dimensions are divisible by 2 (required for H.264)
+      // -2 means "maintain aspect ratio and make divisible by 2"
+      `scale='min(${opts.maxResolution},iw)':'min(${opts.maxResolution},ih)':force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2`,
       '-c:a',
       'aac', // AAC audio codec
       '-b:a',
@@ -126,14 +134,66 @@ export async function compressVideo(
 
     console.log('Compressing video with FFmpeg:', ffmpegArgs.join(' '));
 
-    // Run FFmpeg compression
-    await ffmpeg.exec(ffmpegArgs);
+    // Run FFmpeg compression with fallback for memory errors
+    try {
+      await ffmpeg.exec(ffmpegArgs);
+    } catch (execError) {
+      // If memory error, try again with ultrafast preset (uses less memory)
+      if (execError instanceof Error && (execError.message.includes('memory') || execError.message.includes('out of bounds'))) {
+        console.warn('Memory error detected, retrying with ultrafast preset...');
+        await ffmpeg.deleteFile(inputName).catch(() => {});
+        await ffmpeg.deleteFile(outputName).catch(() => {});
+
+        // Use same unique filename for retry
+        await ffmpeg.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
+
+        // Simpler compression with less memory
+        const fallbackArgs = [
+          '-i', inputName,
+          '-c:v', 'libx264',
+          '-preset', 'ultrafast', // Fastest, least memory
+          '-crf', '32', // Higher CRF = more compression = smaller file
+          '-vf', `scale='min(1280,iw)':'min(1280,ih)':force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2`, // 720p max, even dimensions
+          '-c:a', 'aac',
+          '-b:a', '96k', // Lower audio bitrate
+          outputName,
+        ];
+
+        console.log('Fallback compression:', fallbackArgs.join(' '));
+        await ffmpeg.exec(fallbackArgs);
+      } else {
+        throw execError;
+      }
+    }
 
     // Read the compressed file
     const data = await ffmpeg.readFile(outputName);
+
+    // Validate output file
+    if (!data || data.length === 0) {
+      throw new Error('FFmpeg produced an empty output file. Check video format compatibility.');
+    }
+
     // @ts-expect-error - ffmpeg returns Uint8Array but TypeScript has issues with the generic type
     const compressedBlob = new Blob([data], { type: 'video/mp4' });
     const compressedSize = compressedBlob.size;
+
+    // Sanity check: compressed file should not be 0 bytes
+    if (compressedSize === 0) {
+      throw new Error('Compression produced a 0-byte file. Original video may be corrupted or incompatible.');
+    }
+
+    // Sanity check: compressed should be smaller than original (or close)
+    if (compressedSize > originalSize * 1.5) {
+      console.warn('Compressed file is larger than original - using original instead');
+      return {
+        compressedBlob: file,
+        originalSize,
+        compressedSize: originalSize,
+        compressionRatio: 0,
+      };
+    }
+
     const compressionRatio =
       ((originalSize - compressedSize) / originalSize) * 100;
 

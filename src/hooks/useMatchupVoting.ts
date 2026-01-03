@@ -3,7 +3,9 @@ import { matchupsApi } from '@/api/matchups';
 import { ApiError } from '@/api/client';
 
 interface UseMatchupVotingParams {
-  matchupId: number;
+  promptId: number;
+  highlightAId: number;
+  highlightBId: number;
 }
 
 interface UseMatchupVotingReturn {
@@ -17,13 +19,18 @@ interface UseMatchupVotingReturn {
 /**
  * Hook for managing matchup voting state and API interactions
  *
+ * For transient matchups (generated on-demand), sends the full matchup details
+ * to the backend which will find or create the HighlightMatchup record.
+ *
  * Handles:
  * - Casting votes with optional comments
  * - Loading and error states
  * - Vote persistence (local state)
  */
 export function useMatchupVoting({
-  matchupId,
+  promptId,
+  highlightAId,
+  highlightBId,
 }: UseMatchupVotingParams): UseMatchupVotingReturn {
   const [isVoting, setIsVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
@@ -36,7 +43,10 @@ export function useMatchupVoting({
       setVoteError(null);
 
       try {
-        await matchupsApi.voteOnMatchup(matchupId, {
+        await matchupsApi.voteOnMatchup({
+          promptId,
+          highlightAId,
+          highlightBId,
           votedForHighlightId: highlightId,
           voteComment: comment || null,
         });
@@ -54,7 +64,7 @@ export function useMatchupVoting({
         setIsVoting(false);
       }
     },
-    [matchupId]
+    [promptId, highlightAId, highlightBId]
   );
 
   return {

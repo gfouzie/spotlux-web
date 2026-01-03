@@ -38,7 +38,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
       </div>
 
       {/* Page Content */}
-      <div className="flex-1 overflow-auto lg:pt-0 pt-0 pb-20 lg:pb-0">
+      <div className="flex-1 overflow-auto lg:pt-0 pt-0 pb-14 lg:pb-0">
         {children}
       </div>
     </div>

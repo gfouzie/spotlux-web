@@ -1,25 +1,27 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Modal from '@/components/common/Modal';
 
 interface CommentModalProps {
   isOpen: boolean;
   votedFor: 'A' | 'B';
   onSubmit: (comment: string) => void;
-  onSkip: () => void;
+  onCancel: () => void;
   isSubmitting?: boolean;
   error?: string | null;
 }
 
 /**
  * Modal for collecting optional comment after voting
+ * User can submit vote (with or without comment) or cancel to not vote
  */
 export default function CommentModal({
   isOpen,
   votedFor,
   onSubmit,
-  onSkip,
+  onCancel,
   isSubmitting = false,
   error = null,
 }: CommentModalProps) {
@@ -36,10 +38,15 @@ export default function CommentModal({
     onSubmit(comment);
   };
 
-  return (
+  // Only render via portal when in browser and modal is open
+  if (typeof document === 'undefined' || !isOpen) {
+    return null;
+  }
+
+  const modalContent = (
     <Modal
       isOpen={isOpen}
-      onClose={onSkip}
+      onClose={onCancel}
       title={
         <div className="text-center w-full">
           <p className="text-text-col/60 text-sm mb-1">You chose</p>
@@ -50,10 +57,10 @@ export default function CommentModal({
       showCloseButton={false}
       closeOnOverlayClick={!isSubmitting}
       showFooter
-      confirmText={isSubmitting ? 'Submitting...' : 'Submit'}
-      cancelText="Skip"
+      confirmText={isSubmitting ? 'Submitting...' : 'Submit Vote'}
+      cancelText="Cancel"
       onConfirm={handleSubmit}
-      onCancel={onSkip}
+      onCancel={onCancel}
       confirmDisabled={isSubmitting}
       cancelDisabled={isSubmitting}
       confirmLoading={isSubmitting}
@@ -88,4 +95,6 @@ export default function CommentModal({
       )}
     </Modal>
   );
+
+  return createPortal(modalContent, document.body);
 }
