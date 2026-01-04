@@ -24,10 +24,6 @@ interface MatchupVideoCardProps {
    */
   isActive: boolean;
   /**
-   * Whether video should be muted
-   */
-  isMuted: boolean;
-  /**
    * Click handler to activate this card
    */
   onClick: () => void;
@@ -48,13 +44,13 @@ export default function MatchupVideoCard({
   videoUrl,
   highlightId,
   isActive,
-  isMuted,
   onClick,
   position,
 }: MatchupVideoCardProps) {
-  const positionStyles = position === 'top-left'
-    ? { top: '8%', left: '8%' }
-    : { bottom: '8%', right: '8%' };
+  const positionStyles =
+    position === 'top-left'
+      ? { top: '8%', left: '8%' }
+      : { bottom: '8%', right: '8%' };
 
   return (
     <div
@@ -70,8 +66,7 @@ export default function MatchupVideoCard({
         <video
           ref={videoRef}
           src={videoUrl}
-          className="w-full h-full object-cover"
-          muted={isMuted}
+          className="w-full h-full object-contain bg-black"
           playsInline
           preload="metadata"
         />
@@ -80,14 +75,15 @@ export default function MatchupVideoCard({
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <div className="text-center">
               <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mb-4" />
-              <p className="text-white/60 text-sm">Loading Highlight {label}...</p>
+              <p className="text-white/60 text-sm">
+                Loading Highlight {label}...
+              </p>
               <p className="text-white/40 text-xs">ID: {highlightId}</p>
             </div>
           </div>
           <video
             ref={videoRef}
-            className="w-full h-full object-cover opacity-0"
-            muted={isMuted}
+            className="w-full h-full object-contain bg-black opacity-0"
             playsInline
             preload="metadata"
           />

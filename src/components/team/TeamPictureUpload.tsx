@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { uploadApi } from '@/api/upload';
 import { validateImageFile } from '@/lib/compression';
+import { compressImage } from '@/lib/compression/imageCompression';
+import ImageCropModal from '@/components/common/ImageCropModal';
 
 interface TeamPictureUploadProps {
   teamId: number;
@@ -38,10 +40,10 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
   const initials = getTeamInitials(teamName);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string>('');
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -53,10 +55,35 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
     }
 
     setError(null);
+
+    // Create object URL for the crop modal
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImageSrc(imageUrl);
+    setShowCropModal(true);
+
+    // Reset file input
+    event.target.value = '';
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setShowCropModal(false);
     setUploading(true);
 
     try {
-      const data = await uploadApi.uploadTeamPicture(teamId, file);
+      // Convert blob to file
+      const croppedFile = new File([croppedBlob], 'team.jpg', {
+        type: 'image/jpeg',
+      });
+
+      // Compress the cropped image
+      const { compressedFile } = await compressImage(croppedFile, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 800,
+        quality: 0.85,
+      });
+
+      // Upload the compressed image
+      const data = await uploadApi.uploadTeamPicture(teamId, compressedFile);
       onImageUpdate(data.profileImageUrl);
     } catch (err) {
       setError(
@@ -64,7 +91,17 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
       );
     } finally {
       setUploading(false);
+      // Clean up object URL
+      URL.revokeObjectURL(selectedImageSrc);
+      setSelectedImageSrc('');
     }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropModal(false);
+    // Clean up object URL
+    URL.revokeObjectURL(selectedImageSrc);
+    setSelectedImageSrc('');
   };
 
   const handleDelete = async () => {
@@ -150,6 +187,16 @@ const TeamPictureUpload: React.FC<TeamPictureUploadProps> = ({
           </div>
         )}
       </div>
+
+      {/* Image Crop Modal */}
+      <ImageCropModal
+        isOpen={showCropModal}
+        imageSrc={selectedImageSrc}
+        onClose={handleCropCancel}
+        onCropComplete={handleCropComplete}
+        aspectRatio={1}
+        cropShape="round"
+      />
     </div>
   );
 };

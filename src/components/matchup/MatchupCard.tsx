@@ -31,7 +31,6 @@ type ActiveCard = 'A' | 'B';
 export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
-  const [isMuted, setIsMuted] = useState(true); // Start muted to comply with browser autoplay policy
   const [activeCard, setActiveCard] = useState<ActiveCard>('A');
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [votedHighlight, setVotedHighlight] = useState<'A' | 'B' | null>(null);
@@ -147,13 +146,6 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
     setVotedHighlight(null);
   };
 
-  const toggleMute = () => {
-    const newMutedState = !isMuted;
-    if (videoARef.current) videoARef.current.muted = newMutedState;
-    if (videoBRef.current) videoBRef.current.muted = newMutedState;
-    setIsMuted(newMutedState);
-  };
-
   // Swipe handlers
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => handleVote(matchup.highlightBId),
@@ -171,15 +163,15 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/90 to-transparent p-4 z-30">
           <div className="text-center">
-            <h2 className="text-accent-col text-lg font-medium">
+            <span className="text-accent-col text-lg font-bold">
               {matchup.highlightA?.prompt?.name ||
                 matchup.highlightB?.prompt?.name}
-            </h2>
+            </span>
           </div>
         </div>
 
         {/* Stacked Cards Container */}
-        <div className="flex-1 relative flex items-center justify-center p-8">
+        <div className="flex-1 relative flex items-center justify-center p-8 mt-4">
           {/* Card A (Top-Left) */}
           <MatchupVideoCard
             label="A"
@@ -187,7 +179,6 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
             videoUrl={matchup.highlightA?.videoUrl}
             highlightId={matchup.highlightAId}
             isActive={activeCard === 'A'}
-            isMuted={isMuted}
             onClick={() => handleCardClick('A')}
             position="top-left"
           />
@@ -199,7 +190,6 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
             videoUrl={matchup.highlightB?.videoUrl}
             highlightId={matchup.highlightBId}
             isActive={activeCard === 'B'}
-            isMuted={isMuted}
             onClick={() => handleCardClick('B')}
             position="bottom-right"
           />
@@ -226,17 +216,6 @@ export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
             <NavArrowRight className="w-6 h-6" strokeWidth={2.5} />
           </CircleButton>
         </div>
-
-        {/* Mute Toggle */}
-        <CircleButton
-          onClick={toggleMute}
-          className="absolute top-20 left-4 z-30"
-          size="md"
-          variant="default"
-          aria-label={isMuted ? 'Unmute' : 'Mute'}
-        >
-          <span className="text-white text-sm">{isMuted ? '🔇' : '🔊'}</span>
-        </CircleButton>
 
         {/* Swipe Hint (Mobile) */}
         <div className="md:hidden absolute bottom-8 left-0 right-0 text-center z-30 pointer-events-none">

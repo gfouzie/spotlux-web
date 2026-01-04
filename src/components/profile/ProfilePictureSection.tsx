@@ -9,6 +9,7 @@ import { uploadApi } from '@/api/upload';
 import { compressImage } from '@/lib/compression/imageCompression';
 import FriendsListModal from '@/components/friends/FriendsListModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
+import ImageCropModal from '@/components/common/ImageCropModal';
 
 interface ProfilePictureSectionProps {
   user: User | UserProfile;
@@ -104,6 +105,8 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
   const [showFriendsModal, setShowFriendsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const initials = getUserInitials(
@@ -112,7 +115,7 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
   );
   const currentProfileImageUrl = user?.profileImageUrl;
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -127,11 +130,29 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
       return;
     }
 
+    // Create object URL for the crop modal
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImageSrc(imageUrl);
+    setShowCropModal(true);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setShowCropModal(false);
     setIsUploading(true);
 
     try {
-      // Compress the image
-      const { compressedFile } = await compressImage(file, {
+      // Convert blob to file
+      const croppedFile = new File([croppedBlob], 'profile.jpg', {
+        type: 'image/jpeg',
+      });
+
+      // Compress the cropped image
+      const { compressedFile } = await compressImage(croppedFile, {
         maxSizeMB: 1,
         maxWidthOrHeight: 800,
         quality: 0.85,
@@ -147,10 +168,17 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
       alert('Failed to upload profile picture. Please try again.');
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      // Clean up object URL
+      URL.revokeObjectURL(selectedImageSrc);
+      setSelectedImageSrc('');
     }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropModal(false);
+    // Clean up object URL
+    URL.revokeObjectURL(selectedImageSrc);
+    setSelectedImageSrc('');
   };
 
   const handleDeleteProfilePicture = async () => {
@@ -361,6 +389,16 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
         onClose={() => setShowEditModal(false)}
         user={user}
         onSuccess={onProfileUpdate}
+      />
+
+      {/* Image Crop Modal */}
+      <ImageCropModal
+        isOpen={showCropModal}
+        imageSrc={selectedImageSrc}
+        onClose={handleCropCancel}
+        onCropComplete={handleCropComplete}
+        aspectRatio={1}
+        cropShape="round"
       />
     </>
   );
