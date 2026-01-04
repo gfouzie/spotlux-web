@@ -125,8 +125,17 @@ export default function FeedPage() {
           goToNext();
           setIsSnapping(false);
         }, 300);
+      } else if (!hasMore) {
+        // On last item with no more content - show "all caught up" screen
+        setIsSnapping(true);
+        const nextTargetY = -(currentIndex + 1) * containerHeight;
+        setScrollPosition(nextTargetY);
+        setTimeout(() => {
+          setCurrentIndex(currentIndex + 1);
+          setIsSnapping(false);
+        }, 300);
       } else {
-        // Snap back to current position
+        // Snap back to current position (still loading more content)
         setScrollPosition(targetScrollY);
       }
     },
@@ -197,12 +206,12 @@ export default function FeedPage() {
   }
 
   // Empty state - all caught up (viewed all available content)
-  // Only show when user has scrolled PAST the last item (not when they're viewing the last item)
+  // Show when user has scrolled past the last item
   if (
     !isLoading &&
     feedItems.length > 0 &&
     !hasMore &&
-    currentIndex > feedItems.length - 1
+    currentIndex >= feedItems.length
   ) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
