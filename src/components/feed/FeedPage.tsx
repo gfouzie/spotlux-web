@@ -107,9 +107,7 @@ export default function FeedPage() {
   }, [currentIndex, targetScrollY, isSnapping]);
 
   // Swipe/drag handlers for infinite scroll navigation
-  // Note: Swipe handlers are only applied when NOT viewing a matchup (matchups handle their own swipe voting)
-  const isCurrentItemMatchup = currentItem?.type === 'matchup';
-
+  // Note: Feed handles vertical (up/down) swipes, matchups handle horizontal (left/right) swipes
   const swipeHandlers = useSwipeable({
     onSwiping: (eventData) => {
       // Update scroll position as user swipes (relative to current index position)
@@ -345,7 +343,7 @@ export default function FeedPage() {
       style={{ height: `${containerHeight}px` }}
     >
       {/* Infinite Scroll Container */}
-      <div {...(isCurrentItemMatchup ? {} : swipeHandlers)} className="relative w-full h-full">
+      <div {...swipeHandlers} className="relative w-full h-full">
         <div
           className="absolute inset-0"
           style={{

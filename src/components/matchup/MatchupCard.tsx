@@ -28,7 +28,10 @@ type ActiveCard = 'A' | 'B';
  * TODO (Chunk 5): Fetch actual highlight video URLs
  * TODO (Chunk 7): Add view tracking
  */
-export default function MatchupCard({ matchup, onVote }: MatchupCardProps) {
+export default function MatchupCard({
+  matchup,
+  onVote,
+}: MatchupCardProps) {
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
   const [activeCard, setActiveCard] = useState<ActiveCard>('A');
