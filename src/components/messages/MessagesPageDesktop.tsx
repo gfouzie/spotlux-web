@@ -3,7 +3,6 @@
 import { ConversationWithDetails, MessageWithSender } from '@/api/conversations';
 import ConversationList from './ConversationList';
 import ConversationView from './ConversationView';
-import EmptyMessagesState from './EmptyMessagesState';
 import NewConversationModal from './NewConversationModal';
 
 interface MessagesPageDesktopProps {
@@ -66,10 +65,6 @@ const MessagesPageDesktop = ({
           <div className="flex items-center justify-center flex-1">
             <div className="w-8 h-8 border-4 border-accent-col border-t-transparent rounded-full animate-spin"></div>
           </div>
-        ) : conversations.length === 0 ? (
-          <div className="flex-1">
-            <EmptyMessagesState onNewMessage={onNewMessage} />
-          </div>
         ) : (
           <div className="grid grid-cols-3 gap-6 flex-1 overflow-hidden">
             <div className="col-span-1 overflow-hidden rounded-lg">
@@ -82,19 +77,29 @@ const MessagesPageDesktop = ({
             </div>
 
             <div className="col-span-2 overflow-hidden rounded-lg">
-              <ConversationView
-                conversation={activeConversation}
-                messages={messages}
-                currentUserId={currentUserId}
-                isConnected={isConnected}
-                isOtherUserTyping={isOtherUserTyping}
-                onSendMessage={onSendMessage}
-                onTypingChange={onTypingChange}
-                onMarkAsRead={onMarkAsRead}
-                hasMore={hasMore}
-                isLoadingMore={isLoadingMore}
-                onLoadMore={onLoadMoreMessages}
-              />
+              {activeConversation ? (
+                <ConversationView
+                  conversation={activeConversation}
+                  messages={messages}
+                  currentUserId={currentUserId}
+                  isConnected={isConnected}
+                  isOtherUserTyping={isOtherUserTyping}
+                  onSendMessage={onSendMessage}
+                  onTypingChange={onTypingChange}
+                  onMarkAsRead={onMarkAsRead}
+                  hasMore={hasMore}
+                  isLoadingMore={isLoadingMore}
+                  onLoadMore={onLoadMoreMessages}
+                />
+              ) : (
+                <div className="bg-card-col h-full flex items-center justify-center">
+                  <p className="text-text-col/60">
+                    {conversations.length === 0
+                      ? 'No conversations yet. Start messaging your friends!'
+                      : 'Select a conversation to view messages'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}

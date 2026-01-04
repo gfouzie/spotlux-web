@@ -6,7 +6,6 @@ import {
 } from '@/api/conversations';
 import ConversationList from './ConversationList';
 import ConversationView from './ConversationView';
-import EmptyMessagesState from './EmptyMessagesState';
 import NewConversationModal from './NewConversationModal';
 
 interface MessagesPageMobileProps {
@@ -72,10 +71,6 @@ const MessagesPageMobile = ({
       {isLoading ? (
         <div className="flex items-center justify-center flex-1 min-h-0">
           <div className="w-8 h-8 border-4 border-accent-col border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      ) : conversations.length === 0 ? (
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <EmptyMessagesState onNewMessage={onNewMessage} />
         </div>
       ) : activeConversationId ? (
         <div className="flex-1 min-h-0 overflow-hidden">
