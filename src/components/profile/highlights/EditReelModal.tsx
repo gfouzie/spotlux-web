@@ -6,6 +6,7 @@ import Modal from '@/components/common/Modal';
 import Select from '@/components/common/Select';
 import Button from '@/components/common/Button';
 import Alert from '@/components/common/Alert';
+import VideoCropStep from '@/components/common/VideoCropStep';
 import { Xmark, Upload, VideoCamera, Menu, Trash } from 'iconoir-react';
 import { HighlightReel, highlightReelsApi } from '@/api/highlightReels';
 import { Highlight, highlightsApi } from '@/api/highlights';
@@ -46,6 +47,8 @@ export default function EditReelModal({
 
   // New video upload state
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [originalVideoFile, setOriginalVideoFile] = useState<File | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
   const [selectedPromptId, setSelectedPromptId] = useState<number | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
@@ -139,14 +142,34 @@ export default function EditReelModal({
       return;
     }
 
-    setVideoFile(file);
+    // Show crop step instead of auto-uploading
+    setOriginalVideoFile(file);
+    setIsCropping(true);
     setUploadStatus('idle');
     setCompressionProgress(0);
     setCompressedVideoSize(0);
     setError(null);
 
-    // Auto-upload immediately after selecting file
-    await handleUploadVideo(file);
+    // Reset input
+    e.target.value = '';
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    // Convert blob to file
+    const croppedFile = new File([croppedBlob], originalVideoFile?.name || 'cropped-video.webm', {
+      type: 'video/webm',
+    });
+
+    setVideoFile(croppedFile);
+    setIsCropping(false);
+
+    // Auto-upload the cropped video
+    await handleUploadVideo(croppedFile);
+  };
+
+  const handleCropCancel = () => {
+    setOriginalVideoFile(null);
+    setIsCropping(false);
   };
 
   const handleRemoveVideo = () => {
@@ -331,6 +354,8 @@ export default function EditReelModal({
     setThumbnailPreview(null);
     setShouldRemoveThumbnail(false);
     setVideoFile(null);
+    setOriginalVideoFile(null);
+    setIsCropping(false);
     setSelectedPromptId(null);
     setUploadStatus('idle');
     setCompressionProgress(0);
@@ -467,19 +492,32 @@ export default function EditReelModal({
           )}
         </div>
 
-        {/* Add New Video Section */}
-        <div className="space-y-3 border-t border-bg-col pt-6">
-          <label className="block text-sm font-medium text-text-col">
-            Add New Clip
-          </label>
-          <p className="text-xs text-text-col/60">
-            {videoFile && uploadStatus !== 'success'
-              ? 'Uploading your video clip...'
-              : 'Select a video file to upload (uploads automatically)'}
-          </p>
+        {/* Video Crop Step */}
+        {isCropping && originalVideoFile ? (
+          <div className="border-t border-bg-col pt-6">
+            <VideoCropStep
+              videoFile={originalVideoFile}
+              onCropComplete={handleCropComplete}
+              onCancel={handleCropCancel}
+              aspectRatio={9 / 16}
+              maxDuration={15}
+            />
+          </div>
+        ) : (
+          <>
+            {/* Add New Video Section */}
+            <div className="space-y-3 border-t border-bg-col pt-6">
+              <label className="block text-sm font-medium text-text-col">
+                Add New Clip
+              </label>
+              <p className="text-xs text-text-col/60">
+                {videoFile && uploadStatus !== 'success'
+                  ? 'Uploading your video clip...'
+                  : 'Select a video file to upload (uploads automatically)'}
+              </p>
 
-          {/* Prompt Selection (shown before file upload) */}
-          {prompts.length > 0 && !videoFile && (
+              {/* Prompt Selection (shown before file upload) */}
+              {prompts.length > 0 && !videoFile && (
             <Select
               label="Prompt (Optional)"
               value={selectedPromptId?.toString() || ''}
@@ -578,7 +616,9 @@ export default function EditReelModal({
               </label>
             </div>
           )}
-        </div>
+            </div>
+          </>
+        )}
 
         {/* Clip Reordering Section */}
         <div className="space-y-2 border-t border-bg-col pt-6">

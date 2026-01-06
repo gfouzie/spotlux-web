@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Modal from '@/components/common/Modal';
 import Select from '@/components/common/Select';
 import Alert from '@/components/common/Alert';
+import VideoCropStep from '@/components/common/VideoCropStep';
 import { Upload, Xmark } from 'iconoir-react';
 import { promptsApi, Prompt } from '@/api/prompts';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,8 @@ export default function HighlightUploadModal({
   sport,
 }: HighlightUploadModalProps) {
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [originalVideoFile, setOriginalVideoFile] = useState<File | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedReelId, setSelectedReelId] = useState<number | undefined>(
     reelId
@@ -85,7 +88,8 @@ export default function HighlightUploadModal({
       return;
     }
 
-    setVideoFile(file);
+    setOriginalVideoFile(file);
+    setIsCropping(true);
     setUploadStatus('idle');
     setCompressionProgress(0);
     setCompressedVideoSize(0);
@@ -93,6 +97,21 @@ export default function HighlightUploadModal({
 
     // Reset input
     e.target.value = '';
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    // Convert blob to file
+    const croppedFile = new File([croppedBlob], originalVideoFile?.name || 'cropped-video.webm', {
+      type: 'video/webm',
+    });
+
+    setVideoFile(croppedFile);
+    setIsCropping(false);
+  };
+
+  const handleCropCancel = () => {
+    setOriginalVideoFile(null);
+    setIsCropping(false);
   };
 
   const handleRemoveVideo = () => {
@@ -143,6 +162,8 @@ export default function HighlightUploadModal({
 
   const handleClose = () => {
     setVideoFile(null);
+    setOriginalVideoFile(null);
+    setIsCropping(false);
     setSelectedReelId(reelId);
     setSelectedPromptId(undefined);
     setUploadStatus('idle');
@@ -156,9 +177,9 @@ export default function HighlightUploadModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Upload Highlight Clip"
+      title={isCropping ? 'Crop & Trim Video' : 'Upload Highlight Clip'}
       size="lg"
-      showFooter
+      showFooter={!isCropping}
       confirmText={
         uploadStatus === 'compressing'
           ? `Compressing ${compressionProgress}%`
@@ -179,8 +200,19 @@ export default function HighlightUploadModal({
           </Alert>
         )}
 
-        {/* Reel Selection */}
-        <Select
+        {/* Video Crop Step */}
+        {isCropping && originalVideoFile ? (
+          <VideoCropStep
+            videoFile={originalVideoFile}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
+            aspectRatio={9 / 16}
+            maxDuration={15}
+          />
+        ) : (
+          <>
+            {/* Reel Selection */}
+            <Select
           label="Highlight Reel"
           value={selectedReelId?.toString() || ''}
           onChange={(e) =>
@@ -299,6 +331,8 @@ export default function HighlightUploadModal({
               </p>
             </label>
           </div>
+        )}
+          </>
         )}
       </div>
     </Modal>
