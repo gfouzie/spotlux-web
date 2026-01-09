@@ -5,8 +5,12 @@ import { useSwipeable } from 'react-swipeable';
 import { useFeedData } from '@/hooks/useFeedData';
 import { useBufferedVideos } from '@/hooks/useBufferedVideos';
 import { useVideoNavigation } from '@/hooks/useVideoNavigation';
+import { useHighlightReactions } from '@/hooks/useHighlightReactions';
+import { EmojiId } from '@/api/reactions';
 import VideoControls from './VideoControls';
 import VideoOverlay from './VideoOverlay';
+import ReactionPanel from './ReactionPanel';
+import ReactionModal from './ReactionModal';
 import MatchupCard from '@/components/matchup/MatchupCard';
 
 export default function FeedPage() {
@@ -14,6 +18,7 @@ export default function FeedPage() {
   const isTrackingView = useRef(false);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isSnapping, setIsSnapping] = useState(false);
+  const [isReactionModalOpen, setIsReactionModalOpen] = useState(false);
 
   // Feed data management
   const {
@@ -42,6 +47,16 @@ export default function FeedPage() {
     feedItemsLength: feedItems.length,
     bufferRange: 1,
   });
+
+  // Reactions for current highlight (only for highlight items, not matchups)
+  const currentHighlightId =
+    currentItem?.type === 'highlight' ? currentItem.data.id : null;
+  const {
+    reactions,
+    isLoading: reactionsLoading,
+    addReaction,
+    removeReaction,
+  } = useHighlightReactions(currentHighlightId);
 
   // Track view when item changes (only for highlights)
   // Note: Matchup highlights are auto-marked as viewed server-side when they appear in the feed
@@ -105,6 +120,15 @@ export default function FeedPage() {
       setScrollPosition(targetScrollY);
     }
   }, [currentIndex, targetScrollY, isSnapping]);
+
+  // Reaction handlers
+  const handleReact = async (emojiId: EmojiId) => {
+    await addReaction(emojiId);
+  };
+
+  const handleRemoveReaction = async () => {
+    await removeReaction();
+  };
 
   // Swipe/drag handlers for infinite scroll navigation
   // Note: Feed handles vertical (up/down) swipes, matchups handle horizontal (left/right) swipes
@@ -318,6 +342,15 @@ export default function FeedPage() {
                     creator={highlight.creator}
                     prompt={highlight.prompt}
                   />
+
+                  <ReactionPanel
+                    highlightId={highlight.id}
+                    reactions={reactions}
+                    isLoading={reactionsLoading}
+                    onReact={handleReact}
+                    onRemoveReaction={handleRemoveReaction}
+                    onOpenModal={() => setIsReactionModalOpen(true)}
+                  />
                 </>
               )}
             </>
@@ -371,6 +404,15 @@ export default function FeedPage() {
           </div>
         )}
       </div>
+
+      {/* Reaction Modal */}
+      <ReactionModal
+        isOpen={isReactionModalOpen}
+        onClose={() => setIsReactionModalOpen(false)}
+        reactions={reactions}
+        onReact={handleReact}
+        onRemoveReaction={handleRemoveReaction}
+      />
     </div>
   );
 }
