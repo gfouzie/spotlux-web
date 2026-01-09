@@ -35,7 +35,7 @@ export default function ReactionPanel({
   }
 
   return (
-    <div className="absolute bottom-24 left-4 z-20 flex items-center gap-2">
+    <div className="flex items-center gap-2">
       {/* Top 3 reactions */}
       {topReactions.map((reaction) => (
         <button

@@ -6,11 +6,14 @@ import { useFeedData } from '@/hooks/useFeedData';
 import { useBufferedVideos } from '@/hooks/useBufferedVideos';
 import { useVideoNavigation } from '@/hooks/useVideoNavigation';
 import { useHighlightReactions } from '@/hooks/useHighlightReactions';
+import { useHighlightComments } from '@/hooks/useHighlightComments';
 import { EmojiId } from '@/api/reactions';
 import VideoControls from './VideoControls';
 import VideoOverlay from './VideoOverlay';
 import ReactionPanel from './ReactionPanel';
 import ReactionModal from './ReactionModal';
+import CommentButton from './CommentButton';
+import CommentModal from './CommentModal';
 import MatchupCard from '@/components/matchup/MatchupCard';
 
 export default function FeedPage() {
@@ -19,6 +22,7 @@ export default function FeedPage() {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isSnapping, setIsSnapping] = useState(false);
   const [isReactionModalOpen, setIsReactionModalOpen] = useState(false);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
   // Feed data management
   const {
@@ -57,6 +61,19 @@ export default function FeedPage() {
     addReaction,
     removeReaction,
   } = useHighlightReactions(currentHighlightId);
+
+  // Comments for current highlight (only for highlight items, not matchups)
+  const {
+    comments,
+    totalCount: commentCount,
+    isLoading: commentsLoading,
+    addComment,
+    deleteComment,
+    likeComment,
+    unlikeComment,
+    loadMore: loadMoreComments,
+    hasMore: hasMoreComments,
+  } = useHighlightComments(currentHighlightId);
 
   // Track view when item changes (only for highlights)
   // Note: Matchup highlights are auto-marked as viewed server-side when they appear in the feed
@@ -343,14 +360,22 @@ export default function FeedPage() {
                     prompt={highlight.prompt}
                   />
 
-                  <ReactionPanel
-                    highlightId={highlight.id}
-                    reactions={reactions}
-                    isLoading={reactionsLoading}
-                    onReact={handleReact}
-                    onRemoveReaction={handleRemoveReaction}
-                    onOpenModal={() => setIsReactionModalOpen(true)}
-                  />
+                  {/* Reactions and Comments - bottom left overlay */}
+                  <div className="absolute bottom-24 left-4 z-20 flex items-center gap-2">
+                    <ReactionPanel
+                      highlightId={highlight.id}
+                      reactions={reactions}
+                      isLoading={reactionsLoading}
+                      onReact={handleReact}
+                      onRemoveReaction={handleRemoveReaction}
+                      onOpenModal={() => setIsReactionModalOpen(true)}
+                    />
+                    <CommentButton
+                      commentCount={commentCount}
+                      onClick={() => setIsCommentModalOpen(true)}
+                      isLoading={commentsLoading && comments.length === 0}
+                    />
+                  </div>
                 </>
               )}
             </>
@@ -412,6 +437,21 @@ export default function FeedPage() {
         reactions={reactions}
         onReact={handleReact}
         onRemoveReaction={handleRemoveReaction}
+      />
+
+      {/* Comment Modal */}
+      <CommentModal
+        isOpen={isCommentModalOpen}
+        onClose={() => setIsCommentModalOpen(false)}
+        comments={comments}
+        totalCount={commentCount}
+        isLoading={commentsLoading}
+        hasMore={hasMoreComments}
+        onAddComment={addComment}
+        onDeleteComment={deleteComment}
+        onLikeComment={likeComment}
+        onUnlikeComment={unlikeComment}
+        onLoadMore={loadMoreComments}
       />
     </div>
   );
