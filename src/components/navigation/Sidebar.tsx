@@ -7,9 +7,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Settings, LogOut, ArrowLeft, ArrowRight } from 'iconoir-react';
+import { Settings, LogOut, ArrowLeft, ArrowRight, Plus } from 'iconoir-react';
 import { navigationItems } from '@/constants/navigation';
 import { superuserNavigationItems } from '@/constants/superuserNavigation';
+import PostModal from '@/components/common/PostModal';
 
 interface SidebarProps {
   className?: string;
@@ -34,6 +35,7 @@ const Sidebar = ({ className = '' }: SidebarProps) => {
   // Use a simple counter to force re-renders when localStorage changes
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 
   // Save sidebar state to localStorage when it changes
   const handleToggleCollapse = () => {
@@ -162,7 +164,24 @@ const Sidebar = ({ className = '' }: SidebarProps) => {
 
       {/* Main Navigation */}
       <nav className="flex-1 p-4 space-y-2">
-        {navigationItems.map((item) => (
+        {/* Home (first item) */}
+        <NavItem key={navigationItems[0].name} item={navigationItems[0]} />
+
+        {/* Post Button */}
+        <button
+          type="button"
+          onClick={() => setIsPostModalOpen(true)}
+          className={`w-full flex items-center px-4 py-3 rounded-lg group cursor-pointer ${
+            !isCollapsed ? 'space-x-3' : 'justify-center'
+          } text-text-col hover:bg-bg-col/50 hover:border-l-4 hover:border-accent-col/50 transition-all border-l-4 border-transparent`}
+          title={isCollapsed ? 'Post' : undefined}
+        >
+          <Plus width={24} height={24} strokeWidth={2} />
+          {!isCollapsed && <span className="font-medium">Post</span>}
+        </button>
+
+        {/* Rest of navigation items (Search, Messages, Profile) */}
+        {navigationItems.slice(1).map((item) => (
           <NavItem key={item.name} item={item} />
         ))}
 
@@ -190,6 +209,12 @@ const Sidebar = ({ className = '' }: SidebarProps) => {
           {!isCollapsed && <span className="font-medium">Logout</span>}
         </button>
       </div>
+
+      {/* Post Modal */}
+      <PostModal
+        isOpen={isPostModalOpen}
+        onClose={() => setIsPostModalOpen(false)}
+      />
     </div>
   );
 };
