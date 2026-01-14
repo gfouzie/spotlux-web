@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Button from './Button';
+import { formatDuration } from '@/lib/dateUtils';
 
 interface VideoCropStepProps {
   videoFile: File;
@@ -220,12 +221,6 @@ export default function VideoCropStep({
     };
   }, [dragging, dragStartX, dragStartValues, trimStart, trimEnd, duration, maxDuration]);
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
   const handleConfirm = async () => {
     if (!videoRef.current) return;
 
@@ -366,7 +361,7 @@ export default function VideoCropStep({
 
         {/* Time display */}
         <p className="text-text-col/60 text-sm text-center">
-          {formatTime(trimStart)} - {formatTime(trimEnd)}
+          {formatDuration(trimStart)} - {formatDuration(trimEnd)}
         </p>
 
         {/* Warning if duration exceeds max */}

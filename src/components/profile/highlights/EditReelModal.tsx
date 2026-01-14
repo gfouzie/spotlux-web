@@ -674,9 +674,9 @@ export default function EditReelModal({
                     <p className="text-sm text-text-col font-medium">
                       Clip #{index + 1}
                     </p>
-                    {highlight?.promptName && (
+                    {highlight?.prompt?.name && (
                       <p className="text-xs text-text-col/60 truncate">
-                        {highlight.promptName}
+                        {highlight.prompt.name}
                       </p>
                     )}
                   </div>

@@ -3,6 +3,7 @@
 import { Friendship } from '@/api/friendships';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
+import { formatShortDate } from '@/lib/dateUtils';
 
 interface SentRequestsTabProps {
   requests: Friendship[];
@@ -52,7 +53,7 @@ const SentRequestsTab = ({
                   User ID: {request.addresseeId}
                 </div>
                 <div className="text-sm text-text-col/60">
-                  Sent {new Date(request.createdAt).toLocaleDateString()}
+                  Sent {formatShortDate(request.createdAt)}
                 </div>
               </div>
               <div className="text-sm text-text-col/60">Pending</div>

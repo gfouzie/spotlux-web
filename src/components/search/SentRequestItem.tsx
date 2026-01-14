@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import { FriendshipWithAddressee } from '@/api/friendships';
 import Button from '@/components/common/Button';
+import { formatShortDate } from '@/lib/dateUtils';
 
 interface SentRequestItemProps {
   request: FriendshipWithAddressee;
@@ -40,7 +41,7 @@ function SentRequestItem({ request, onCancel }: SentRequestItemProps) {
           <div className="font-medium text-text-col">{displayName}</div>
           <div className="text-sm text-text-col/60">@{addressee.username}</div>
           <div className="text-xs text-text-col/60 mt-1">
-            Sent {new Date(request.createdAt).toLocaleDateString()}
+            Sent {formatShortDate(request.createdAt)}
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { Friendship } from '@/api/friendships';
 import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
+import { formatShortDate } from '@/lib/dateUtils';
 
 interface ReceivedRequestsTabProps {
   requests: Friendship[];
@@ -54,7 +55,7 @@ const ReceivedRequestsTab = ({
                   User ID: {request.requesterId}
                 </div>
                 <div className="text-sm text-text-col/60">
-                  Sent {new Date(request.createdAt).toLocaleDateString()}
+                  Sent {formatShortDate(request.createdAt)}
                 </div>
               </div>
               <div className="flex gap-2">

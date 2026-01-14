@@ -1,5 +1,5 @@
-import FeedPage from '../feed/FeedPage';
+import HomePage from '@/components/home/HomePage';
 
 export default function Dashboard() {
-  return <FeedPage />;
+  return <HomePage />;
 }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Heart, HeartSolid, Trash } from 'iconoir-react';
 import { Comment } from '@/api/comments';
 import { useUser } from '@/contexts/UserContext';
+import { formatRelativeTime } from '@/lib/dateUtils';
 
 interface CommentItemProps {
   comment: Comment;
@@ -39,23 +40,6 @@ export default function CommentItem({
     }
   };
 
-  // Format relative time
-  const formatTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSecs = Math.floor(diffMs / 1000);
-    const diffMins = Math.floor(diffSecs / 60);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffSecs < 60) return 'now';
-    if (diffMins < 60) return `${diffMins}m`;
-    if (diffHours < 24) return `${diffHours}h`;
-    if (diffDays < 7) return `${diffDays}d`;
-    return date.toLocaleDateString();
-  };
-
   return (
     <div className="flex gap-3 py-3">
       {/* Avatar */}
@@ -83,7 +67,7 @@ export default function CommentItem({
             {comment.author.firstName} {comment.author.lastName}
           </span>
           <span className="text-text-col/50">
-            {formatTime(comment.createdAt)}
+            {formatRelativeTime(comment.createdAt)}
           </span>
         </div>
 

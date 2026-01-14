@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import { FriendshipWithRequester } from '@/api/friendships';
 import Button from '@/components/common/Button';
+import { formatShortDate } from '@/lib/dateUtils';
 
 interface FriendRequestItemProps {
   request: FriendshipWithRequester;
@@ -45,7 +46,7 @@ function FriendRequestItem({
           <div className="font-medium text-text-col">{displayName}</div>
           <div className="text-sm text-text-col/60">@{requester.username}</div>
           <div className="text-xs text-text-col/60 mt-1">
-            {new Date(request.createdAt).toLocaleDateString()}
+            {formatShortDate(request.createdAt)}
           </div>
         </div>
       </div>

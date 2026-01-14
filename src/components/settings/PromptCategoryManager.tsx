@@ -10,6 +10,7 @@ import Button from '@/components/common/Button';
 import Input from '@/components/common/Input';
 import Alert from '@/components/common/Alert';
 import LoadingState from '@/components/common/LoadingState';
+import { formatShortDate } from '@/lib/dateUtils';
 
 export default function PromptCategoryManager() {
   const [categories, setCategories] = useState<PromptCategory[]>([]);
@@ -182,7 +183,7 @@ export default function PromptCategoryManager() {
               <div>
                 <h3 className="text-text-col font-medium">{category?.name}</h3>
                 <p className="text-text-col/60 text-sm">
-                  Created {new Date(category?.createdAt).toLocaleDateString()}
+                  Created {formatShortDate(category?.createdAt)}
                 </p>
               </div>
 

@@ -13,6 +13,7 @@ import Input from '@/components/common/Input';
 import Select from '@/components/common/Select';
 import Textarea from '@/components/common/Textarea';
 import Alert from '@/components/common/Alert';
+import { formatShortDate } from '@/lib/dateUtils';
 
 const PromptsPage = () => {
   const { isAuthenticated } = useAuth();
@@ -289,7 +290,7 @@ const PromptsPage = () => {
                     </p>
                   )}
                   <div className="text-xs text-text-col/50 mt-2">
-                    Created: {new Date(prompt.createdAt).toLocaleDateString()}
+                    Created: {formatShortDate(prompt.createdAt)}
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">
