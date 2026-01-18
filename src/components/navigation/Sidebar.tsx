@@ -5,12 +5,14 @@ import { useUser } from '@/contexts/UserContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Settings, LogOut, ArrowLeft, ArrowRight, Plus } from 'iconoir-react';
 import { navigationItems } from '@/constants/navigation';
 import { superuserNavigationItems } from '@/constants/superuserNavigation';
 import PostModal from '@/components/common/PostModal';
+import HighlightUploadModal from '@/components/profile/highlights/HighlightUploadModal';
+import { highlightReelsApi, type HighlightReel } from '@/api/highlightReels';
 
 interface SidebarProps {
   className?: string;
@@ -36,6 +38,10 @@ const Sidebar = ({ className = '' }: SidebarProps) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [refreshKey, setRefreshKey] = useState(0);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [isHighlightUploadModalOpen, setIsHighlightUploadModalOpen] = useState(false);
+  const [selectedReelId, setSelectedReelId] = useState<number | undefined>(undefined);
+  const [selectedSport, setSelectedSport] = useState<string>('');
+  const [reels, setReels] = useState<HighlightReel[]>([]);
 
   // Save sidebar state to localStorage when it changes
   const handleToggleCollapse = () => {
@@ -43,6 +49,38 @@ const Sidebar = ({ className = '' }: SidebarProps) => {
     localStorage.setItem('spotlux-sidebar-collapsed', JSON.stringify(newState));
     // Force re-render by updating refresh key
     setRefreshKey((prev) => prev + 1);
+  };
+
+  // Load user's reels when authenticated
+  useEffect(() => {
+    const loadReels = async () => {
+      if (!isAuthenticated) return;
+      try {
+        const userReels = await highlightReelsApi.getHighlightReels({});
+        setReels(userReels);
+      } catch (error) {
+        console.error('Failed to load reels:', error);
+      }
+    };
+    loadReels();
+  }, [isAuthenticated]);
+
+  // Handle opening highlight upload modal from PostModal
+  const handleOpenHighlightUpload = (reelId: number, sport: string) => {
+    setSelectedReelId(reelId);
+    setSelectedSport(sport);
+    setIsHighlightUploadModalOpen(true);
+  };
+
+  // Handle highlight upload success
+  const handleHighlightUploadSuccess = async () => {
+    // Reload reels
+    try {
+      const userReels = await highlightReelsApi.getHighlightReels({});
+      setReels(userReels);
+    } catch (error) {
+      console.error('Failed to reload reels:', error);
+    }
   };
 
   const logoSrc =
@@ -214,6 +252,17 @@ const Sidebar = ({ className = '' }: SidebarProps) => {
       <PostModal
         isOpen={isPostModalOpen}
         onClose={() => setIsPostModalOpen(false)}
+        onOpenHighlightUpload={handleOpenHighlightUpload}
+      />
+
+      {/* Highlight Upload Modal */}
+      <HighlightUploadModal
+        isOpen={isHighlightUploadModalOpen}
+        onClose={() => setIsHighlightUploadModalOpen(false)}
+        onSuccess={handleHighlightUploadSuccess}
+        reelId={selectedReelId}
+        reels={reels.map((r) => ({ id: r.id, name: r.name }))}
+        sport={selectedSport}
       />
     </div>
   );

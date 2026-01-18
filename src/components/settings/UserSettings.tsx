@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import Button from '@/components/common/Button';
+import Select from '@/components/common/Select';
 import { feedApi } from '@/api/feed';
+import { profileApi, UserVisibility } from '@/api/profile';
 
 interface UserSettingsProps {
   user?: {
@@ -22,6 +24,44 @@ const UserSettings = ({ user }: UserSettingsProps) => {
   const { theme, toggleTheme } = useTheme();
   const [isResetting, setIsResetting] = useState(false);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<UserVisibility>('public');
+  const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
+  const [visibilityMessage, setVisibilityMessage] = useState<string | null>(null);
+
+  // Load current profile visibility
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!isAuthenticated) return;
+
+      try {
+        const profile = await profileApi.getProfile();
+        setVisibility(profile.visibility || 'public');
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      }
+    };
+
+    loadProfile();
+  }, [isAuthenticated]);
+
+  const handleVisibilityChange = async (newVisibility: UserVisibility) => {
+    setIsUpdatingVisibility(true);
+    setVisibilityMessage(null);
+
+    try {
+      await profileApi.updateProfile({ visibility: newVisibility });
+      setVisibility(newVisibility);
+      setVisibilityMessage('Profile visibility updated successfully!');
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setVisibilityMessage(null), 3000);
+    } catch (error) {
+      console.error('Failed to update visibility:', error);
+      setVisibilityMessage('Failed to update visibility. Please try again.');
+    } finally {
+      setIsUpdatingVisibility(false);
+    }
+  };
 
   const handleResetFeedHistory = async () => {
     if (
@@ -123,7 +163,39 @@ const UserSettings = ({ user }: UserSettingsProps) => {
         </h3>
 
         <div className="space-y-3">
-          <div className="flex justify-between items-center py-2">
+          <div className="py-2 border-b border-text-col/10">
+            <div className="mb-2">
+              <span className="text-sm font-medium text-text-col">
+                Profile Visibility
+              </span>
+              <p className="text-xs text-text-col/60">
+                Control who can view your profile and friends list
+              </p>
+            </div>
+            <Select
+              label=""
+              value={visibility}
+              onChange={(e) => handleVisibilityChange(e.target.value as UserVisibility)}
+              options={[
+                { value: 'public', label: 'Public - Anyone can view your profile' },
+                { value: 'private', label: 'Private - Only friends can view your profile' },
+              ]}
+              disabled={isUpdatingVisibility}
+            />
+            {visibilityMessage && (
+              <div
+                className={`mt-2 p-2 rounded text-xs ${
+                  visibilityMessage.includes('successfully')
+                    ? 'bg-green-500/10 border border-green-500/20 text-green-500'
+                    : 'bg-red-500/10 border border-red-500/20 text-red-500'
+                }`}
+              >
+                {visibilityMessage}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between items-center py-2 border-b border-text-col/10">
             <div>
               <span className="text-sm font-medium text-text-col">
                 Password

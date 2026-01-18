@@ -7,6 +7,7 @@ import Alert from '@/components/common/Alert';
 import VideoCropStep from '@/components/common/VideoCropStep';
 import { Upload, Xmark } from 'iconoir-react';
 import { promptsApi, Prompt } from '@/api/prompts';
+import { HighlightVisibility } from '@/api/highlights';
 import { cn } from '@/lib/utils';
 import { validateVideoFile } from '@/lib/compression';
 import { compressAndUploadHighlight } from '@/lib/highlights/uploadHelper';
@@ -38,6 +39,7 @@ export default function HighlightUploadModal({
   const [selectedPromptId, setSelectedPromptId] = useState<number | undefined>(
     undefined
   );
+  const [selectedVisibility, setSelectedVisibility] = useState<HighlightVisibility>('public');
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState(0);
@@ -136,6 +138,7 @@ export default function HighlightUploadModal({
         reelId: selectedReelId,
         videoFile,
         promptId: selectedPromptId,
+        visibility: selectedVisibility,
         onCompressionProgress: (progress) => {
           setCompressionProgress(progress);
         },
@@ -166,6 +169,7 @@ export default function HighlightUploadModal({
     setIsCropping(false);
     setSelectedReelId(reelId);
     setSelectedPromptId(undefined);
+    setSelectedVisibility('public');
     setUploadStatus('idle');
     setCompressionProgress(0);
     setCompressedVideoSize(0);
@@ -249,6 +253,19 @@ export default function HighlightUploadModal({
                   })),
                 ]
           }
+        />
+
+        {/* Visibility Selection */}
+        <Select
+          label="Who can see this?"
+          value={selectedVisibility}
+          onChange={(e) => setSelectedVisibility(e.target.value as HighlightVisibility)}
+          options={[
+            { value: 'public', label: 'Public - Everyone can see' },
+            { value: 'friends_only', label: 'Friends only' },
+            { value: 'private', label: 'Private - Only you' },
+          ]}
+          required
         />
 
         {/* Video Upload */}

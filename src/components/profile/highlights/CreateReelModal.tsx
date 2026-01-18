@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import Modal from '@/components/common/Modal';
 import Input from '@/components/common/Input';
-import Select from '@/components/common/Select';
-import Button from '@/components/common/Button';
 import Alert from '@/components/common/Alert';
 import {
   highlightReelsApi,
@@ -26,7 +24,6 @@ export default function CreateReelModal({
 }: CreateReelModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    visibility: 'private' as 'private' | 'public' | 'friends_only',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,13 +37,12 @@ export default function CreateReelModal({
       const createRequest: HighlightReelCreateRequest = {
         name: formData.name,
         sport: sport,
-        visibility: formData.visibility,
       };
 
       await highlightReelsApi.createHighlightReel(createRequest);
 
       // Reset form
-      setFormData({ name: '', visibility: 'private' });
+      setFormData({ name: '' });
       onSuccess();
       onClose();
     } catch (err) {
@@ -57,7 +53,7 @@ export default function CreateReelModal({
   };
 
   const handleClose = () => {
-    setFormData({ name: '', visibility: 'private' });
+    setFormData({ name: '' });
     setError(null);
     onClose();
   };
@@ -89,29 +85,6 @@ export default function CreateReelModal({
           placeholder="e.g., Best Plays 2024"
           required
           maxLength={100}
-        />
-
-        <Select
-          label="Visibility"
-          value={formData.visibility}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              visibility: e.target.value as
-                | 'private'
-                | 'public'
-                | 'friends_only',
-            })
-          }
-          options={[
-            { value: 'private', label: 'Private - Only you can see' },
-            {
-              value: 'friends_only',
-              label: 'Friends Only - Only friends can see',
-            },
-            { value: 'public', label: 'Public - Everyone can see' },
-          ]}
-          required
         />
 
         <div className="bg-bg-col/30 p-3 rounded">

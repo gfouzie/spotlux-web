@@ -6,7 +6,7 @@ import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
 import ProfilePictureSection from '@/components/profile/ProfilePictureSection';
 import ProfileSportSelector from '@/components/profile/ProfileSportSelector';
 import { profileApi, type UserProfile } from '@/api/profile';
-import { userApi, type User } from '@/api/user';
+import { userApi, type User, type UserReadLimited } from '@/api/user';
 import { useUser } from '@/contexts/UserContext';
 import {
   ProfileSportProvider,
@@ -31,7 +31,7 @@ function ProfileContent({ username }: ProfilePageProps) {
     selectedSport,
     isLoading: sportsLoading,
   } = useProfileSport();
-  const [profileUser, setProfileUser] = useState<User | UserProfile | null>(
+  const [profileUser, setProfileUser] = useState<User | UserProfile | UserReadLimited | null>(
     null
   );
   const [profileLoading, setProfileLoading] = useState(true);
@@ -44,6 +44,14 @@ function ProfileContent({ username }: ProfilePageProps) {
     isOwnProfile ||
     currentUser?.username === username ||
     currentUser?.username === profileUser?.username;
+
+  // Check if profile is limited (private and not a friend)
+  const isLimitedProfile = (user: User | UserProfile | UserReadLimited | null): user is UserReadLimited => {
+    if (!user) return false;
+    // UserReadLimited only has id, username, firstName, lastName, profileImageUrl, visibility
+    // Full User/UserProfile has accountId or email
+    return !('accountId' in user) && !('email' in user) && user.visibility === 'private';
+  };
 
   const loadProfileData = useCallback(async () => {
     if (isOwnProfile && !currentUser) {
@@ -162,25 +170,57 @@ function ProfileContent({ username }: ProfilePageProps) {
                 onProfileUpdate={loadProfileData}
               />
 
-              {/* Sport Selector - Shared across all sections */}
-              {userSports.length > 0 && <ProfileSportSelector />}
+              {/* Limited Profile View */}
+              {isLimitedProfile(profileUser) ? (
+                <div className="bg-bg-col/50 backdrop-blur-sm rounded-xl border border-text-col/20 p-8">
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-accent-col/10 flex items-center justify-center">
+                      <svg
+                        className="w-8 h-8 text-accent-col"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                      </svg>
+                    </div>
+                    <h3 className="font-medium text-text-col">
+                      This Profile is Private
+                    </h3>
+                    <p className="text-sm text-text-col/60 max-w-md">
+                      {profileUser.firstName} {profileUser.lastName} has set their profile to private.
+                      Connect with them to see their highlights, teams, and other profile information.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Sport Selector - Shared across all sections */}
+                  {userSports.length > 0 && <ProfileSportSelector />}
 
-              {/* Highlights Section */}
-              {selectedSport && (
-                <HighlightProfileContent
-                  sport={selectedSport}
-                  isOwner={isOwner}
-                  userId={profileUser.id}
-                />
+                  {/* Highlights Section */}
+                  {selectedSport && (
+                    <HighlightProfileContent
+                      sport={selectedSport}
+                      isOwner={isOwner}
+                      userId={profileUser.id}
+                    />
+                  )}
+
+                  {/* User Team Section */}
+                  <div className="bg-card-col rounded-lg p-6">
+                    <UserTeamsProfileContent
+                      isOwner={isOwner}
+                      userId={profileUser.id}
+                    />
+                  </div>
+                </>
               )}
-
-              {/* User Team Section */}
-              <div className="bg-card-col rounded-lg p-6">
-                <UserTeamsProfileContent
-                  isOwner={isOwner}
-                  userId={profileUser.id}
-                />
-              </div>
             </div>
           ) : null}
         </div>

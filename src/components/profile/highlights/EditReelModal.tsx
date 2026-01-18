@@ -15,6 +15,7 @@ import { Prompt, promptsApi } from '@/api/prompts';
 import { validateVideoFile } from '@/lib/compression';
 import { compressAndUploadHighlight } from '@/lib/highlights/uploadHelper';
 import { cn } from '@/lib/utils';
+import { HighlightVisibility } from '@/api/highlights';
 
 interface EditReelModalProps {
   isOpen: boolean;
@@ -34,9 +35,6 @@ export default function EditReelModal({
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [shouldRemoveThumbnail, setShouldRemoveThumbnail] = useState(false);
-  const [visibility, setVisibility] = useState<
-    'private' | 'public' | 'friends_only'
-  >('private');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -57,6 +55,7 @@ export default function EditReelModal({
     'idle' | 'compressing' | 'uploading' | 'success' | 'error'
   >('idle');
   const [compressedVideoSize, setCompressedVideoSize] = useState<number>(0);
+  const [selectedVisibility, setSelectedVisibility] = useState<HighlightVisibility>('public');
 
   // Load highlights for this reel
   const loadHighlights = useCallback(async () => {
@@ -92,10 +91,9 @@ export default function EditReelModal({
       loadHighlights();
       loadPrompts();
       setThumbnailPreview(reel.thumbnailUrl || null);
-      setVisibility(reel.visibility);
       setShouldRemoveThumbnail(false);
     }
-  }, [isOpen, loadHighlights, loadPrompts, reel.thumbnailUrl, reel.visibility]);
+  }, [isOpen, loadHighlights, loadPrompts, reel.thumbnailUrl]);
 
   const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -175,6 +173,7 @@ export default function EditReelModal({
   const handleRemoveVideo = () => {
     setVideoFile(null);
     setSelectedPromptId(null);
+    setSelectedVisibility('public');
     setUploadStatus('idle');
     setCompressionProgress(0);
     setCompressedVideoSize(0);
@@ -192,6 +191,7 @@ export default function EditReelModal({
         reelId: reel.id,
         videoFile: file,
         promptId: selectedPromptId || undefined,
+        visibility: selectedVisibility,
         onCompressionProgress: (progress) => {
           setCompressionProgress(progress);
         },
@@ -321,16 +321,11 @@ export default function EditReelModal({
       // Prepare update data for other fields
       const updateData: {
         thumbnailUrl?: string | null;
-        visibility?: 'private' | 'public' | 'friends_only';
       } = {};
 
       // Handle thumbnail removal (set to null)
       if (shouldRemoveThumbnail) {
         updateData.thumbnailUrl = null;
-      }
-
-      if (visibility !== reel.visibility) {
-        updateData.visibility = visibility;
       }
 
       if (Object.keys(updateData)?.length > 0) {
@@ -357,10 +352,10 @@ export default function EditReelModal({
     setOriginalVideoFile(null);
     setIsCropping(false);
     setSelectedPromptId(null);
+    setSelectedVisibility('public');
     setUploadStatus('idle');
     setCompressionProgress(0);
     setCompressedVideoSize(0);
-    setVisibility(reel.visibility);
     setError(null);
     setReorderedClips(new Set());
     setDraggedIndex(null);
@@ -398,26 +393,6 @@ export default function EditReelModal({
             {reel.sport.charAt(0).toUpperCase() + reel.sport.slice(1)}
           </p>
         </div>
-
-        {/* Visibility Setting */}
-        <Select
-          label="Visibility"
-          value={visibility}
-          onChange={(e) =>
-            setVisibility(
-              e.target.value as 'private' | 'public' | 'friends_only'
-            )
-          }
-          options={[
-            { value: 'private', label: 'Private - Only you can see' },
-            {
-              value: 'friends_only',
-              label: 'Friends Only - Only friends can see',
-            },
-            { value: 'public', label: 'Public - Everyone can see' },
-          ]}
-          required
-        />
 
         {/* Thumbnail Upload Section */}
         <div className="space-y-2">
@@ -533,6 +508,23 @@ export default function EditReelModal({
                   label: prompt.name,
                 })),
               ]}
+            />
+          )}
+
+          {/* Visibility Selection (shown before file upload) */}
+          {!videoFile && (
+            <Select
+              label="Who can see this?"
+              value={selectedVisibility}
+              onChange={(e) =>
+                setSelectedVisibility(e.target.value as HighlightVisibility)
+              }
+              options={[
+                { value: 'public', label: 'Public - Everyone can see' },
+                { value: 'friends_only', label: 'Friends only' },
+                { value: 'private', label: 'Private - Only you' },
+              ]}
+              required
             />
           )}
 

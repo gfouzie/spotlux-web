@@ -17,6 +17,11 @@ export interface RegisterUserData {
 }
 
 /**
+ * User visibility options
+ */
+export type UserVisibility = 'public' | 'private';
+
+/**
  * User response interface
  * Uses camelCase (automatically converted from snake_case by API middleware)
  */
@@ -28,6 +33,7 @@ export interface User {
   username: string;
   email: string;
   profileImageUrl: string | null;
+  visibility: UserVisibility;
   birthday: string | null;
   height: number | null;
   weight: number | null;
@@ -36,6 +42,18 @@ export interface User {
   hometownCountry?: string | null;
   tierId: number | null;
   isSuperuser: boolean;
+}
+
+/**
+ * Limited user info for private profiles when viewer is not a friend
+ */
+export interface UserReadLimited {
+  id: number;
+  username: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl: string | null;
+  visibility: 'private';
 }
 
 /**
@@ -82,10 +100,10 @@ export const userApi = {
   },
 
   /**
-   * Get user by username (public endpoint)
+   * Get user by username (authenticated endpoint - returns full or limited profile based on visibility)
    */
-  getUserByUsername: async (username: string): Promise<User> => {
-    return apiRequest<User>(
+  getUserByUsername: async (username: string): Promise<User | UserReadLimited> => {
+    return authRequest<User | UserReadLimited>(
       `${config.apiBaseUrl}/api/v1/user/${username}`
     );
   },

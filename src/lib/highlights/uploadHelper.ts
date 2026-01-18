@@ -1,11 +1,12 @@
 import { uploadApi } from '@/api/upload';
-import { highlightsApi, Highlight } from '@/api/highlights';
+import { highlightsApi, Highlight, HighlightVisibility } from '@/api/highlights';
 import { compressVideo } from '@/lib/compression';
 
 export interface UploadHighlightParams {
   reelId: number;
   videoFile: File;
   promptId?: number;
+  visibility: HighlightVisibility; // Required - must be explicitly provided
   onCompressionProgress?: (progress: number) => void;
   onStatusChange?: (status: 'compressing' | 'uploading' | 'creating') => void;
 }
@@ -35,6 +36,7 @@ export async function compressAndUploadHighlight(
     reelId,
     videoFile,
     promptId,
+    visibility,
     onCompressionProgress,
     onStatusChange,
   } = params;
@@ -67,6 +69,7 @@ export async function compressAndUploadHighlight(
       highlightReelId: reelId,
       videoUrl: fileUrl,
       promptId: promptId || undefined,
+      visibility, // Required field - always provided by caller
     });
 
     return {

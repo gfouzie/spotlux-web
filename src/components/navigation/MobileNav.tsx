@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -9,6 +9,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Settings, LogOut, Plus } from 'iconoir-react';
 import { navigationItems } from '@/constants/navigation';
 import PostModal from '@/components/common/PostModal';
+import HighlightUploadModal from '@/components/profile/highlights/HighlightUploadModal';
+import { highlightReelsApi, type HighlightReel } from '@/api/highlightReels';
 
 interface MobileNavProps {
   className?: string;
@@ -20,9 +22,45 @@ const MobileNav = ({ className = '' }: MobileNavProps) => {
   const pathname = usePathname();
   const { theme } = useTheme();
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [isHighlightUploadModalOpen, setIsHighlightUploadModalOpen] = useState(false);
+  const [selectedReelId, setSelectedReelId] = useState<number | undefined>(undefined);
+  const [selectedSport, setSelectedSport] = useState<string>('');
+  const [reels, setReels] = useState<HighlightReel[]>([]);
 
   const logoSrc =
     theme === 'light' ? '/spotlux_logo_light.png' : '/spotlux_logo_dark.png';
+
+  // Load user's reels when authenticated
+  useEffect(() => {
+    const loadReels = async () => {
+      if (!isAuthenticated) return;
+      try {
+        const userReels = await highlightReelsApi.getHighlightReels({});
+        setReels(userReels);
+      } catch (error) {
+        console.error('Failed to load reels:', error);
+      }
+    };
+    loadReels();
+  }, [isAuthenticated]);
+
+  // Handle opening highlight upload modal from PostModal
+  const handleOpenHighlightUpload = (reelId: number, sport: string) => {
+    setSelectedReelId(reelId);
+    setSelectedSport(sport);
+    setIsHighlightUploadModalOpen(true);
+  };
+
+  // Handle highlight upload success
+  const handleHighlightUploadSuccess = async () => {
+    // Reload reels
+    try {
+      const userReels = await highlightReelsApi.getHighlightReels({});
+      setReels(userReels);
+    } catch (error) {
+      console.error('Failed to reload reels:', error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -156,6 +194,17 @@ const MobileNav = ({ className = '' }: MobileNavProps) => {
       <PostModal
         isOpen={isPostModalOpen}
         onClose={() => setIsPostModalOpen(false)}
+        onOpenHighlightUpload={handleOpenHighlightUpload}
+      />
+
+      {/* Highlight Upload Modal */}
+      <HighlightUploadModal
+        isOpen={isHighlightUploadModalOpen}
+        onClose={() => setIsHighlightUploadModalOpen(false)}
+        onSuccess={handleHighlightUploadSuccess}
+        reelId={selectedReelId}
+        reels={reels.map((r) => ({ id: r.id, name: r.name }))}
+        sport={selectedSport}
       />
     </>
   );

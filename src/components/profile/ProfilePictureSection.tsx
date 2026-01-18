@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { EditPencil } from 'iconoir-react';
 import { UserProfile } from '@/api/profile';
-import { User } from '@/api/user';
+import { User, UserReadLimited } from '@/api/user';
 import { uploadApi } from '@/api/upload';
 import { compressImage } from '@/lib/compression/imageCompression';
 import FriendsListModal from '@/components/friends/FriendsListModal';
@@ -12,7 +12,7 @@ import EditProfileModal from '@/components/profile/EditProfileModal';
 import ImageCropModal from '@/components/common/ImageCropModal';
 
 interface ProfilePictureSectionProps {
-  user: User | UserProfile;
+  user: User | UserProfile | UserReadLimited;
   isOwnProfile?: boolean;
   onProfileUpdate?: () => Promise<void>;
 }
@@ -114,6 +114,9 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
     user?.lastName || null
   );
   const currentProfileImageUrl = user?.profileImageUrl;
+
+  // Check if this is a limited profile (private, non-friend view)
+  const isLimitedProfile = !('accountId' in user) && !('email' in user);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -313,65 +316,67 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
             </div>
           </div>
 
-          {/* Right: Stats vertically aligned */}
-          <div className="flex flex-col gap-1 text-right mt-8">
-            {/* Birthday */}
-            <div className="flex items-center justify-end">
-              <span className="hidden md:flex text-sm text-text-col opacity-70 mr-1">
-                Born:{' '}
-              </span>
-              <span className="text-sm text-text-col">
-                {formatBirthday(user?.birthday || null)}
-              </span>
-            </div>
+          {/* Right: Stats vertically aligned - Hide for limited profiles */}
+          {!isLimitedProfile && (
+            <div className="flex flex-col gap-1 text-right mt-8">
+              {/* Birthday */}
+              <div className="flex items-center justify-end">
+                <span className="hidden md:flex text-sm text-text-col opacity-70 mr-1">
+                  Born:{' '}
+                </span>
+                <span className="text-sm text-text-col">
+                  {formatBirthday(user?.birthday || null)}
+                </span>
+              </div>
 
-            {/* Height & Weight - Combined on mobile, separate on desktop */}
-            <div className="md:hidden flex items-center justify-end">
-              <span className="text-sm text-text-col">
-                {formatHeight(user?.height || null)} •{' '}
-                {formatWeight(user?.weight || null)}
-              </span>
-            </div>
+              {/* Height & Weight - Combined on mobile, separate on desktop */}
+              <div className="md:hidden flex items-center justify-end">
+                <span className="text-sm text-text-col">
+                  {formatHeight(user?.height || null)} •{' '}
+                  {formatWeight(user?.weight || null)}
+                </span>
+              </div>
 
-            <div className="hidden md:flex items-center justify-end">
-              <span className="text-sm text-text-col opacity-70 mr-1">
-                Height:{' '}
-              </span>
-              <span className="text-sm text-text-col">
-                {formatHeight(user?.height || null)}
-              </span>
-            </div>
-            <div className="hidden md:flex items-center justify-end">
-              <span className="text-sm text-text-col opacity-70 mr-1">
-                Weight:{' '}
-              </span>
-              <span className="text-sm text-text-col">
-                {formatWeight(user?.weight || null)}
-              </span>
-            </div>
+              <div className="hidden md:flex items-center justify-end">
+                <span className="text-sm text-text-col opacity-70 mr-1">
+                  Height:{' '}
+                </span>
+                <span className="text-sm text-text-col">
+                  {formatHeight(user?.height || null)}
+                </span>
+              </div>
+              <div className="hidden md:flex items-center justify-end">
+                <span className="text-sm text-text-col opacity-70 mr-1">
+                  Weight:{' '}
+                </span>
+                <span className="text-sm text-text-col">
+                  {formatWeight(user?.weight || null)}
+                </span>
+              </div>
 
-            {/* Hometown - City/State on mobile, full on desktop */}
-            <div className="md:hidden flex items-center justify-end">
-              <span className="text-sm text-text-col">
-                {formatHometownMobile(
-                  user?.hometownCity || null,
-                  user?.hometownState || null
-                )}
-              </span>
+              {/* Hometown - City/State on mobile, full on desktop */}
+              <div className="md:hidden flex items-center justify-end">
+                <span className="text-sm text-text-col">
+                  {formatHometownMobile(
+                    user?.hometownCity || null,
+                    user?.hometownState || null
+                  )}
+                </span>
+              </div>
+              <div className="hidden md:flex items-center justify-end">
+                <span className="text-sm text-text-col opacity-70 mr-1">
+                  Hometown:{' '}
+                </span>
+                <span className="text-sm text-text-col">
+                  {formatHometown(
+                    user?.hometownCity || null,
+                    user?.hometownState || null,
+                    user?.hometownCountry || null
+                  )}
+                </span>
+              </div>
             </div>
-            <div className="hidden md:flex items-center justify-end">
-              <span className="text-sm text-text-col opacity-70 mr-1">
-                Hometown:{' '}
-              </span>
-              <span className="text-sm text-text-col">
-                {formatHometown(
-                  user?.hometownCity || null,
-                  user?.hometownState || null,
-                  user?.hometownCountry || null
-                )}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 

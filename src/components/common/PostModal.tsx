@@ -14,6 +14,7 @@ import LifestylePostCreate from '@/components/lifestyle/LifestylePostCreate';
 interface PostModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenHighlightUpload?: (reelId: number, sport: string) => void;
 }
 
 type ModalStep =
@@ -22,7 +23,7 @@ type ModalStep =
   | 'lifestyle-select-prompt'
   | 'lifestyle-create-post';
 
-const PostModal = ({ isOpen, onClose }: PostModalProps) => {
+const PostModal = ({ isOpen, onClose, onOpenHighlightUpload }: PostModalProps) => {
   const { user } = useUser();
   const [step, setStep] = useState<ModalStep>('select-type');
 
@@ -87,7 +88,13 @@ const PostModal = ({ isOpen, onClose }: PostModalProps) => {
 
   const handleCreateHighlight = () => {
     if (!selectedReelId) return;
-    // TODO: Open HighlightUploadModal (pass reel ID)
+
+    // Call the parent's callback to open the HighlightUploadModal
+    if (onOpenHighlightUpload) {
+      onOpenHighlightUpload(selectedReelId, selectedSport);
+    }
+
+    // Close this modal
     onClose();
   };
 

@@ -2,6 +2,11 @@ import { config } from '@/lib/config';
 import { authRequest } from './client';
 
 /**
+ * User visibility options
+ */
+export type UserVisibility = 'public' | 'private';
+
+/**
  * User profile interface
  * Uses camelCase (automatically converted from snake_case by API middleware)
  */
@@ -19,6 +24,7 @@ export interface UserProfile {
   hometownState: string | null;
   hometownCountry: string | null;
   profileImageUrl: string;
+  visibility: UserVisibility;
   tierId: number | null;
   isSuperuser: boolean;
 }
@@ -37,6 +43,7 @@ export interface ProfileUpdateRequest {
   hometownState?: string | null;
   hometownCountry?: string | null;
   profileImageUrl?: string | null;
+  visibility?: UserVisibility;
 }
 
 export const profileApi = {
