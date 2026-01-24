@@ -39,7 +39,7 @@ npm run lint
 
 **Routing Structure** (App Router):
 
-- `/` - Home feed (authenticated) - Shows H H M pattern of highlights and matchups
+- `/` - Home feed (authenticated) - Unified feed with dynamic diversity scoring (highlights + matchups + lifestyle)
 - `/login` - Authentication
 - `/register` - User registration
 - `/profile` - User profile with highlights management (authenticated)
@@ -206,13 +206,16 @@ src/components/
 │   ├── Input/
 │   └── LoadingState.tsx
 ├── dashboard/           # Dashboard views
-├── feed/                # Home feed components
-│   ├── FeedPage.tsx
-│   ├── FeedItem.tsx
-│   ├── VideoControls.tsx
-│   ├── VideoOverlay.tsx
+├── feed/                # Unified feed components
+│   ├── UnifiedFeedPage.tsx     # Main feed page with infinite scroll
+│   ├── HighlightItem.tsx       # Full-screen highlight with reactions/comments/mute
+│   ├── MatchupItem.tsx         # Wrapper for MatchupCard in feed
+│   ├── LifestyleItem.tsx       # Lifestyle aggregate carousel
+│   ├── VideoOverlay.tsx        # Video metadata overlay (creator, prompt, stats)
 │   ├── ReactionPanel.tsx       # Top 3 reactions + smiley button
-│   └── ReactionModal.tsx       # Full emoji grid modal
+│   ├── ReactionModal.tsx       # Full emoji grid modal
+│   ├── CommentButton.tsx       # Comment count button
+│   └── CommentModal.tsx        # Comment list and input modal
 ├── footer/              # Footer component
 ├── friends/             # Friends feature components
 │   ├── FriendsPage.tsx
@@ -656,10 +659,13 @@ Modal-based image cropper with:
 
 **Location**: `src/hooks/`
 
-- **useFeedData.ts** - Feed state management (items, pagination, view tracking, infinite scroll)
+- **useUnifiedFeed.ts** - Unified feed state management
   - Manages feed items array, cursor, hasMore state
-  - Loads initial 3 items, then 1 at a time for infinite scroll
-  - Handles view tracking for highlights
+  - Infinite scroll with cursor-based pagination
+  - Auto-loads initial content, loads more on scroll
+  - Backend handles view tracking automatically
+  - State: `items`, `isLoading`, `error`, `hasMore`
+  - Methods: `loadMore()`, `refresh()`
 
 - **useMatchupVoting.ts** - Matchup vote handling
   - `castVote(matchupId, highlightId, comment?)` - Submit vote
@@ -681,6 +687,419 @@ Modal-based image cropper with:
   - Handles aggregate view tracking
   - State: `items`, `isLoading`, `error`, `hasMore`, `nextCursor`
   - Methods: `loadMore()`, `refresh()`
+
+## Unified Feed Implementation
+
+### Overview
+
+The unified feed (`UnifiedFeedPage.tsx`) is the home page experience combining three content types:
+- **Highlights** - Individual video clips with reactions, comments, and mute controls
+- **Matchups** - Head-to-head video comparisons with voting
+- **Lifestyle** - Daily activity aggregates in carousel format
+
+**Architecture**: Vertical snap-scroll infinite feed with viewport-based activation and buffer optimization.
+
+### Component Structure
+
+**Main Feed Component** (`src/components/feed/UnifiedFeedPage.tsx`):
+
+```typescript
+export default function UnifiedFeedPage() {
+  const { items, isLoading, hasMore, error, loadMore } = useUnifiedFeed();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Key features:
+  // - IntersectionObserver for detecting current visible item
+  // - Auto-load more when approaching end (remainingItems <= 2)
+  // - Buffer optimization (only render current ± 1 items)
+  // - SSR-safe container height calculation
+  // - Error recovery UI with retry button
+  // - Empty state and "all caught up" messaging
+}
+```
+
+**Key Implementation Details**:
+
+1. **Container Height Calculation** (SSR-safe):
+   ```typescript
+   const [containerHeight, setContainerHeight] = useState<number | null>(null);
+
+   useEffect(() => {
+     const calculateHeight = () => {
+       const isMobile = window.innerWidth < 768;
+       if (isMobile) {
+         return window.innerHeight - HEADER_HEIGHT - FOOTER_HEIGHT;
+       }
+       return window.innerHeight; // Desktop: full viewport
+     };
+     setContainerHeight(calculateHeight());
+   }, []);
+   ```
+
+2. **IntersectionObserver** (memory leak prevention):
+   ```typescript
+   useEffect(() => {
+     const observer = new IntersectionObserver((entries) => {
+       entries.forEach((entry) => {
+         if (entry.isIntersecting) {
+           const index = parseInt(entry.target.getAttribute('data-index') || '0');
+           setCurrentIndex(index);
+         }
+       });
+     }, { root: containerRef.current, threshold: 0.5 });
+
+     // Only observe items in buffer range (current ± 2)
+     const itemElements = containerRef.current.querySelectorAll('[data-index]');
+     itemElements.forEach((el, index) => {
+       if (Math.abs(index - currentIndex) <= 2) {
+         observer.observe(el);
+       }
+     });
+
+     return () => observer.disconnect();
+   }, [items.length, currentIndex]);
+   ```
+
+3. **Infinite Scroll Trigger**:
+   ```typescript
+   useEffect(() => {
+     const remainingItems = items.length - currentIndex;
+     // Prevent infinite loop if loadMore fails repeatedly
+     if (hasMore && !isLoading && !error && remainingItems <= 2) {
+       loadMore();
+     }
+   }, [currentIndex, items.length, hasMore, isLoading, error, loadMore]);
+   ```
+
+4. **Buffer Optimization** (render current ± 1):
+   ```typescript
+   const isActive = index === currentIndex;
+   const inBuffer = Math.abs(index - currentIndex) <= 1;
+
+   {!inBuffer ? (
+     <div style={{ height: containerHeight || '100vh' }} />
+   ) : (
+     // Render actual component
+   )}
+   ```
+
+5. **React Key Uniqueness** (handles transient matchups):
+   ```typescript
+   // In feed.ts getMixedFeed():
+   const matchupId = item.matchup.id === 0
+     ? `${item.matchup.highlightAId}_${item.matchup.highlightBId}`  // Composite ID
+     : item.matchup.id.toString();  // Real ID
+
+   return {
+     type: 'matchup' as const,
+     id: `matchup-${matchupId}`,  // Unique key
+     data: item.matchup,
+   };
+   ```
+
+### Feed Item Components
+
+**HighlightItem** (`src/components/feed/HighlightItem.tsx`):
+
+Full-screen highlight with all interactive features:
+- **Video playback** - Auto-play/pause based on `isActive` prop
+- **Mute control** - CircleButton in top-right corner
+- **Reactions** - ReactionPanel (top 3) + ReactionModal (full grid)
+- **Comments** - CommentButton + CommentModal
+- **Video overlay** - Creator info, prompt, stats
+
+```typescript
+export default function HighlightItem({ highlight, isActive }: HighlightItemProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showReactionModal, setShowReactionModal] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+
+  const {
+    reactions,
+    addReaction,
+    removeReaction,
+  } = useHighlightReactions(highlight.id);
+
+  const {
+    comments,
+    totalCount: commentCount,
+    hasMore: hasMoreComments,
+    addComment,
+    deleteComment,
+    likeComment,
+    unlikeComment,
+    loadMore: loadMoreComments,
+  } = useHighlightComments(highlight.id);
+
+  // Auto-play/pause based on isActive prop
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isActive) {
+      video.play().catch(console.error);
+    } else {
+      video.pause();
+    }
+  }, [isActive]);
+
+  return (
+    <div className="relative h-full w-full bg-black">
+      {/* Video */}
+      <video ref={videoRef} muted={isMuted} loop playsInline />
+
+      {/* Mute Button */}
+      <div className="absolute top-4 right-4">
+        <CircleButton onClick={() => setIsMuted(!isMuted)}>
+          {isMuted ? <SoundOff /> : <SoundHigh />}
+        </CircleButton>
+      </div>
+
+      {/* Video Overlay */}
+      <VideoOverlay highlight={highlight} />
+
+      {/* Reactions & Comments */}
+      <div className="absolute bottom-20 right-4">
+        <ReactionPanel
+          reactions={reactions}
+          onReactionClick={() => setShowReactionModal(true)}
+        />
+        <CommentButton
+          count={commentCount}
+          onClick={() => setShowCommentModal(true)}
+        />
+      </div>
+
+      {/* Modals */}
+      <ReactionModal /* ... */ />
+      <CommentModal /* ... */ />
+    </div>
+  );
+}
+```
+
+**MatchupItem** (`src/components/feed/MatchupItem.tsx`):
+
+Wrapper for MatchupCard that passes through `isActive` prop:
+
+```typescript
+export default function MatchupItem({ matchup, isActive }: MatchupItemProps) {
+  return (
+    <div className="w-full h-full">
+      <MatchupCard matchup={matchup} isActive={isActive} />
+    </div>
+  );
+}
+```
+
+**MatchupCard** updates:
+- Added `isActive` prop support (controls video playback)
+- Pauses both videos when `isActive={false}`
+- Auto-plays active side when `isActive={true}`
+
+**LifestyleItem** (`src/components/feed/LifestyleItem.tsx`):
+
+Daily aggregate carousel with horizontal swipe:
+- **User header** - Profile photo, username, streak, date
+- **Posts carousel** - Horizontal scroll with snap points
+- **Dot indicators** - Shows current slide position
+- **Auto-scroll to most recent** - Starts at last post
+
+```typescript
+export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProps) {
+  // Backend sends posts DESC (newest first), reverse for chronological display
+  const postsChronological = [...aggregate.posts].reverse();
+  const totalSlides = postsChronological.length;
+
+  // Start at the last slide (most recent post)
+  const [currentSlide, setCurrentSlide] = useState(totalSlides - 1);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to last slide on mount (only once)
+  useEffect(() => {
+    if (hasScrolledRef.current || totalSlides === 0) return;
+
+    const slideWidth = carousel.offsetWidth;
+    carousel.scrollTo({
+      left: slideWidth * (totalSlides - 1),
+      behavior: 'auto',
+    });
+
+    hasScrolledRef.current = true;
+  }, [totalSlides]);
+
+  // IMPORTANT: Guard against empty posts AFTER hooks (Rules of Hooks)
+  if (postsChronological.length === 0) {
+    return <EmptyState />;
+  }
+
+  return (
+    <div className="h-full w-full">
+      {/* User Header */}
+      <div className="flex items-center gap-3">
+        <img src={aggregate.profileImageUrl} />
+        <div>
+          <p>{aggregate.username}</p>
+          <p>
+            {aggregate.overallStreak > 0 && <span>🔥 {aggregate.overallStreak}</span>}
+            {formatDate(aggregate.dayDate)}
+          </p>
+        </div>
+      </div>
+
+      {/* Posts Carousel */}
+      <div ref={carouselRef} className="flex overflow-x-auto snap-x snap-mandatory">
+        {postsChronological.map((post) => (
+          <div className="flex-shrink-0 w-full snap-center">
+            <LifestyleFeedPost post={post} isCarouselSlide />
+          </div>
+        ))}
+      </div>
+
+      {/* Dot Indicators */}
+      <div className="flex justify-center gap-1.5">
+        {postsChronological.map((_, index) => (
+          <button
+            onClick={() => goToSlide(index)}
+            className={index === currentSlide ? 'bg-accent-col' : 'bg-text-col/30'}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+### useUnifiedFeed Hook
+
+**Location**: `src/hooks/useUnifiedFeed.ts`
+
+State management for unified feed with cursor-based pagination:
+
+```typescript
+export const useUnifiedFeed = () => {
+  const [items, setItems] = useState<FeedItem[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initial load
+  useEffect(() => {
+    loadMore();
+  }, []);
+
+  const loadMore = async () => {
+    if (isLoading || !hasMore) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await feedApi.getMixedFeed({
+        limit: 10,
+        cursor: nextCursor,
+        sport: undefined, // Optional filter
+      });
+
+      setItems((prev) => [...prev, ...response.items]);
+      setNextCursor(response.nextCursor);
+      setHasMore(response.hasMore);
+    } catch (err) {
+      setError('Failed to load feed');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refresh = async () => {
+    setItems([]);
+    setNextCursor(null);
+    setHasMore(true);
+    await loadMore();
+  };
+
+  return {
+    items,
+    isLoading,
+    error,
+    hasMore,
+    loadMore,
+    refresh,
+  };
+};
+```
+
+### Key Patterns & Best Practices
+
+**1. Rules of Hooks Compliance**:
+- ✅ All hooks MUST be called before any conditional returns
+- ✅ Example: LifestyleItem calls `useEffect()` before checking `if (posts.length === 0)`
+- ❌ NEVER place early returns before hooks
+
+**2. IntersectionObserver Memory Management**:
+- ✅ Only observe items in buffer range (current ± 2)
+- ✅ Disconnect observer on unmount
+- ❌ Don't observe ALL items (causes memory leak with 100+ items)
+
+**3. Infinite Loop Prevention**:
+- ✅ Add `!error` check to loadMore effect dependencies
+- ✅ Only trigger when `hasMore && !isLoading && !error`
+- ❌ Don't trigger loadMore if API keeps failing
+
+**4. React Key Uniqueness**:
+- ✅ Use composite IDs for transient matchups: `matchup-{id_a}_{id_b}`
+- ✅ Backend assigns `id: 0` to transient matchups (not in DB yet)
+- ❌ Don't use `matchup-0` as key (causes duplicates)
+
+**5. Buffer Optimization**:
+- ✅ Only render items in buffer range (current ± 1)
+- ✅ Use placeholder divs to maintain layout for out-of-buffer items
+- ✅ Reduces DOM nodes and improves performance
+
+**6. Video Playback Management**:
+- ✅ Pause videos when `isActive={false}`
+- ✅ Auto-play when `isActive={true}`
+- ✅ Handle play() rejection with `.catch()`
+
+**7. SSR Safety**:
+- ✅ Use `useState<number | null>(null)` for dimensions
+- ✅ Calculate in useEffect with `window` checks
+- ❌ Don't access `window` during initial render
+
+### Error States & Recovery
+
+**Empty State**:
+```tsx
+if (!isLoading && items.length === 0 && !hasMore) {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen">
+      <p className="text-text-muted-col">No content available</p>
+    </div>
+  );
+}
+```
+
+**Error Recovery**:
+```tsx
+{error && items.length > 0 && (
+  <div className="flex flex-col items-center gap-4">
+    <Alert variant="error">{error}</Alert>
+    <Button onClick={() => loadMore()}>Retry</Button>
+  </div>
+)}
+```
+
+**All Caught Up**:
+```tsx
+{!hasMore && items.length > 0 && (
+  <div className="flex flex-col items-center">
+    <p>🎉 You're all caught up!</p>
+  </div>
+)}
+```
 
 ## API Integration
 
@@ -716,7 +1135,11 @@ Modal-based image cropper with:
 - `reactions.ts` - Highlight reactions (get, add/update, remove)
   - Includes `EMOJI_IDS` constant and `EMOJI_MAP` for string ID to Unicode emoji conversion
 - `matchups.ts` - Matchup voting, results, current featured prompt
-- `feed.ts` - Mixed feed endpoint (getMixedFeed with cursor pagination)
+- `feed.ts` - Unified feed endpoint
+  - `getMixedFeed({ limit, cursor, sport })` - Returns `{ items, nextCursor, hasMore }`
+  - Handles transient matchup key generation (composite IDs for id=0 matchups)
+  - Auto-converts backend format to discriminated union FeedItem types
+  - `resetFeedHistory()` - DEV TOOL to clear all viewed content
 - `promptCategories.ts` - Prompt category CRUD
 - `prompts.ts` - Prompt management
 - `conversations.ts` - Messaging/DM API (create, send, mark as read)

@@ -12,6 +12,7 @@ import CircleButton from '@/components/common/CircleButton';
 interface MatchupCardProps {
   matchup: HighlightMatchup;
   onVote?: (highlightId: number) => void;
+  isActive?: boolean; // Controls video playback when in feed
 }
 
 type ActiveCard = 'A' | 'B';
@@ -31,6 +32,7 @@ type ActiveCard = 'A' | 'B';
 export default function MatchupCard({
   matchup,
   onVote,
+  isActive = true, // Default to active for standalone usage
 }: MatchupCardProps) {
   const videoARef = useRef<HTMLVideoElement>(null);
   const videoBRef = useRef<HTMLVideoElement>(null);
@@ -44,6 +46,24 @@ export default function MatchupCard({
     highlightAId: matchup.highlightAId,
     highlightBId: matchup.highlightBId,
   });
+
+  // Pause/play videos based on isActive prop (for feed integration)
+  useEffect(() => {
+    const videoA = videoARef.current;
+    const videoB = videoBRef.current;
+
+    if (!isActive) {
+      // Pause both videos when not active
+      videoA?.pause();
+      videoB?.pause();
+    } else {
+      // Resume active video when becoming active
+      const activeVideo = activeCard === 'A' ? videoA : videoB;
+      activeVideo?.play().catch(() => {
+        // Silently ignore autoplay errors
+      });
+    }
+  }, [isActive, activeCard]);
 
   // Auto-switch between videos when one ends (no looping individual videos)
   useEffect(() => {

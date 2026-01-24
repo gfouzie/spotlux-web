@@ -4,6 +4,7 @@ import { authRequest } from './client';
 import { Highlight } from './highlights';
 import { HighlightMatchup } from '@/types/matchup';
 import { FeedItem } from '@/types/feed';
+import { LifestyleDailyAggregateFeedItem } from './lifestyle';
 
 /**
  * Query parameters for fetching feed highlights
@@ -65,11 +66,11 @@ export const feedApi = {
   },
 
   /**
-   * Get mixed feed of highlights and matchups with cursor-based pagination
+   * Get unified feed with highlights, matchups, and lifestyle posts
    *
-   * Returns a personalized feed combining highlights and matchups in FeedItem format.
-   * Backend coordinates to ensure no duplicates - each highlight appears once.
-   * Interleaves matchups every 3 items (highlights at positions 0,1,3,4,6,7... matchups at 2,5,8...)
+   * Returns a personalized feed with dynamic diversity scoring.
+   * Backend uses intelligent scoring to mix content types naturally.
+   * Server-side view tracking prevents duplicate content across pagination.
    * Uses cursor-based pagination to permanently exclude viewed content.
    */
   getMixedFeed: async (params?: {
@@ -81,22 +82,9 @@ export const feedApi = {
     nextCursor: string | null;
     hasMore: boolean;
   }> => {
-    // Parse unified cursor into separate cursors for backend
-    let highlightCursor: number | undefined;
-    let matchupCursor: string | undefined;
-
-    if (params?.cursor) {
-      const parts = params.cursor.split('|');
-      if (parts.length === 2) {
-        highlightCursor = parts[0] !== 'none' ? parseInt(parts[0]) : undefined;
-        matchupCursor = parts[1] !== 'none' ? parts[1] : undefined;
-      }
-    }
-
     const queryParams = buildQueryParams({
       limit: params?.limit,
-      highlight_cursor: highlightCursor,
-      matchup_cursor: matchupCursor,
+      cursor: params?.cursor,
       sport: params?.sport,
     });
 
@@ -106,15 +94,16 @@ export const feedApi = {
 
     const response = await authRequest<{
       items: Array<{
-        type: 'highlight' | 'matchup';
+        type: 'highlight' | 'matchup' | 'lifestyle';
         highlight: Highlight | null;
         matchup: HighlightMatchup | null;
+        lifestyle: LifestyleDailyAggregateFeedItem | null;
       }>;
       nextCursor: string | null;
       hasMore: boolean;
     }>(url);
 
-    // Backend handles interleaving - just convert format
+    // Backend handles diversity scoring - just convert format
     const feedItems: FeedItem[] = response.items.map((item) => {
       if (item.type === 'highlight' && item.highlight) {
         return {
@@ -123,10 +112,21 @@ export const feedApi = {
           data: item.highlight,
         };
       } else if (item.type === 'matchup' && item.matchup) {
+        // Transient matchups (not in DB) have id=0, use highlight IDs for uniqueness
+        const matchupId = item.matchup.id === 0
+          ? `${item.matchup.highlightAId}_${item.matchup.highlightBId}`
+          : item.matchup.id.toString();
+
         return {
           type: 'matchup' as const,
-          id: `matchup-${item.matchup.id}`,
+          id: `matchup-${matchupId}`,
           data: item.matchup,
+        };
+      } else if (item.type === 'lifestyle' && item.lifestyle) {
+        return {
+          type: 'lifestyle' as const,
+          id: `lifestyle-${item.lifestyle.id}`,
+          data: item.lifestyle,
         };
       }
       throw new Error('Invalid feed item received from backend');
@@ -140,18 +140,14 @@ export const feedApi = {
   },
 
   /**
-   * Track that the user has viewed a highlight
+   * Track highlight view (DEPRECATED)
    *
-   * This is idempotent - calling it multiple times for the same highlight
-   * will not create duplicate view records.
+   * View tracking is now automatic on the server side.
+   * This method is kept for backward compatibility but does nothing.
    */
-  trackHighlightView: async (highlightId: number): Promise<void> => {
-    return authRequest<void>(
-      `${config.apiBaseUrl}/api/v1/highlights/${highlightId}/view`,
-      {
-        method: 'POST',
-      }
-    );
+  trackHighlightView: async (_highlightId: number): Promise<void> => {
+    // No-op: View tracking is now automatic server-side
+    return Promise.resolve();
   },
 
   /**

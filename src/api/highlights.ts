@@ -15,6 +15,7 @@ export interface PromptMinimal {
  */
 export interface HighlightCreator {
   username: string;
+  profileImageUrl?: string;
 }
 
 /**

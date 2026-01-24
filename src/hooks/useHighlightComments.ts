@@ -221,30 +221,35 @@ export function useHighlightComments(
     [highlightId, data]
   );
 
-  // Load more comments
+  // Load more comments - uses offset state for proper pagination
   const loadMore = useCallback(async () => {
     if (!highlightId || !data || isLoading) return;
 
-    const newOffset = data.comments.length;
+    // Calculate next offset based on current offset state, not data length
+    // This ensures correct pagination even with optimistic updates
+    const nextOffset = offset + PAGE_SIZE;
 
     try {
       const moreComments = await commentsApi.getComments(highlightId, {
-        offset: newOffset,
+        offset: nextOffset,
         limit: PAGE_SIZE,
       });
 
-      setData({
-        ...data,
-        comments: [...data.comments, ...moreComments.comments],
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          comments: [...prev.comments, ...moreComments.comments],
+        };
       });
-      setOffset(newOffset);
+      setOffset(nextOffset);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to load more comments'
       );
       console.error('Failed to load more comments:', err);
     }
-  }, [highlightId, data, isLoading]);
+  }, [highlightId, data, isLoading, offset]);
 
   const hasMore = data ? data.comments.length < data.totalCount : false;
 

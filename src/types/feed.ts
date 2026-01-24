@@ -1,17 +1,18 @@
 import { Highlight } from '@/api/highlights';
 import { HighlightMatchup } from './matchup';
+import { LifestyleDailyAggregateFeedItem } from '@/api/lifestyle';
 
 /**
  * Feed item type discriminator
  */
-export type FeedItemType = 'highlight' | 'matchup';
+export type FeedItemType = 'highlight' | 'matchup' | 'lifestyle';
 
 /**
  * Base feed item interface
  */
 export interface BaseFeedItem {
   type: FeedItemType;
-  id: string; // Composite ID for uniqueness (e.g., "highlight-123" or "matchup-456")
+  id: string; // Composite ID for uniqueness (e.g., "highlight-123", "matchup-456", or "lifestyle-789")
 }
 
 /**
@@ -31,6 +32,14 @@ export interface MatchupFeedItem extends BaseFeedItem {
 }
 
 /**
+ * Lifestyle feed item
+ */
+export interface LifestyleFeedItem extends BaseFeedItem {
+  type: 'lifestyle';
+  data: LifestyleDailyAggregateFeedItem;
+}
+
+/**
  * Union type for all feed items
  */
-export type FeedItem = HighlightFeedItem | MatchupFeedItem;
+export type FeedItem = HighlightFeedItem | MatchupFeedItem | LifestyleFeedItem;

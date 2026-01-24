@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Modal from '@/components/common/Modal';
 import CommentItem from './CommentItem';
+import Alert from '@/components/common/Alert';
 import { Comment } from '@/api/comments';
 
 interface CommentModalProps {
@@ -34,6 +35,7 @@ export default function CommentModal({
 }: CommentModalProps) {
   const [inputText, setInputText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -44,10 +46,11 @@ export default function CommentModal({
     }
   }, [isOpen]);
 
-  // Clear input when modal closes
+  // Clear input and error when modal closes
   useEffect(() => {
     if (!isOpen) {
       setInputText('');
+      setSubmitError(null);
     }
   }, [isOpen]);
 
@@ -56,6 +59,7 @@ export default function CommentModal({
       return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       await onAddComment(inputText.trim());
       setInputText('');
@@ -63,8 +67,11 @@ export default function CommentModal({
       if (listRef.current) {
         listRef.current.scrollTop = 0;
       }
-    } catch {
-      // Error handled in hook
+    } catch (err) {
+      // Show error feedback to user
+      setSubmitError(
+        err instanceof Error ? err.message : 'Failed to post comment'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -91,6 +98,12 @@ export default function CommentModal({
       <div className="flex flex-col h-[60vh] max-h-[500px]">
         {/* Comment input */}
         <div className="flex-shrink-0 pb-4 border-b border-bg-col/50">
+          {/* Error feedback */}
+          {submitError && (
+            <Alert variant="error" className="mb-3" onClose={() => setSubmitError(null)}>
+              {submitError}
+            </Alert>
+          )}
           <div className="relative">
             <textarea
               ref={inputRef}
