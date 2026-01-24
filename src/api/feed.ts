@@ -140,17 +140,6 @@ export const feedApi = {
   },
 
   /**
-   * Track highlight view (DEPRECATED)
-   *
-   * View tracking is now automatic on the server side.
-   * This method is kept for backward compatibility but does nothing.
-   */
-  trackHighlightView: async (_highlightId: number): Promise<void> => {
-    // No-op: View tracking is now automatic server-side
-    return Promise.resolve();
-  },
-
-  /**
    * Reset all feed history for the current user (DEV TOOL)
    *
    * Clears viewed highlights, voted matchups, and viewed matchups.

@@ -105,7 +105,7 @@ export const highlightsApi = {
   },
 
   /**
-   * Get all highlights for a specific reel (legacy method for backwards compatibility)
+   * Get all highlights for a specific reel
    */
   getHighlightsByReel: async (
     reelId: number,

@@ -6,6 +6,7 @@ import { formatTime } from '@/lib/dateUtils';
 interface LifestyleFeedPostProps {
   post: LifestylePostMinimal;
   isCarouselSlide?: boolean;
+  showPromptName?: boolean;
 }
 
 const LifestyleFeedPost = ({ post, isCarouselSlide = false }: LifestyleFeedPostProps) => {

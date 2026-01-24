@@ -2,25 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUser } from '@/contexts/UserContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import Button from '@/components/common/Button';
 import Select from '@/components/common/Select';
+import LoadingState from '@/components/common/LoadingState';
 import { feedApi } from '@/api/feed';
 import { profileApi, UserVisibility } from '@/api/profile';
 
-interface UserSettingsProps {
-  user?: {
-    id: number;
-    uuid: string;
-    username: string;
-    email: string;
-    firstName?: string | null;
-    lastName?: string | null;
-  };
-}
-
-const UserSettings = ({ user }: UserSettingsProps) => {
+const UserSettings = () => {
   const { isAuthenticated } = useAuth();
+  const { user, isLoading: isUserLoading } = useUser();
   const { theme, toggleTheme } = useTheme();
   const [isResetting, setIsResetting] = useState(false);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
@@ -94,6 +86,10 @@ const UserSettings = ({ user }: UserSettingsProps) => {
     );
   }
 
+  if (isUserLoading) {
+    return <LoadingState message="Loading settings..." />;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -115,14 +111,14 @@ const UserSettings = ({ user }: UserSettingsProps) => {
           <div className="flex justify-between items-center py-2 border-b border-text-col/10">
             <span className="text-sm font-medium text-text-col">Username</span>
             <span className="text-sm text-text-col/70">
-              {user?.username || 'demo_user'}
+              {user?.username || 'Not set'}
             </span>
           </div>
 
           <div className="flex justify-between items-center py-2 border-b border-text-col/10">
             <span className="text-sm font-medium text-text-col">Email</span>
             <span className="text-sm text-text-col/70">
-              {user?.email || 'user@example.com'}
+              {user?.email || 'Not set'}
             </span>
           </div>
 

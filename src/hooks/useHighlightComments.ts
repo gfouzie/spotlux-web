@@ -45,7 +45,7 @@ export function useHighlightComments(
 
       try {
         const commentsData = await commentsApi.getComments(highlightId, {
-          offset: reset ? 0 : 0, // Always fetch from beginning for now
+          offset: 0,
           limit: PAGE_SIZE,
         });
 

@@ -26,8 +26,6 @@ type ActiveCard = 'A' | 'B';
  * - Click to bring card to front
  * - Swipe or arrow buttons to vote
  * - Comment modal after voting
- * TODO (Chunk 5): Fetch actual highlight video URLs
- * TODO (Chunk 7): Add view tracking
  */
 export default function MatchupCard({
   matchup,
