@@ -174,8 +174,15 @@ export default function RegisterPage() {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword: _, ...registrationData } = state.formData;
 
+      // Add user's timezone
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const registrationWithTimezone = {
+        ...registrationData,
+        timezone,
+      };
+
       // Register and auto-login the user (backend validates age requirement)
-      const loginResponse = await userApi.registerAndLogin(registrationData);
+      const loginResponse = await userApi.registerAndLogin(registrationWithTimezone);
       console.log('User registered and logged in successfully');
 
       // Set the tokens in auth context

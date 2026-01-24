@@ -14,6 +14,7 @@ export interface RegisterUserData {
   email: string;
   password: string;
   birthday: string; // ISO date string (YYYY-MM-DD)
+  timezone: string; // IANA timezone identifier (e.g., "America/Los_Angeles")
 }
 
 /**
@@ -40,6 +41,7 @@ export interface User {
   hometownCity?: string | null;
   hometownState?: string | null;
   hometownCountry?: string | null;
+  timezone: string;
   tierId: number | null;
   isSuperuser: boolean;
 }

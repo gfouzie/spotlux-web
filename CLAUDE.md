@@ -695,11 +695,22 @@ Modal-based image cropper with:
 - Frontend uses `camelCase`
 - Automatic conversion utilities for API requests/responses
 - **Query Parameters**: Backend middleware automatically converts camelCase query params to snake_case
-  - Example: `?timezoneOffset=480` → backend receives `?timezone_offset=480`
+  - Example: `?searchText=john` → backend receives `?search_text=john`
   - Frontend can use either camelCase or snake_case in query params (both work)
   - No manual conversion needed - handled by backend middleware
 
+**Automatic Timezone Syncing**:
+- User timezone automatically synced at three touchpoints:
+  1. **Login**: `?timezone={iana_timezone}` query parameter
+  2. **Registration**: `timezone` field in request body
+  3. **Lifestyle Post Creation**: `X-Timezone` header (daily for active users)
+- Uses `Intl.DateTimeFormat().resolvedOptions().timeZone` to get IANA timezone identifier
+- Enables accurate lifestyle day calculation (3am cutoff) regardless of user location
+- Auto-updates when users travel or move
+
 **API Client Organization** (`src/api/`):
+- `auth.ts` - Authentication (login with auto timezone sync, logout, refresh)
+- `users.ts` - User profile operations (registration with timezone field)
 - `highlights.ts` - Highlight CRUD operations
 - `highlightReels.ts` - Reel management (create, update, delete, reorder)
 - `reactions.ts` - Highlight reactions (get, add/update, remove)
@@ -711,9 +722,8 @@ Modal-based image cropper with:
 - `conversations.ts` - Messaging/DM API (create, send, mark as read)
 - `lifestyle.ts` - Lifestyle tracking API (prompts, posts, aggregates, feed, streaks, calendar, insights)
   - Includes all lifestyle types: LifestylePrompt, LifestylePost, LifestyleDailyAggregate, CalendarDate, WakeTimeInsight, SleepTimeInsight, SleepDurationInsight
-  - Methods: getPromptsByCategory, getTodaysPosts, createPost, updatePost, deletePost, getAggregate, getFeed, trackAggregateView, getAllStreaks, getOverallStreak, getCalendar, getWakeTimeInsight, getSleepTimeInsight, getSleepDurationInsight
+  - Methods: getPromptsByCategory, getTodaysPosts, createPost (with X-Timezone header), updatePost, deletePost, getAggregate, getFeed, trackAggregateView, getAllStreaks, getOverallStreak, getCalendar, getWakeTimeInsight, getSleepTimeInsight, getSleepDurationInsight
 - `upload.ts` - S3 presigned URL generation
-- `users.ts` - User profile operations
 - `friendships.ts` - Friend request/accept/reject
 - `teams.ts`, `leagues.ts`, `positions.ts`, `sports.ts` - Sports data
 

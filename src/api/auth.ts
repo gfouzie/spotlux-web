@@ -26,13 +26,19 @@ export const authApi = {
    * Login user
    */
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    return apiRequest<LoginResponse>(`${config.apiBaseUrl}/api/v1/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
+    // Get user's timezone
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    return apiRequest<LoginResponse>(
+      `${config.apiBaseUrl}/api/v1/login?timezone=${encodeURIComponent(timezone)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      }
+    );
   },
 
   /**

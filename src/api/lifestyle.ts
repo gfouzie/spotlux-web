@@ -190,12 +190,19 @@ export const lifestyleApi = {
   /**
    * Create a lifestyle post (Add to Day)
    * This updates the per-prompt streak
+   * Automatically syncs user's timezone if changed (for travelers)
    */
   async createPost(post: LifestylePostCreate): Promise<LifestylePostMinimal> {
+    // Get user's current timezone for auto-sync
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     return authRequest<LifestylePostMinimal>(
       `${config.apiBaseUrl}/api/v1/lifestyle-posts`,
       {
         method: 'POST',
+        headers: {
+          'X-Timezone': timezone,
+        },
         body: JSON.stringify(post),
       }
     );
