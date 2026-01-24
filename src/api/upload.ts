@@ -56,6 +56,13 @@ interface MessageImagePresignedUrlRequest extends BasePresignedUrlRequest {
 }
 
 /**
+ * Lifestyle image upload request
+ */
+interface LifestyleImagePresignedUrlRequest extends BasePresignedUrlRequest {
+  uploadType: 'lifestyle_image';
+}
+
+/**
  * Discriminated union of all presigned URL request types
  */
 export type PresignedUrlRequest =
@@ -64,7 +71,8 @@ export type PresignedUrlRequest =
   | HighlightVideoPresignedUrlRequest
   | HighlightReelThumbnailPresignedUrlRequest
   | HighlightThumbnailPresignedUrlRequest
-  | MessageImagePresignedUrlRequest;
+  | MessageImagePresignedUrlRequest
+  | LifestyleImagePresignedUrlRequest;
 
 /**
  * Presigned URL response interface
@@ -122,6 +130,13 @@ interface MessageImageUploadCompleteRequest extends BaseUploadCompleteRequest {
 }
 
 /**
+ * Lifestyle image upload completion request
+ */
+interface LifestyleImageUploadCompleteRequest extends BaseUploadCompleteRequest {
+  uploadType: 'lifestyle_image';
+}
+
+/**
  * Discriminated union of all upload completion request types
  */
 export type UploadCompleteRequest =
@@ -129,7 +144,8 @@ export type UploadCompleteRequest =
   | TeamPictureUploadCompleteRequest
   | HighlightReelThumbnailUploadCompleteRequest
   | HighlightThumbnailUploadCompleteRequest
-  | MessageImageUploadCompleteRequest;
+  | MessageImageUploadCompleteRequest
+  | LifestyleImageUploadCompleteRequest;
 
 /**
  * Profile picture upload response interface
@@ -450,6 +466,52 @@ export const uploadApi = {
     );
 
     // Return the file URL for use in the message
+    return {
+      fileUrl: presignedData.fileUrl,
+      s3Key: presignedData.s3Key,
+    };
+  },
+
+  /**
+   * Upload lifestyle image using presigned URL flow
+   * Returns the file URL for use in lifestyle post content
+   */
+  uploadLifestyleImage: async (
+    file: File
+  ): Promise<{ fileUrl: string; s3Key: string }> => {
+    // Step 1: Request presigned URL from backend
+    const presignedRequest: PresignedUrlRequest = {
+      filename: file.name,
+      contentType: file.type,
+      uploadType: 'lifestyle_image',
+    };
+
+    const presignedData = await authRequest<PresignedUrlResponse>(
+      `${config.apiBaseUrl}/api/v1/upload/presigned-url`,
+      {
+        method: 'POST',
+        body: JSON.stringify(presignedRequest),
+      }
+    );
+
+    // Step 2: Upload directly to S3
+    await uploadToS3(file, presignedData);
+
+    // Step 3: Notify backend of completion
+    const completeRequest: UploadCompleteRequest = {
+      s3Key: presignedData.s3Key,
+      uploadType: 'lifestyle_image',
+    };
+
+    await authRequest<ProfilePictureUploadResponse>(
+      `${config.apiBaseUrl}/api/v1/upload/complete`,
+      {
+        method: 'POST',
+        body: JSON.stringify(completeRequest),
+      }
+    );
+
+    // Return the file URL for use in the lifestyle post
     return {
       fileUrl: presignedData.fileUrl,
       s3Key: presignedData.s3Key,

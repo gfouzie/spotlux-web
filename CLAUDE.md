@@ -233,7 +233,12 @@ src/components/
 │   ├── LifestyleFeedCard.tsx
 │   ├── LifestyleFeedPost.tsx
 │   ├── LifestylePromptSelect.tsx
-│   └── LifestylePostCreate.tsx
+│   ├── LifestylePostCreate.tsx
+│   ├── LifestylePage.tsx           # Main lifestyle page with calendar
+│   ├── CalendarGrid.tsx            # Monthly calendar grid with activity heatmap
+│   ├── CalendarDayModal.tsx        # Modal showing posts for selected day
+│   ├── MiniCalendar.tsx            # Compact 30-day calendar widget
+│   └── SleepInsights.tsx           # Sleep analytics (wake time, sleep time, duration)
 ├── matchup/             # Matchup voting components
 │   ├── MatchupCard.tsx
 │   ├── MatchupVideoCard.tsx
@@ -301,6 +306,8 @@ When a page becomes complex:
   - Supports: custom titles, sizes, footer buttons, loading states, escape key handling
   - Sizes: `sm`, `md`, `lg`, `xl`, `full`
   - Auto-handles: overlay clicks, escape key, body scroll prevention
+  - **SSR-safe**: Uses portal rendering with mounted state to prevent hydration mismatches
+  - **z-index**: `z-[60]` to ensure modals appear above all other content
   - Example:
   ```tsx
   <Modal
@@ -628,6 +635,13 @@ Modal-based image cropper with:
 - Progress tracking via callback
 - File size validation (max 100MB)
 
+**Image Compression** (`src/lib/compression/imageCompression.ts`):
+- Uses `browser-image-compression` for client-side image compression
+- **HEIC Support**: Automatically converts iOS HEIC/HEIF images to JPEG using `heic2any`
+- Target: 1MB max size, 1920px max dimension, 85% quality
+- Validates file type by MIME type AND extension (handles HEIC edge cases)
+- Helper functions: `compressImage()`, `validateImageFile()`
+
 **Upload Flow**:
 1. Client validates file (size, type)
 2. Client requests presigned S3 URL from `/api/v1/upload`
@@ -680,6 +694,10 @@ Modal-based image cropper with:
 - Backend uses `snake_case`
 - Frontend uses `camelCase`
 - Automatic conversion utilities for API requests/responses
+- **Query Parameters**: Backend middleware automatically converts camelCase query params to snake_case
+  - Example: `?timezoneOffset=480` → backend receives `?timezone_offset=480`
+  - Frontend can use either camelCase or snake_case in query params (both work)
+  - No manual conversion needed - handled by backend middleware
 
 **API Client Organization** (`src/api/`):
 - `highlights.ts` - Highlight CRUD operations
@@ -691,9 +709,9 @@ Modal-based image cropper with:
 - `promptCategories.ts` - Prompt category CRUD
 - `prompts.ts` - Prompt management
 - `conversations.ts` - Messaging/DM API (create, send, mark as read)
-- `lifestyle.ts` - Lifestyle tracking API (prompts, posts, aggregates, feed, streaks)
-  - Includes all lifestyle types: LifestylePrompt, LifestylePost, LifestyleDailyAggregate, etc.
-  - Methods: getPromptsByCategory, getTodaysPosts, createPost, updatePost, deletePost, getAggregate, getFeed, trackAggregateView, getAllStreaks, getOverallStreak
+- `lifestyle.ts` - Lifestyle tracking API (prompts, posts, aggregates, feed, streaks, calendar, insights)
+  - Includes all lifestyle types: LifestylePrompt, LifestylePost, LifestyleDailyAggregate, CalendarDate, WakeTimeInsight, SleepTimeInsight, SleepDurationInsight
+  - Methods: getPromptsByCategory, getTodaysPosts, createPost, updatePost, deletePost, getAggregate, getFeed, trackAggregateView, getAllStreaks, getOverallStreak, getCalendar, getWakeTimeInsight, getSleepTimeInsight, getSleepDurationInsight
 - `upload.ts` - S3 presigned URL generation
 - `users.ts` - User profile operations
 - `friendships.ts` - Friend request/accept/reject
@@ -845,6 +863,8 @@ NODE_ENV=development
 - `tailwindcss@^4`
 - `typescript@^5`
 - `iconoir-react` (icon library)
+- `heic2any` (HEIC/HEIF to JPEG conversion)
+- `browser-image-compression` (client-side image compression)
 
 ## API Endpoints Reference
 
@@ -855,7 +875,7 @@ NODE_ENV=development
 - Users: `/api/v1/users`, `/api/v1/user/sports`, `/api/v1/user/teams`
 - Highlights: `/api/v1/highlights`, `/api/v1/highlight-reels`, `/api/v1/feed`
 - Matchups: `/api/v1/highlight-matchups`, `/api/v1/highlight-matchups/vote`
-- Lifestyle: `/api/v1/lifestyle-posts`, `/api/v1/lifestyle-feed`, `/api/v1/lifestyle-streaks`
+- Lifestyle: `/api/v1/lifestyle-posts`, `/api/v1/lifestyle-feed`, `/api/v1/lifestyle-streaks`, `/api/v1/users/{user_id}/lifestyle/calendar`, `/api/v1/lifestyle/insights/*`
 - Social: `/api/v1/friendships`, `/api/v1/conversations`
 - Upload: `/api/v1/upload`
 

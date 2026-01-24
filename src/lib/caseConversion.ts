@@ -8,7 +8,7 @@ const toCamelCase = (str: string): string => {
 /**
  * Converts a camelCase string to snake_case
  */
-const toSnakeCase = (str: string): string => {
+export const toSnakeCase = (str: string): string => {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 };
 

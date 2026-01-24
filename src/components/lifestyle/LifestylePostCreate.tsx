@@ -5,6 +5,8 @@ import { NavArrowLeft, MediaImage, Xmark } from 'iconoir-react';
 import Button from '@/components/common/Button';
 import Select from '@/components/common/Select';
 import { lifestyleApi, type LifestylePrompt, type LifestylePostMinimal } from '@/api/lifestyle';
+import { uploadApi } from '@/api/upload';
+import { compressImage, validateImageFile } from '@/lib/compression/imageCompression';
 
 interface LifestylePostCreateProps {
   prompt: LifestylePrompt;
@@ -19,6 +21,7 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [visibility, setVisibility] = useState<'public' | 'friends_only' | 'private'>('public');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Get current time for default value
@@ -30,13 +33,37 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
   };
 
   // Handle image selection
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      // Create preview URL
-      const objectUrl = URL.createObjectURL(file);
+    if (!file) return;
+
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid image file');
+      return;
+    }
+
+    try {
+      // Compress image
+      setIsCompressing(true);
+      setError(null);
+      const result = await compressImage(file, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        quality: 0.85,
+      });
+
+      setImageFile(result.compressedFile);
+
+      // Create preview URL from compressed file
+      const objectUrl = URL.createObjectURL(result.compressedFile);
       setImageUrl(objectUrl);
+    } catch (error) {
+      console.error('Failed to compress image:', error);
+      setError('Failed to process image. Please try again.');
+    } finally {
+      setIsCompressing(false);
     }
   };
 
@@ -72,13 +99,18 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
       // Get browser timezone offset
       const timezoneOffset = new Date().getTimezoneOffset();
 
-      // TODO: If imageFile exists, upload to S3 first and get URL
-      // For now, we'll skip image upload and just send the post data
+      // Upload image if one was selected
       let uploadedImageUrl: string | undefined;
       if (imageFile) {
-        // Placeholder - implement image upload later
-        // uploadedImageUrl = await uploadLifestyleImage(imageFile);
-        console.log('Image upload not yet implemented');
+        try {
+          const { fileUrl } = await uploadApi.uploadLifestyleImage(imageFile);
+          uploadedImageUrl = fileUrl;
+        } catch (uploadErr) {
+          console.error('Failed to upload image:', uploadErr);
+          setError('Failed to upload image. Please try again.');
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       // Create the post
@@ -101,38 +133,40 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onBack}
-          className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-col/50 transition-colors"
-          aria-label="Back"
-        >
-          <NavArrowLeft className="w-5 h-5 text-text-muted-col" />
-        </button>
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{prompt.emoji || '📝'}</span>
-          <h3 className="text-lg font-medium text-text-col">{prompt.name}</h3>
+    <div className="space-y-4">
+      {/* Scrollable form content */}
+      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+        {/* Header - now scrolls with content */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-col/50 transition-colors"
+            aria-label="Back"
+          >
+            <NavArrowLeft className="w-5 h-5 text-text-muted-col" />
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{prompt.emoji || '📝'}</span>
+            <h3 className="text-lg font-medium text-text-col">{prompt.name}</h3>
+          </div>
         </div>
-      </div>
 
-      {/* Visibility Selector */}
-      <div>
-        <Select
-          label="Who can see this?"
-          value={visibility}
-          onChange={(e) => setVisibility(e.target.value as 'public' | 'friends_only' | 'private')}
-          options={[
-            { value: 'public', label: 'Public' },
-            { value: 'friends_only', label: 'Friends Only' },
-            { value: 'private', label: 'Private' },
-          ]}
-        />
-      </div>
+        {/* Visibility Selector */}
+        <div>
+          <Select
+            label="Who can see this?"
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value as 'public' | 'friends_only' | 'private')}
+            options={[
+              { value: 'public', label: 'Public' },
+              { value: 'friends_only', label: 'Friends Only' },
+              { value: 'private', label: 'Private' },
+            ]}
+          />
+        </div>
 
-      {/* Content input based on prompt type */}
-      <div className="space-y-4">
+        {/* Content input based on prompt type */}
+        <div className="space-y-4">
         {/* Time input */}
         {prompt.promptType === 'time' && (
           <div>
@@ -172,16 +206,19 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
         {prompt.promptType === 'text_image' && (
           <div>
             {!imageUrl ? (
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border-col rounded-lg cursor-pointer hover:border-accent-col/50 transition-colors">
+              <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border-col rounded-lg transition-colors ${
+                isCompressing ? 'cursor-wait opacity-50' : 'cursor-pointer hover:border-accent-col/50'
+              }`}>
                 <MediaImage className="w-8 h-8 text-text-muted-col mb-2" />
                 <span className="text-sm text-text-muted-col">
-                  Add a photo (optional)
+                  {isCompressing ? 'Processing...' : 'Add a photo (optional)'}
                 </span>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageSelect}
                   className="hidden"
+                  disabled={isCompressing}
                 />
               </label>
             ) : (
@@ -202,25 +239,26 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
             )}
           </div>
         )}
+        </div>
+
+        {/* Error message inside scroll container */}
+        {error && (
+          <div className="text-red-500 text-sm text-center">
+            {error}
+          </div>
+        )}
       </div>
 
-      {/* Error message */}
-      {error && (
-        <div className="text-red-500 text-sm text-center">
-          {error}
-        </div>
-      )}
-
-      {/* Submit button */}
+      {/* Submit button - always visible at bottom */}
       <Button
         variant="primary"
         size="lg"
         onClick={handleSubmit}
-        disabled={!isValid() || isSubmitting}
-        isLoading={isSubmitting}
+        disabled={!isValid() || isSubmitting || isCompressing}
+        isLoading={isSubmitting || isCompressing}
         className="w-full"
       >
-        Add to Day
+        {isCompressing ? 'Processing image...' : isSubmitting ? 'Adding...' : 'Add to Day'}
       </Button>
     </div>
   );

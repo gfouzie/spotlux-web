@@ -10,6 +10,7 @@ import { compressImage } from '@/lib/compression/imageCompression';
 import FriendsListModal from '@/components/friends/FriendsListModal';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import ImageCropModal from '@/components/common/ImageCropModal';
+import MiniCalendar from '@/components/lifestyle/MiniCalendar';
 
 interface ProfilePictureSectionProps {
   user: User | UserProfile | UserReadLimited;
@@ -306,13 +307,19 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
             </div>
 
             {/* Middle: First Name and Last Name stacked */}
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col">
               <div className="text-lg md:text-xl font-semibold text-text-col">
                 {user?.firstName}
               </div>
               <div className="text-xl md:text-3xl font-bold text-text-col">
                 {user?.lastName}
               </div>
+              {/* Mini Calendar - Under the Name */}
+              {!isLimitedProfile && (
+                <div className="mt-2">
+                  <MiniCalendar userId={user.id} isOwnProfile={isOwnProfile} />
+                </div>
+              )}
             </div>
           </div>
 
@@ -388,13 +395,15 @@ const ProfilePictureSection: React.FC<ProfilePictureSectionProps> = ({
         isOwnProfile={isOwnProfile}
       />
 
-      {/* Edit Profile Modal */}
-      <EditProfileModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        user={user}
-        onSuccess={onProfileUpdate}
-      />
+      {/* Edit Profile Modal - Only for full profiles */}
+      {!isLimitedProfile && (
+        <EditProfileModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          user={user as User | UserProfile}
+          onSuccess={onProfileUpdate}
+        />
+      )}
 
       {/* Image Crop Modal */}
       <ImageCropModal

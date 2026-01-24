@@ -114,6 +114,45 @@ export interface LifestyleStreaksResponse {
 }
 
 // ============================================================
+// Lifestyle Calendar Types
+// ============================================================
+
+export interface CalendarDate {
+  dayDate: string; // "YYYY-MM-DD"
+  postCount: number;
+  visibility: LifestyleVisibility;
+  aggregateId: number | null;
+}
+
+// ============================================================
+// Lifestyle Insights Types
+// ============================================================
+
+export interface WakeTimeInsight {
+  avgWakeTime: string | null; // "HH:MM:SS" format or null
+  daysAnalyzed: number;
+  daysWithData: number;
+  startDate: string; // "YYYY-MM-DD"
+  endDate: string; // "YYYY-MM-DD"
+}
+
+export interface SleepTimeInsight {
+  avgSleepTime: string | null; // "HH:MM:SS" format or null
+  daysAnalyzed: number;
+  daysWithData: number;
+  startDate: string; // "YYYY-MM-DD"
+  endDate: string; // "YYYY-MM-DD"
+}
+
+export interface SleepDurationInsight {
+  avgDurationHours: number | null;
+  daysAnalyzed: number;
+  daysWithData: number;
+  startDate: string; // "YYYY-MM-DD"
+  endDate: string; // "YYYY-MM-DD"
+}
+
+// ============================================================
 // API Methods
 // ============================================================
 
@@ -256,5 +295,82 @@ export const lifestyleApi = {
     return authRequest<LifestyleOverallStreak>(
       `${config.apiBaseUrl}/api/v1/lifestyle-streaks/overall`
     );
+  },
+
+  // ----------------------------------------------------------
+  // Calendar
+  // ----------------------------------------------------------
+
+  /**
+   * Get lifestyle calendar data for a user
+   *
+   * Returns daily aggregates for a date range, filling gaps with zero-count entries.
+   *
+   * @param userId - User whose calendar to fetch
+   * @param startDate - Start date (YYYY-MM-DD format, defaults to 30 days ago)
+   * @param endDate - End date (YYYY-MM-DD format, defaults to today)
+   * @param timezoneOffset - Browser timezone offset in minutes
+   */
+  async getCalendar(
+    userId: number,
+    startDate?: string,
+    endDate?: string,
+    timezoneOffset?: number
+  ): Promise<CalendarDate[]> {
+    const queryParams = buildQueryParams({
+      startDate,
+      endDate,
+      timezoneOffset,
+    });
+    const url = `${config.apiBaseUrl}/api/v1/users/${userId}/lifestyle/calendar${
+      queryParams.toString() ? `?${queryParams.toString()}` : ''
+    }`;
+    return authRequest<CalendarDate[]>(url);
+  },
+
+  // ----------------------------------------------------------
+  // Insights
+  // ----------------------------------------------------------
+
+  /**
+   * Get average wake time insight for the current user
+   *
+   * @param days - Number of days to analyze (default 7)
+   * @param timezoneOffset - Browser timezone offset in minutes (optional)
+   */
+  async getWakeTimeInsight(days: number = 7, timezoneOffset?: number): Promise<WakeTimeInsight> {
+    const queryParams = buildQueryParams({ days, timezoneOffset });
+    const url = `${config.apiBaseUrl}/api/v1/lifestyle/insights/wake-time${
+      queryParams.toString() ? `?${queryParams.toString()}` : ''
+    }`;
+    return authRequest<WakeTimeInsight>(url);
+  },
+
+  /**
+   * Get average sleep time (bedtime) insight for the current user
+   *
+   * @param days - Number of days to analyze (default 7)
+   * @param timezoneOffset - Browser timezone offset in minutes (optional)
+   */
+  async getSleepTimeInsight(days: number = 7, timezoneOffset?: number): Promise<SleepTimeInsight> {
+    const queryParams = buildQueryParams({ days, timezoneOffset });
+    const url = `${config.apiBaseUrl}/api/v1/lifestyle/insights/sleep-time${
+      queryParams.toString() ? `?${queryParams.toString()}` : ''
+    }`;
+    return authRequest<SleepTimeInsight>(url);
+  },
+
+  /**
+   * Get average sleep duration insight for the current user
+   *
+   * @param days - Number of days to analyze (default 7)
+   * @param timezoneOffset - Browser timezone offset in minutes (optional)
+   */
+  async getSleepDurationInsight(days: number = 7, timezoneOffset?: number): Promise<SleepDurationInsight> {
+    const queryParams = buildQueryParams({ days, timezoneOffset });
+    const url = `${config.apiBaseUrl}/api/v1/lifestyle/insights/sleep-duration${
+      queryParams.toString() ? `?${queryParams.toString()}` : ''
+    }`;
+    return authRequest<SleepDurationInsight>(url);
   },
 };

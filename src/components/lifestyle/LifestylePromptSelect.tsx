@@ -87,20 +87,19 @@ const LifestylePromptSelect = ({
 
   return (
     <div className="space-y-6">
-      {/* Header with back button */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onBack}
-          className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-col/50 transition-colors"
-          aria-label="Back"
-        >
-          <NavArrowLeft className="w-5 h-5 text-text-muted-col" />
-        </button>
-        <h3 className="text-lg font-medium text-text-col">Select a Prompt</h3>
-      </div>
-
       {/* Categories and prompts */}
       <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2">
+        {/* Header with back button - now scrolls with content */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-bg-col/50 transition-colors"
+            aria-label="Back"
+          >
+            <NavArrowLeft className="w-5 h-5 text-text-muted-col" />
+          </button>
+          <h3 className="text-lg font-medium text-text-col">Select a Prompt</h3>
+        </div>
         {categories.map((category) => (
           <div key={category.id} className="space-y-2">
             {/* Category header */}

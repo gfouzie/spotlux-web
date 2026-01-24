@@ -10,8 +10,25 @@ interface LifestyleFeedCardProps {
 }
 
 const LifestyleFeedCard = ({ aggregate }: LifestyleFeedCardProps) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  // Backend sends posts DESC (newest first), reverse for chronological display (oldest to newest)
+  const postsChronological = [...aggregate.posts].reverse();
+  const totalSlides = postsChronological.length;
+
+  // Start at the last slide (most recent post after reversing)
+  const [currentSlide, setCurrentSlide] = useState(totalSlides - 1);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to the last slide on mount (most recent post)
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    const slideWidth = carousel.offsetWidth;
+    carousel.scrollTo({
+      left: slideWidth * (totalSlides - 1),
+      behavior: 'auto', // Instant scroll on mount
+    });
+  }, [totalSlides]);
 
   // Handle scroll to update current slide indicator
   useEffect(() => {
@@ -40,8 +57,6 @@ const LifestyleFeedCard = ({ aggregate }: LifestyleFeedCardProps) => {
       behavior: 'smooth',
     });
   };
-
-  const totalSlides = aggregate.posts.length;
 
   return (
     <div className="bg-bg-sec-col border border-border-col rounded-lg overflow-hidden">
@@ -88,7 +103,7 @@ const LifestyleFeedCard = ({ aggregate }: LifestyleFeedCardProps) => {
         className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {aggregate.posts.map((post) => (
+        {postsChronological.map((post) => (
           <div
             key={post.id}
             className="flex-shrink-0 w-full snap-center px-4 py-4"
@@ -101,14 +116,14 @@ const LifestyleFeedCard = ({ aggregate }: LifestyleFeedCardProps) => {
       {/* Dot Indicators */}
       {totalSlides > 1 && (
         <div className="flex justify-center gap-1.5 pb-4">
-          {aggregate.posts.map((_, index) => (
+          {postsChronological.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
               className={`w-1.5 h-1.5 rounded-full transition-colors cursor-pointer ${
                 index === currentSlide
                   ? 'bg-accent-col'
-                  : 'bg-text-muted-col/30'
+                  : 'bg-text-col/30'
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />

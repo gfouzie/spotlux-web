@@ -59,6 +59,8 @@ export function inchesToFeetInches(totalInches: number | null | undefined): {
  * - Strings: Only added if truthy (non-empty)
  * - Null/undefined: Skipped
  *
+ * Note: Keys are passed as-is. Backend middleware handles camelCase to snake_case conversion.
+ *
  * @param params - Object with query parameter key-value pairs
  * @returns URLSearchParams with only defined values
  *

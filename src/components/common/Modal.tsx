@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, forwardRef } from 'react';
+import { useEffect, useState, forwardRef } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { Xmark } from 'iconoir-react';
 import Button from './Button';
@@ -53,8 +54,16 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
     },
     ref
   ) => {
+    // Track mounting to prevent SSR hydration mismatches
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+      setMounted(true);
+    }, []);
+
     // Use onCancel if provided, otherwise fall back to onClose
     const handleCancel = onCancel || onClose;
+
     // Handle escape key
     useEffect(() => {
       const handleEscape = (e: KeyboardEvent) => {
@@ -87,9 +96,9 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
       full: 'max-w-full mx-4',
     };
 
-    return (
+    const modalContent = (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center h-screen w-screen"
+        className="fixed inset-0 z-[60] flex items-center justify-center h-screen w-screen"
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
@@ -172,6 +181,14 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(
         </div>
       </div>
     );
+
+    // Render via portal to document.body to avoid stacking context issues
+    // Wait for client-side mounting to prevent SSR hydration mismatches
+    if (!mounted) {
+      return null;
+    }
+
+    return createPortal(modalContent, document.body);
   }
 );
 

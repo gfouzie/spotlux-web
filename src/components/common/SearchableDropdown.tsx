@@ -105,7 +105,7 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-2 bg-bg-col border border-text-col/30 rounded-lg shadow-lg max-h-80 overflow-hidden">
+        <div className="absolute z-40 w-full mt-2 bg-bg-col border border-text-col/30 rounded-lg shadow-lg max-h-80 overflow-hidden">
           {/* Search Input */}
           <div className="p-3 border-b border-text-col/20">
             <div className="relative">
