@@ -36,6 +36,7 @@ export interface LifestylePostMinimal {
   textContent?: string;
   timeContent?: string; // Time as "HH:MM:SS" string
   imageUrl?: string;
+  notes?: string; // Optional detailed notes (e.g., workout details)
   visibility: 'private' | 'friends_only' | 'public';
   postedAt: string;
   promptEmoji?: string;
@@ -47,8 +48,8 @@ export interface LifestylePostCreate {
   textContent?: string;
   timeContent?: string; // "HH:MM:SS" format
   imageUrl?: string;
+  notes?: string; // Optional detailed notes (max 2000 chars)
   visibility?: 'private' | 'friends_only' | 'public'; // Default: public
-  timezoneOffset?: number; // Browser timezone offset in minutes
 }
 
 export interface LifestylePostUpdate {

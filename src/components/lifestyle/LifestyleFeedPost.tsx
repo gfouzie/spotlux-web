@@ -39,6 +39,13 @@ const LifestyleFeedPost = ({ post, isCarouselSlide = false }: LifestyleFeedPostP
           </div>
         )}
 
+        {/* Notes */}
+        {post.notes && (
+          <div className="text-xs text-text-muted-col/70 max-w-[280px] mt-2 whitespace-pre-line">
+            {post.notes}
+          </div>
+        )}
+
         {/* Image */}
         {post.imageUrl && (
           <div className="mt-3">
@@ -79,6 +86,13 @@ const LifestyleFeedPost = ({ post, isCarouselSlide = false }: LifestyleFeedPostP
         {post.textContent && (
           <div className="text-sm text-text-muted-col mt-1">
             {post.textContent}
+          </div>
+        )}
+
+        {/* Notes */}
+        {post.notes && (
+          <div className="text-xs text-text-muted-col/70 mt-1 whitespace-pre-line">
+            {post.notes}
           </div>
         )}
 

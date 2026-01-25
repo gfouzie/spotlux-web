@@ -4,9 +4,16 @@ import { useState } from 'react';
 import { NavArrowLeft, MediaImage, Xmark } from 'iconoir-react';
 import Button from '@/components/common/Button';
 import Select from '@/components/common/Select';
-import { lifestyleApi, type LifestylePrompt, type LifestylePostMinimal } from '@/api/lifestyle';
+import {
+  lifestyleApi,
+  type LifestylePrompt,
+  type LifestylePostMinimal,
+} from '@/api/lifestyle';
 import { uploadApi } from '@/api/upload';
-import { compressImage, validateImageFile } from '@/lib/compression/imageCompression';
+import {
+  compressImage,
+  validateImageFile,
+} from '@/lib/compression/imageCompression';
 
 interface LifestylePostCreateProps {
   prompt: LifestylePrompt;
@@ -14,12 +21,19 @@ interface LifestylePostCreateProps {
   onPostCreated: (post: LifestylePostMinimal) => void;
 }
 
-const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCreateProps) => {
+const LifestylePostCreate = ({
+  prompt,
+  onBack,
+  onPostCreated,
+}: LifestylePostCreateProps) => {
   const [textContent, setTextContent] = useState('');
+  const [notes, setNotes] = useState('');
   const [timeContent, setTimeContent] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [visibility, setVisibility] = useState<'public' | 'friends_only' | 'private'>('public');
+  const [visibility, setVisibility] = useState<
+    'public' | 'friends_only' | 'private'
+  >('public');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,9 +110,6 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
     setError(null);
 
     try {
-      // Get browser timezone offset
-      const timezoneOffset = new Date().getTimezoneOffset();
-
       // Upload image if one was selected
       let uploadedImageUrl: string | undefined;
       if (imageFile) {
@@ -117,10 +128,11 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
       const post = await lifestyleApi.createPost({
         promptId: prompt.id,
         textContent: textContent.trim() || undefined,
-        timeContent: prompt.promptType === 'time' ? `${timeContent}:00` : undefined,
+        timeContent:
+          prompt.promptType === 'time' ? `${timeContent}:00` : undefined,
         imageUrl: uploadedImageUrl,
+        notes: notes.trim() || undefined,
         visibility,
-        timezoneOffset,
       });
 
       onPostCreated(post);
@@ -156,7 +168,11 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
           <Select
             label="Who can see this?"
             value={visibility}
-            onChange={(e) => setVisibility(e.target.value as 'public' | 'friends_only' | 'private')}
+            onChange={(e) =>
+              setVisibility(
+                e.target.value as 'public' | 'friends_only' | 'private'
+              )
+            }
             options={[
               { value: 'public', label: 'Public' },
               { value: 'friends_only', label: 'Friends Only' },
@@ -167,85 +183,109 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
 
         {/* Content input based on prompt type */}
         <div className="space-y-4">
-        {/* Time input */}
-        {prompt.promptType === 'time' && (
-          <div>
-            <label className="block text-sm font-medium text-text-col mb-2">
-              What time?
-            </label>
-            <input
-              type="time"
-              value={timeContent || getCurrentTimeString()}
-              onChange={(e) => setTimeContent(e.target.value)}
-              className="w-full px-4 py-3 bg-bg-col border border-border-col rounded-lg text-text-col text-lg focus:outline-none focus:ring-2 focus:ring-accent-col focus:border-transparent"
-            />
-          </div>
-        )}
+          {/* Time input */}
+          {prompt.promptType === 'time' && (
+            <div>
+              <label className="block text-sm font-medium text-text-col mb-2">
+                What time?
+              </label>
+              <input
+                type="time"
+                value={timeContent || getCurrentTimeString()}
+                onChange={(e) => setTimeContent(e.target.value)}
+                className="w-full px-4 py-3 bg-bg-col border border-border-col rounded-lg text-text-col text-lg focus:outline-none focus:ring-2 focus:ring-accent-col focus:border-transparent"
+              />
+            </div>
+          )}
 
-        {/* Text input */}
-        {(prompt.promptType === 'text' || prompt.promptType === 'text_image') && (
+          {/* Title input */}
+          {(prompt.promptType === 'text' ||
+            prompt.promptType === 'text_image') && (
+            <div>
+              <label className="block text-sm font-medium text-text-col mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                value={textContent}
+                onChange={(e) => setTextContent(e.target.value)}
+                placeholder="What did you do?"
+                maxLength={500}
+                className="w-full px-4 py-3 bg-bg-col border border-border-col rounded-lg text-text-col placeholder:text-text-muted-col focus:outline-none focus:ring-2 focus:ring-accent-col focus:border-transparent"
+              />
+              <div className="text-right text-xs text-text-muted-col mt-1">
+                {textContent.length}/500
+              </div>
+            </div>
+          )}
+
+          {/* Notes input (optional) - shown for all prompt types */}
           <div>
             <label className="block text-sm font-medium text-text-col mb-2">
-              {prompt.description || 'Share your thoughts'}
+              Notes{' '}
+              <span className="text-text-muted-col font-normal">
+                (optional)
+              </span>
             </label>
             <textarea
-              value={textContent}
-              onChange={(e) => setTextContent(e.target.value)}
-              placeholder="Write something..."
-              maxLength={500}
-              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add details, sets, reps, ingredients..."
+              maxLength={2000}
+              rows={3}
               className="w-full px-4 py-3 bg-bg-col border border-border-col rounded-lg text-text-col placeholder:text-text-muted-col resize-none focus:outline-none focus:ring-2 focus:ring-accent-col focus:border-transparent"
             />
-            <div className="text-right text-xs text-text-muted-col mt-1">
-              {textContent.length}/500
+            <div className="text-right text-xs text-text-muted-col">
+              {notes.length}/2000
             </div>
           </div>
-        )}
 
-        {/* Image input */}
-        {prompt.promptType === 'text_image' && (
-          <div>
-            {!imageUrl ? (
-              <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border-col rounded-lg transition-colors ${
-                isCompressing ? 'cursor-wait opacity-50' : 'cursor-pointer hover:border-accent-col/50'
-              }`}>
-                <MediaImage className="w-8 h-8 text-text-muted-col mb-2" />
-                <span className="text-sm text-text-muted-col">
-                  {isCompressing ? 'Processing...' : 'Add a photo (optional)'}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  className="hidden"
-                  disabled={isCompressing}
-                />
-              </label>
-            ) : (
-              <div className="relative">
-                <img
-                  src={imageUrl}
-                  alt="Selected"
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-                <button
-                  onClick={handleRemoveImage}
-                  className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors"
-                  aria-label="Remove image"
+          {/* Image input */}
+          {prompt.promptType === 'text_image' && (
+            <div>
+              {!imageUrl ? (
+                <label
+                  className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border-col rounded-lg transition-colors ${
+                    isCompressing
+                      ? 'cursor-wait opacity-50'
+                      : 'cursor-pointer hover:border-accent-col/50'
+                  }`}
                 >
-                  <Xmark className="w-5 h-5 text-white" />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+                  <MediaImage className="w-8 h-8 text-text-muted-col mb-2" />
+                  <span className="text-sm text-text-muted-col">
+                    {isCompressing ? 'Processing...' : 'Add a photo (optional)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                    disabled={isCompressing}
+                  />
+                </label>
+              ) : (
+                <div className="relative">
+                  <img
+                    src={imageUrl}
+                    alt="Selected"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <button
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center hover:bg-black/70 transition-colors"
+                    aria-label="Remove image"
+                  >
+                    <Xmark className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Error message inside scroll container */}
         {error && (
-          <div className="text-red-500 text-sm text-center">
-            {error}
-          </div>
+          <div className="text-red-500 text-sm text-center">{error}</div>
         )}
       </div>
 
@@ -258,7 +298,11 @@ const LifestylePostCreate = ({ prompt, onBack, onPostCreated }: LifestylePostCre
         isLoading={isSubmitting || isCompressing}
         className="w-full"
       >
-        {isCompressing ? 'Processing image...' : isSubmitting ? 'Adding...' : 'Add to Day'}
+        {isCompressing
+          ? 'Processing image...'
+          : isSubmitting
+            ? 'Adding...'
+            : 'Add to Day'}
       </Button>
     </div>
   );
