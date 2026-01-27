@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { NavArrowLeft, MediaImage, Xmark } from 'iconoir-react';
 import Button from '@/components/common/Button';
-import Select from '@/components/common/Select';
 import {
   lifestyleApi,
   type LifestylePrompt,
@@ -31,9 +30,7 @@ const LifestylePostCreate = ({
   const [timeContent, setTimeContent] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [visibility, setVisibility] = useState<
-    'public' | 'friends_only' | 'private'
-  >('public');
+  const [isPrivateToUser, setIsPrivateToUser] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -132,7 +129,7 @@ const LifestylePostCreate = ({
           prompt.promptType === 'time' ? `${timeContent}:00` : undefined,
         imageUrl: uploadedImageUrl,
         notes: notes.trim() || undefined,
-        visibility,
+        isPrivateToUser,
       });
 
       onPostCreated(post);
@@ -163,22 +160,25 @@ const LifestylePostCreate = ({
           </div>
         </div>
 
-        {/* Visibility Selector */}
-        <div>
-          <Select
-            label="Who can see this?"
-            value={visibility}
-            onChange={(e) =>
-              setVisibility(
-                e.target.value as 'public' | 'friends_only' | 'private'
-              )
-            }
-            options={[
-              { value: 'public', label: 'Public' },
-              { value: 'friends_only', label: 'Friends Only' },
-              { value: 'private', label: 'Private' },
-            ]}
-          />
+        {/* Privacy Toggle */}
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <span className="text-sm font-medium text-text-col">Private</span>
+            <p className="text-xs text-text-muted-col">Only you can see this post</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsPrivateToUser(!isPrivateToUser)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              isPrivateToUser ? 'bg-accent-col' : 'bg-bg-col/50 border border-border-col'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                isPrivateToUser ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
         </div>
 
         {/* Content input based on prompt type */}

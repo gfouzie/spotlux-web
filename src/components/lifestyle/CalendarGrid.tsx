@@ -117,7 +117,7 @@ const CalendarGrid = ({ userId, onDayClick }: CalendarGridProps) => {
         dayData || {
           dayDate: dateStr,
           postCount: 0,
-          visibility: "private",
+          isPrivateToUser: false,
           aggregateId: null,
         }
       );

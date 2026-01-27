@@ -15,7 +15,6 @@ import { Prompt, promptsApi } from '@/api/prompts';
 import { validateVideoFile } from '@/lib/compression';
 import { compressAndUploadHighlight } from '@/lib/highlights/uploadHelper';
 import { cn } from '@/lib/utils';
-import { HighlightVisibility } from '@/api/highlights';
 
 interface EditReelModalProps {
   isOpen: boolean;
@@ -55,7 +54,7 @@ export default function EditReelModal({
     'idle' | 'compressing' | 'uploading' | 'success' | 'error'
   >('idle');
   const [compressedVideoSize, setCompressedVideoSize] = useState<number>(0);
-  const [selectedVisibility, setSelectedVisibility] = useState<HighlightVisibility>('public');
+  const [isPrivateToUser, setIsPrivateToUser] = useState(false);
 
   // Load highlights for this reel
   const loadHighlights = useCallback(async () => {
@@ -173,7 +172,7 @@ export default function EditReelModal({
   const handleRemoveVideo = () => {
     setVideoFile(null);
     setSelectedPromptId(null);
-    setSelectedVisibility('public');
+    setIsPrivateToUser(false);
     setUploadStatus('idle');
     setCompressionProgress(0);
     setCompressedVideoSize(0);
@@ -191,7 +190,7 @@ export default function EditReelModal({
         reelId: reel.id,
         videoFile: file,
         promptId: selectedPromptId || undefined,
-        visibility: selectedVisibility,
+        isPrivateToUser,
         onCompressionProgress: (progress) => {
           setCompressionProgress(progress);
         },
@@ -352,7 +351,7 @@ export default function EditReelModal({
     setOriginalVideoFile(null);
     setIsCropping(false);
     setSelectedPromptId(null);
-    setSelectedVisibility('public');
+    setIsPrivateToUser(false);
     setUploadStatus('idle');
     setCompressionProgress(0);
     setCompressedVideoSize(0);
@@ -511,21 +510,27 @@ export default function EditReelModal({
             />
           )}
 
-          {/* Visibility Selection (shown before file upload) */}
+          {/* Privacy Toggle (shown before file upload) */}
           {!videoFile && (
-            <Select
-              label="Who can see this?"
-              value={selectedVisibility}
-              onChange={(e) =>
-                setSelectedVisibility(e.target.value as HighlightVisibility)
-              }
-              options={[
-                { value: 'public', label: 'Public - Everyone can see' },
-                { value: 'friends_only', label: 'Friends only' },
-                { value: 'private', label: 'Private - Only you' },
-              ]}
-              required
-            />
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <span className="text-sm font-medium text-text-col">Private</span>
+                <p className="text-xs text-text-col/60">Only you can see this highlight</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPrivateToUser(!isPrivateToUser)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isPrivateToUser ? 'bg-accent-col' : 'bg-bg-col/50 border border-border-col'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    isPrivateToUser ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
           )}
 
           {videoFile ? (

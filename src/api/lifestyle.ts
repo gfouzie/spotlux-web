@@ -37,7 +37,7 @@ export interface LifestylePostMinimal {
   timeContent?: string; // Time as "HH:MM:SS" string
   imageUrl?: string;
   notes?: string; // Optional detailed notes (e.g., workout details)
-  visibility: 'private' | 'friends_only' | 'public';
+  isPrivateToUser: boolean; // true = only owner can see, false = inherits user's profile visibility
   postedAt: string;
   promptEmoji?: string;
   promptName: string;
@@ -49,31 +49,29 @@ export interface LifestylePostCreate {
   timeContent?: string; // "HH:MM:SS" format
   imageUrl?: string;
   notes?: string; // Optional detailed notes (max 2000 chars)
-  visibility?: 'private' | 'friends_only' | 'public'; // Default: public
+  isPrivateToUser?: boolean; // Default: false (visible based on user's profile visibility)
 }
 
 export interface LifestylePostUpdate {
-  visibility: 'private' | 'friends_only' | 'public';
+  isPrivateToUser: boolean;
 }
 
 // ============================================================
 // Lifestyle Daily Aggregate Types
 // ============================================================
 
-export type LifestyleVisibility = 'private' | 'friends_only' | 'public';
-
 export interface LifestyleDailyAggregate {
   id: number;
   userId: number;
   dayDate: string; // "YYYY-MM-DD"
   postCount: number;
-  visibility: LifestyleVisibility;
+  isPrivateToUser: boolean; // true = only owner can see, false = inherits user's profile visibility
   createdAt: string;
   posts: LifestylePostMinimal[];
 }
 
 export interface LifestyleDailyAggregateCreate {
-  visibility: LifestyleVisibility;
+  isPrivateToUser?: boolean; // Default: false
 }
 
 export interface LifestyleDailyAggregateFeedItem extends LifestyleDailyAggregate {
@@ -121,7 +119,7 @@ export interface LifestyleStreaksResponse {
 export interface CalendarDate {
   dayDate: string; // "YYYY-MM-DD"
   postCount: number;
-  visibility: LifestyleVisibility;
+  isPrivateToUser: boolean;
   aggregateId: number | null;
 }
 
@@ -222,7 +220,7 @@ export const lifestyleApi = {
   },
 
   /**
-   * Update a lifestyle post's visibility
+   * Update a lifestyle post's privacy setting
    */
   async updatePost(
     postId: number,

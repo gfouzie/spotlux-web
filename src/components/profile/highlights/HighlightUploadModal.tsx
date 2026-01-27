@@ -7,7 +7,6 @@ import Alert from '@/components/common/Alert';
 import VideoCropStep from '@/components/common/VideoCropStep';
 import { Upload, Xmark } from 'iconoir-react';
 import { promptsApi, Prompt } from '@/api/prompts';
-import { HighlightVisibility } from '@/api/highlights';
 import { cn } from '@/lib/utils';
 import { validateVideoFile } from '@/lib/compression';
 import { compressAndUploadHighlight } from '@/lib/highlights/uploadHelper';
@@ -39,7 +38,7 @@ export default function HighlightUploadModal({
   const [selectedPromptId, setSelectedPromptId] = useState<number | undefined>(
     undefined
   );
-  const [selectedVisibility, setSelectedVisibility] = useState<HighlightVisibility>('public');
+  const [isPrivateToUser, setIsPrivateToUser] = useState(false);
   const [isLoadingPrompts, setIsLoadingPrompts] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState(0);
@@ -138,7 +137,7 @@ export default function HighlightUploadModal({
         reelId: selectedReelId,
         videoFile,
         promptId: selectedPromptId,
-        visibility: selectedVisibility,
+        isPrivateToUser,
         onCompressionProgress: (progress) => {
           setCompressionProgress(progress);
         },
@@ -169,7 +168,7 @@ export default function HighlightUploadModal({
     setIsCropping(false);
     setSelectedReelId(reelId);
     setSelectedPromptId(undefined);
-    setSelectedVisibility('public');
+    setIsPrivateToUser(false);
     setUploadStatus('idle');
     setCompressionProgress(0);
     setCompressedVideoSize(0);
@@ -255,18 +254,26 @@ export default function HighlightUploadModal({
           }
         />
 
-        {/* Visibility Selection */}
-        <Select
-          label="Who can see this?"
-          value={selectedVisibility}
-          onChange={(e) => setSelectedVisibility(e.target.value as HighlightVisibility)}
-          options={[
-            { value: 'public', label: 'Public - Everyone can see' },
-            { value: 'friends_only', label: 'Friends only' },
-            { value: 'private', label: 'Private - Only you' },
-          ]}
-          required
-        />
+        {/* Privacy Toggle */}
+        <div className="flex items-center justify-between py-2">
+          <div>
+            <span className="text-sm font-medium text-text-col">Private</span>
+            <p className="text-xs text-text-col/60">Only you can see this highlight</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsPrivateToUser(!isPrivateToUser)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              isPrivateToUser ? 'bg-accent-col' : 'bg-bg-col/50 border border-border-col'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                isPrivateToUser ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
 
         {/* Video Upload */}
         {videoFile ? (

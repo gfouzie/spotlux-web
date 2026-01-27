@@ -5,6 +5,7 @@ import { authRequest } from './client';
 /**
  * Highlight reel interface
  * Uses camelCase (automatically converted from snake_case by API middleware)
+ * Note: Reels no longer have visibility - visibility is set per individual highlight
  */
 export interface HighlightReel {
   id: number;
@@ -12,7 +13,6 @@ export interface HighlightReel {
   name: string;
   sport: string;
   orderRanking: number;
-  visibility: 'private' | 'public' | 'friends_only';
   thumbnailUrl?: string;
   createdAt: string;
   updatedAt?: string;
@@ -24,7 +24,6 @@ export interface HighlightReel {
 export interface HighlightReelCreateRequest {
   name: string;
   sport: string;
-  visibility?: 'private' | 'public' | 'friends_only';
   thumbnailUrl?: string;
 }
 
@@ -35,7 +34,6 @@ export interface HighlightReelUpdateRequest {
   name?: string;
   sport?: string;
   orderRanking?: number;
-  visibility?: 'private' | 'public' | 'friends_only';
   thumbnailUrl?: string | null;
 }
 
@@ -47,7 +45,6 @@ export interface GetHighlightReelsParams {
   limit?: number;
   userId?: number;
   sport?: string;
-  visibility?: 'private' | 'public' | 'friends_only';
   searchText?: string;
 }
 
@@ -63,7 +60,6 @@ export const highlightReelsApi = {
       limit: params?.limit,
       user_id: params?.userId,
       sport: params?.sport,
-      visibility: params?.visibility,
       searchText: params?.searchText,
     });
 

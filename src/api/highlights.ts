@@ -19,11 +19,6 @@ export interface HighlightCreator {
 }
 
 /**
- * Highlight visibility options
- */
-export type HighlightVisibility = 'public' | 'friends_only' | 'private';
-
-/**
  * Highlight interface
  * Uses camelCase (automatically converted from snake_case by API middleware)
  */
@@ -33,7 +28,7 @@ export interface Highlight {
   videoUrl: string;
   orderIndex: number;
   promptId?: number;
-  visibility: HighlightVisibility;
+  isPrivateToUser: boolean; // true = only owner can see, false = inherits user's profile visibility
   prompt?: PromptMinimal;
   creator?: HighlightCreator;
   createdAt: string;
@@ -47,7 +42,7 @@ export interface HighlightCreateRequest {
   highlightReelId: number;
   videoUrl: string;
   promptId?: number;
-  visibility: HighlightVisibility; // Required - user must explicitly choose visibility
+  isPrivateToUser?: boolean; // Default: false (visible based on user's profile visibility)
 }
 
 /**
@@ -57,7 +52,7 @@ export interface HighlightUpdateRequest {
   videoUrl?: string;
   orderIndex?: number;
   promptId?: number;
-  visibility?: HighlightVisibility;
+  isPrivateToUser?: boolean;
 }
 
 /**

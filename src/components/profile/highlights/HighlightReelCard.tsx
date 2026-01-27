@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { HighlightReel } from '@/api/highlightReels';
 import { cn } from '@/lib/utils';
-import { VideoCamera, Lock, Group, Settings } from 'iconoir-react';
+import { VideoCamera, Settings } from 'iconoir-react';
 
 interface HighlightReelCardProps {
   reel: HighlightReel;
@@ -57,22 +57,6 @@ export default function HighlightReelCard({
             )}
           </div>
         </div>
-
-        {/* Visibility Badge */}
-        {reel.visibility !== 'public' && (
-          <div
-            className={cn(
-              'absolute bottom-0 right-0 w-5 h-5 rounded-full flex items-center justify-center',
-              reel.visibility === 'private' ? 'bg-red-600' : 'bg-yellow-600'
-            )}
-          >
-            {reel.visibility === 'private' ? (
-              <Lock className="w-3 h-3 text-white" />
-            ) : (
-              <Group className="w-3 h-3 text-white" />
-            )}
-          </div>
-        )}
 
         {/* Edit Button (owner only, shows on hover) */}
         {isOwner && onEdit && (
