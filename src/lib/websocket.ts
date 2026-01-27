@@ -1,9 +1,10 @@
 import { config } from './config';
 import { keysToCamel, keysToSnake } from './caseConversion';
+import { MessageWithSender } from '@/api/conversations';
 
 export type WebSocketEvent =
-  | { type: 'message.sent'; message: any }
-  | { type: 'message.new'; message: any }
+  | { type: 'message.sent'; message: MessageWithSender }
+  | { type: 'message.new'; message: MessageWithSender }
   | {
       type: 'message.read';
       messageId: number;
@@ -24,6 +25,17 @@ export type WebSocketEvent =
 export type WebSocketEventHandler = (event: WebSocketEvent) => void;
 export type ConnectionStatusHandler = (connected: boolean) => void;
 
+/**
+ * Outgoing events sent from client to server
+ */
+export type WebSocketOutgoingEvent =
+  | { type: 'message.send'; conversationId: number; content: string; imageUrl?: string | null }
+  | { type: 'message.read'; messageId: number }
+  | { type: 'message.edit'; messageId: number; content: string }
+  | { type: 'message.delete'; messageId: number }
+  | { type: 'typing.start'; conversationId: number }
+  | { type: 'typing.stop'; conversationId: number };
+
 export class WebSocketClient {
   private ws: WebSocket | null = null;
   private token: string | null = null;
@@ -33,7 +45,7 @@ export class WebSocketClient {
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private eventHandlers: Set<WebSocketEventHandler> = new Set();
   private connectionStatusHandlers: Set<ConnectionStatusHandler> = new Set();
-  private messageQueue: any[] = [];
+  private messageQueue: WebSocketOutgoingEvent[] = [];
   private isConnected = false;
   private shouldReconnect = true;
 
@@ -91,7 +103,7 @@ export class WebSocketClient {
    * Send an event to the server
    * @param event - Event data to send
    */
-  send(event: any): void {
+  send(event: WebSocketOutgoingEvent): void {
     // Convert camelCase to snake_case for backend
     const snakeCaseEvent = keysToSnake(event);
 
@@ -179,7 +191,9 @@ export class WebSocketClient {
         // Send queued messages
         while (this.messageQueue.length > 0) {
           const event = this.messageQueue.shift();
-          this.send(event);
+          if (event) {
+            this.send(event);
+          }
         }
       };
 

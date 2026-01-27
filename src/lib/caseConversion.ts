@@ -1,4 +1,11 @@
 /**
+ * Generic JSON value type for case conversion functions
+ */
+type JsonValue = string | number | boolean | null | JsonObject | JsonArray;
+type JsonObject = { [key: string]: JsonValue };
+type JsonArray = JsonValue[];
+
+/**
  * Converts a snake_case string to camelCase
  */
 const toCamelCase = (str: string): string => {
@@ -15,21 +22,21 @@ export const toSnakeCase = (str: string): string => {
 /**
  * Converts object keys from snake_case to camelCase recursively
  */
-export const keysToCamel = (obj: any): any => {
+export const keysToCamel = <T = JsonValue>(obj: T): T => {
   if (obj === null || obj === undefined) {
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(keysToCamel);
+    return obj.map(keysToCamel) as T;
   }
 
   if (typeof obj === 'object' && obj.constructor === Object) {
     return Object.keys(obj).reduce((acc, key) => {
       const camelKey = toCamelCase(key);
-      acc[camelKey] = keysToCamel(obj[key]);
+      acc[camelKey] = keysToCamel((obj as JsonObject)[key]);
       return acc;
-    }, {} as any);
+    }, {} as JsonObject) as T;
   }
 
   return obj;
@@ -38,21 +45,21 @@ export const keysToCamel = (obj: any): any => {
 /**
  * Converts object keys from camelCase to snake_case recursively
  */
-export const keysToSnake = (obj: any): any => {
+export const keysToSnake = <T = JsonValue>(obj: T): T => {
   if (obj === null || obj === undefined) {
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(keysToSnake);
+    return obj.map(keysToSnake) as T;
   }
 
   if (typeof obj === 'object' && obj.constructor === Object) {
     return Object.keys(obj).reduce((acc, key) => {
       const snakeKey = toSnakeCase(key);
-      acc[snakeKey] = keysToSnake(obj[key]);
+      acc[snakeKey] = keysToSnake((obj as JsonObject)[key]);
       return acc;
-    }, {} as any);
+    }, {} as JsonObject) as T;
   }
 
   return obj;

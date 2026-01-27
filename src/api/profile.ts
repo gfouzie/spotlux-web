@@ -25,6 +25,7 @@ export interface UserProfile {
   hometownCountry: string | null;
   profileImageUrl: string;
   visibility: UserVisibility;
+  timezone: string;
   tierId: number | null;
   isSuperuser: boolean;
 }

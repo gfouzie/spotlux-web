@@ -1,19 +1,14 @@
 import { useRef, useEffect, useCallback } from 'react';
 
-interface BufferedVideo {
-  ref: React.RefObject<HTMLVideoElement>;
-  isBuffering: boolean;
-  progress: number;
-}
+type VideoRef = React.MutableRefObject<HTMLVideoElement | null>;
 
 interface UseBufferedVideosParams {
   currentIndex: number;
-  feedItemsLength: number;
   bufferRange?: number;
 }
 
 interface UseBufferedVideosReturn {
-  getVideoRef: (index: number) => React.RefObject<HTMLVideoElement>;
+  getVideoRef: (index: number) => VideoRef;
   isInBufferRange: (index: number) => boolean;
   playVideo: (index: number) => void;
   pauseVideo: (index: number) => void;
@@ -27,16 +22,13 @@ interface UseBufferedVideosReturn {
  */
 export function useBufferedVideos({
   currentIndex,
-  feedItemsLength,
   bufferRange = 1,
 }: UseBufferedVideosParams): UseBufferedVideosReturn {
   // Map of index -> video ref
-  const videoRefsMap = useRef<Map<number, React.RefObject<HTMLVideoElement>>>(
-    new Map()
-  );
+  const videoRefsMap = useRef<Map<number, VideoRef>>(new Map());
 
   // Get or create video ref for a given index
-  const getVideoRef = useCallback((index: number): React.RefObject<HTMLVideoElement> => {
+  const getVideoRef = useCallback((index: number): VideoRef => {
     if (!videoRefsMap.current.has(index)) {
       videoRefsMap.current.set(index, { current: null });
     }
