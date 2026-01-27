@@ -4,6 +4,13 @@ import { useState, useRef, useEffect } from 'react';
 import { LifestyleDailyAggregateFeedItem } from '@/api/lifestyle';
 import LifestyleFeedPost from '@/components/lifestyle/LifestyleFeedPost';
 import { formatDate } from '@/lib/dateUtils';
+import { useReactions } from '@/hooks/useReactions';
+import { useComments } from '@/hooks/useComments';
+import { EmojiId } from '@/api/reactions';
+import ReactionPanel from './ReactionPanel';
+import ReactionModal from './ReactionModal';
+import CommentButton from './CommentButton';
+import CommentModal from './CommentModal';
 
 interface LifestyleItemProps {
   aggregate: LifestyleDailyAggregateFeedItem;
@@ -13,8 +20,9 @@ interface LifestyleItemProps {
 /**
  * Full-screen lifestyle aggregate item in unified feed
  * Displays user's daily posts in a horizontal carousel
+ * Includes reactions and comments for the currently visible post
  */
-export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProps) {
+export default function LifestyleItem({ aggregate, isActive: _isActive }: LifestyleItemProps) {
   // Backend sends posts DESC (newest first), reverse for chronological display
   const postsChronological = [...aggregate.posts].reverse();
   const totalSlides = postsChronological.length;
@@ -23,6 +31,34 @@ export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProp
   const [currentSlide, setCurrentSlide] = useState(totalSlides - 1);
   const carouselRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
+
+  // Modal states
+  const [showReactionModal, setShowReactionModal] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+
+  // Get the current post ID for reactions/comments
+  const currentPostId = postsChronological[currentSlide]?.id ?? null;
+
+  // Reactions hook for current post
+  const {
+    reactions,
+    isLoading: reactionsLoading,
+    addReaction,
+    removeReaction,
+  } = useReactions('lifestyle-posts', currentPostId);
+
+  // Comments hook for current post
+  const {
+    comments,
+    totalCount: commentCount,
+    isLoading: commentsLoading,
+    hasMore: hasMoreComments,
+    addComment,
+    deleteComment,
+    likeComment,
+    unlikeComment,
+    loadMore: loadMoreComments,
+  } = useComments('lifestyle-posts', currentPostId);
 
   // Scroll to the last slide on mount (only once to prevent jarring updates)
   useEffect(() => {
@@ -68,6 +104,14 @@ export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProp
     });
   };
 
+  const handleReact = async (emojiId: EmojiId) => {
+    await addReaction(emojiId);
+  };
+
+  const handleRemoveReaction = async () => {
+    await removeReaction();
+  };
+
   // Guard against empty posts (after all hooks to comply with Rules of Hooks)
   if (postsChronological.length === 0) {
     return (
@@ -78,7 +122,7 @@ export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProp
   }
 
   return (
-    <div className="h-full w-full bg-sec-col flex flex-col items-center justify-center p-4">
+    <div className="h-full w-full bg-sec-col flex flex-col items-center justify-center p-4 relative">
       <div className="max-w-lg w-full">
         {/* User Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -150,6 +194,50 @@ export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProp
           )}
         </div>
       </div>
+
+      {/* Right side action panel (for reactions and comments on current post) */}
+      <div className="absolute bottom-20 right-4 z-20 flex flex-col gap-3">
+        {/* Reactions */}
+        <ReactionPanel
+          highlightId={currentPostId ?? 0}
+          reactions={reactions}
+          isLoading={reactionsLoading}
+          onReact={handleReact}
+          onRemoveReaction={handleRemoveReaction}
+          onOpenModal={() => setShowReactionModal(true)}
+        />
+
+        {/* Comments button */}
+        <CommentButton
+          commentCount={commentCount}
+          onClick={() => setShowCommentModal(true)}
+          isLoading={commentsLoading}
+        />
+      </div>
+
+      {/* Reaction Modal */}
+      <ReactionModal
+        isOpen={showReactionModal}
+        onClose={() => setShowReactionModal(false)}
+        reactions={reactions}
+        onReact={handleReact}
+        onRemoveReaction={handleRemoveReaction}
+      />
+
+      {/* Comment Modal */}
+      <CommentModal
+        isOpen={showCommentModal}
+        onClose={() => setShowCommentModal(false)}
+        comments={comments}
+        totalCount={commentCount}
+        isLoading={commentsLoading}
+        hasMore={hasMoreComments}
+        onAddComment={addComment}
+        onDeleteComment={deleteComment}
+        onLikeComment={likeComment}
+        onUnlikeComment={unlikeComment}
+        onLoadMore={loadMoreComments}
+      />
     </div>
   );
 }
