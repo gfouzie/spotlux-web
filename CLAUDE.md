@@ -212,10 +212,11 @@ src/components/
 │   ├── MatchupItem.tsx         # Wrapper for MatchupCard in feed
 │   ├── LifestyleItem.tsx       # Lifestyle aggregate carousel
 │   ├── VideoOverlay.tsx        # Video metadata overlay (creator, prompt, stats)
-│   ├── ReactionPanel.tsx       # Top 3 reactions + smiley button
-│   ├── ReactionModal.tsx       # Full emoji grid modal
+│   ├── ReactionPanel.tsx       # Top 3 reactions + smiley button (polymorphic - any content type)
+│   ├── ReactionModal.tsx       # Full emoji grid modal (polymorphic - any content type)
 │   ├── CommentButton.tsx       # Comment count button
-│   └── CommentModal.tsx        # Comment list and input modal
+│   ├── CommentModal.tsx        # Comment list and input modal (polymorphic - any content type)
+│   └── CommentItem.tsx         # Individual comment with like button
 ├── footer/              # Footer component
 ├── friends/             # Friends feature components
 │   ├── FriendsPage.tsx
@@ -675,12 +676,21 @@ Modal-based image cropper with:
   - Manages zoom, pan, canvas rendering
   - Exports cropped image as Blob
 
-- **useHighlightReactions.ts** - Highlight reactions state and mutations
-  - Fetches aggregated reaction data for a highlight
+- **useContentReactions.ts** - Polymorphic reactions for any content type (highlights, lifestyle posts)
+  - Fetches aggregated reaction data for highlights OR lifestyle posts
   - Handles optimistic updates for add/remove reactions
   - Auto-rollback on API errors
-  - State: `reactions`, `isLoading`, `error`
+  - State: `reactions`, `userReaction`, `totalCount`, `isLoading`, `error`
   - Methods: `addReaction(emojiId)`, `removeReaction()`, `refetch()`
+  - Usage: `useContentReactions('highlight', highlightId)` or `useContentReactions('lifestyle_post', postId)`
+
+- **useContentComments.ts** - Polymorphic comments for any content type (highlights, lifestyle posts)
+  - Fetches paginated comments with hot ranking
+  - Handles optimistic updates for add/delete/like/unlike
+  - Auto-rollback on API errors
+  - State: `comments`, `totalCount`, `hasMore`, `isLoading`, `error`
+  - Methods: `addComment(text)`, `deleteComment(id)`, `likeComment(id)`, `unlikeComment(id)`, `loadMore()`
+  - Usage: `useContentComments('highlight', highlightId)` or `useContentComments('lifestyle_post', postId)`
 
 - **useLifestyleFeedData.ts** - Lifestyle feed state management
   - Manages lifestyle feed items, cursor-based pagination
@@ -1101,6 +1111,85 @@ if (!isLoading && items.length === 0 && !hasMore) {
 )}
 ```
 
+## Polymorphic Comments & Reactions
+
+The comments and reactions system uses a **polymorphic architecture** - the same UI components, hooks, and patterns work for BOTH highlights AND lifestyle posts.
+
+### Content Types
+
+```typescript
+type ContentType = 'highlight' | 'lifestyle_post';
+```
+
+### Shared Components
+
+These components accept `contentType` and `contentId` props and work identically for any content:
+
+- **ReactionPanel** - Top 3 reactions display with "add reaction" button
+- **ReactionModal** - Full 8-emoji grid for selecting reactions
+- **CommentModal** - Comment list with input, like buttons, pagination
+- **CommentItem** - Individual comment with author, like button, delete option
+
+### Usage Pattern
+
+```tsx
+// For highlights
+<ReactionPanel
+  contentType="highlight"
+  contentId={highlight.id}
+  reactions={reactions}
+  onOpenModal={() => setShowReactionModal(true)}
+/>
+
+// For lifestyle posts (identical API)
+<ReactionPanel
+  contentType="lifestyle_post"
+  contentId={post.id}
+  reactions={reactions}
+  onOpenModal={() => setShowReactionModal(true)}
+/>
+```
+
+### Hooks
+
+```typescript
+// Reactions - same hook, different content type
+const highlightReactions = useContentReactions('highlight', highlightId);
+const lifestyleReactions = useContentReactions('lifestyle_post', postId);
+
+// Comments - same hook, different content type
+const highlightComments = useContentComments('highlight', highlightId);
+const lifestyleComments = useContentComments('lifestyle_post', postId);
+```
+
+### Emoji System
+
+```typescript
+// 8 available emojis (stored as string IDs)
+const EMOJI_IDS = ['fire', 'hundred', 'shocked', 'anguished', 'laughing', 'crying', 'angry', 'cold'];
+
+// Map IDs to Unicode emojis for display
+const EMOJI_MAP: Record<string, string> = {
+  fire: '🔥',
+  hundred: '💯',
+  shocked: '😱',
+  anguished: '😧',
+  laughing: '😂',
+  crying: '😭',
+  angry: '😤',
+  cold: '🥶',
+};
+```
+
+### API Endpoints
+
+| Content Type | Reactions | Comments |
+|--------------|-----------|----------|
+| Highlight | `/highlights/{id}/reactions` | `/highlights/{id}/comments` |
+| Lifestyle Post | `/lifestyle-posts/{id}/reactions` | `/lifestyle-posts/{id}/comments` |
+
+> **Mobile Implementation**: See [spotlux-backend/mobile-implementation/content-comments-reactions.md](../spotlux-backend/mobile-implementation/content-comments-reactions.md) for complete specs.
+
 ## API Integration
 
 **Configuration** (`src/lib/config.ts`):
@@ -1132,8 +1221,12 @@ if (!isLoading && items.length === 0 && !hasMore) {
 - `users.ts` - User profile operations (registration with timezone field)
 - `highlights.ts` - Highlight CRUD operations
 - `highlightReels.ts` - Reel management (create, update, delete, reorder)
-- `reactions.ts` - Highlight reactions (get, add/update, remove)
+- `reactions.ts` - Content reactions (polymorphic - works for highlights AND lifestyle posts)
   - Includes `EMOJI_IDS` constant and `EMOJI_MAP` for string ID to Unicode emoji conversion
+  - Endpoints: `/highlights/{id}/reactions`, `/lifestyle-posts/{id}/reactions`
+- `comments.ts` - Content comments (polymorphic - works for highlights AND lifestyle posts)
+  - Includes comment CRUD and like/unlike operations
+  - Endpoints: `/highlights/{id}/comments`, `/lifestyle-posts/{id}/comments`
 - `matchups.ts` - Matchup voting, results, current featured prompt
 - `feed.ts` - Unified feed endpoint
   - `getMixedFeed({ limit, cursor, sport })` - Returns `{ items, nextCursor, hasMore }`
@@ -1307,8 +1400,10 @@ NODE_ENV=development
 - Authentication: `/api/v1/login`, `/api/v1/logout`, `/api/v1/refresh`
 - Users: `/api/v1/users`, `/api/v1/user/sports`, `/api/v1/user/teams`
 - Highlights: `/api/v1/highlights`, `/api/v1/highlight-reels`, `/api/v1/feed`
+- Highlight Interactions: `/api/v1/highlights/{id}/reactions`, `/api/v1/highlights/{id}/comments`
 - Matchups: `/api/v1/highlight-matchups`, `/api/v1/highlight-matchups/vote`
 - Lifestyle: `/api/v1/lifestyle-posts`, `/api/v1/lifestyle-feed`, `/api/v1/lifestyle-streaks`, `/api/v1/users/{user_id}/lifestyle/calendar`, `/api/v1/lifestyle/insights/*`
+- Lifestyle Interactions: `/api/v1/lifestyle-posts/{id}/reactions`, `/api/v1/lifestyle-posts/{id}/comments`
 - Social: `/api/v1/friendships`, `/api/v1/conversations`
 - Upload: `/api/v1/upload`
 
