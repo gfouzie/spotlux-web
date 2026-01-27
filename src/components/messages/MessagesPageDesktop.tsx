@@ -25,6 +25,7 @@ interface MessagesPageDesktopProps {
   onNewMessage: () => void;
   onCreateConversation: (friendId: number) => void;
   onCloseModal: () => void;
+  onMessagesRefresh?: () => void;
 }
 
 const MessagesPageDesktop = ({
@@ -47,6 +48,7 @@ const MessagesPageDesktop = ({
   onNewMessage,
   onCreateConversation,
   onCloseModal,
+  onMessagesRefresh,
 }: MessagesPageDesktopProps) => {
   const activeConversation = conversations.find(
     (conv) => conv.id === activeConversationId
@@ -90,6 +92,7 @@ const MessagesPageDesktop = ({
                   hasMore={hasMore}
                   isLoadingMore={isLoadingMore}
                   onLoadMore={onLoadMoreMessages}
+                  onMessagesRefresh={onMessagesRefresh}
                 />
               ) : (
                 <div className="bg-card-col h-full flex items-center justify-center">

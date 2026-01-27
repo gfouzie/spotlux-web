@@ -1,6 +1,16 @@
 import { config } from '@/lib/config';
 import { buildQueryParams } from '@/lib/utils';
 import { authRequest } from './client';
+import { FriendMatchup } from './friendMatchups';
+
+/**
+ * Message type discriminator for friend matchup messages
+ */
+export type MessageType =
+  | 'text'
+  | 'friend_matchup_invite'
+  | 'friend_matchup_confirmed'
+  | 'friend_matchup_result';
 
 export interface Conversation {
   id: number;
@@ -46,6 +56,9 @@ export interface Message {
   isDeleted: boolean;
   createdAt: string;
   updatedAt?: string | null;
+  messageType: MessageType;
+  friendMatchupId?: number | null;
+  friendMatchup?: FriendMatchup | null;
 }
 
 export interface SenderInfo {

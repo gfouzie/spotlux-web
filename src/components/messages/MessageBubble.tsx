@@ -2,13 +2,30 @@
 
 import { MessageWithSender } from '@/api/conversations';
 import { formatDistanceToNow } from 'date-fns';
+import FriendMatchupMessageBubble from './FriendMatchupMessageBubble';
 
 interface MessageBubbleProps {
   message: MessageWithSender;
   currentUserId: number;
+  onMatchupUpdated?: () => void;
 }
 
-const MessageBubble = ({ message, currentUserId }: MessageBubbleProps) => {
+const MessageBubble = ({ message, currentUserId, onMatchupUpdated }: MessageBubbleProps) => {
+  // Route friend matchup messages to specialized component
+  if (
+    message.messageType === 'friend_matchup_invite' ||
+    message.messageType === 'friend_matchup_confirmed' ||
+    message.messageType === 'friend_matchup_result'
+  ) {
+    return (
+      <FriendMatchupMessageBubble
+        message={message}
+        currentUserId={currentUserId}
+        onMatchupUpdated={onMatchupUpdated}
+      />
+    );
+  }
+
   const isSent = message.senderId === currentUserId;
   const isDeleted = message.isDeleted;
 

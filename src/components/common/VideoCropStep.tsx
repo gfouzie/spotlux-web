@@ -258,40 +258,46 @@ export default function VideoCropStep({
         </p>
       </div>
 
-      {/* Video Preview with crop frame */}
-      <div className="relative w-full aspect-[9/16] max-h-[250px] mx-auto rounded-lg overflow-hidden border-2 border-accent-col">
+      {/* Video Preview with 9:16 crop frame */}
+      <div className="relative w-full max-w-[200px] mx-auto">
+        {/* 9:16 aspect ratio container */}
         <div
-          className="absolute inset-0 flex items-center justify-center cursor-move bg-black"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ touchAction: 'none' }}
+          className="relative w-full rounded-lg overflow-hidden border-2 border-accent-col bg-black"
+          style={{ aspectRatio: '9/16' }}
         >
-          {videoSrc && (
-            <video
-              ref={videoRef}
-              src={videoSrc}
-              className="max-w-none max-h-none"
-              style={{
-                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                transformOrigin: 'center center',
-              }}
-              playsInline
-              muted
-              loop
-              preload="auto"
-            />
-          )}
+          <div
+            className="absolute inset-0 flex items-center justify-center cursor-move overflow-hidden"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'none' }}
+          >
+            {videoSrc && (
+              <video
+                ref={videoRef}
+                src={videoSrc}
+                className="min-w-full min-h-full object-cover"
+                style={{
+                  transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                  transformOrigin: 'center center',
+                }}
+                playsInline
+                muted
+                loop
+                preload="auto"
+              />
+            )}
 
-          {/* Overlay hint */}
-          <div className="absolute top-2 left-0 right-0 text-center pointer-events-none">
-            <span className="text-white/70 text-xs bg-black/50 px-2 py-1 rounded">
-              Drag to position
-            </span>
+            {/* Overlay hint */}
+            <div className="absolute top-2 left-0 right-0 text-center pointer-events-none">
+              <span className="text-white/70 text-xs bg-black/50 px-2 py-1 rounded">
+                Drag to position
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -400,6 +406,9 @@ export default function VideoCropStep({
 
 /**
  * Crops and trims a video to specified parameters
+ *
+ * Properly handles aspect ratio conversion (e.g., 16:9 source to 9:16 target).
+ * The crop region is calculated to fill the target aspect ratio, then zoom/pan are applied.
  */
 async function cropAndTrimVideo(
   videoElement: HTMLVideoElement,
@@ -418,11 +427,35 @@ async function cropAndTrimVideo(
       return;
     }
 
-    // Set canvas size based on aspect ratio
+    // Set canvas size for portrait video (9:16)
+    // aspectRatio = width/height, so for 9:16, aspectRatio = 0.5625
     const targetWidth = 720;
     const targetHeight = Math.round(targetWidth / aspectRatio);
     canvas.width = targetWidth;
     canvas.height = targetHeight;
+
+    // Get source video dimensions
+    const srcWidth = videoElement.videoWidth;
+    const srcHeight = videoElement.videoHeight;
+    const srcAspect = srcWidth / srcHeight;
+    const targetAspect = aspectRatio;
+
+    // Calculate the base crop region that fills the target aspect ratio
+    // This determines what portion of the source video we take before zoom/pan
+    let baseCropWidth: number;
+    let baseCropHeight: number;
+
+    if (srcAspect > targetAspect) {
+      // Source is wider than target (e.g., 16:9 source, 9:16 target)
+      // Height-constrained: use full height, crop width
+      baseCropHeight = srcHeight;
+      baseCropWidth = srcHeight * targetAspect;
+    } else {
+      // Source is taller than target (or same)
+      // Width-constrained: use full width, crop height
+      baseCropWidth = srcWidth;
+      baseCropHeight = srcWidth / targetAspect;
+    }
 
     const chunks: Blob[] = [];
     const stream = canvas.captureStream(30); // 30 FPS
@@ -450,25 +483,33 @@ async function cropAndTrimVideo(
 
     const drawFrame = () => {
       if (!videoElement.paused && videoElement.currentTime < endTime) {
-        // Calculate source dimensions based on zoom
-        const sourceWidth = videoElement.videoWidth / zoom;
-        const sourceHeight = videoElement.videoHeight / zoom;
+        // Apply zoom to the base crop region
+        const cropWidth = baseCropWidth / zoom;
+        const cropHeight = baseCropHeight / zoom;
 
-        // Calculate source position (centered, adjusted for pan)
-        const sourceX = (videoElement.videoWidth - sourceWidth) / 2 - (pan.x / zoom);
-        const sourceY = (videoElement.videoHeight - sourceHeight) / 2 - (pan.y / zoom);
+        // Calculate crop position (centered by default)
+        // Pan values are in screen pixels, convert to source pixels
+        const panScaleX = baseCropWidth / canvas.width;
+        const panScaleY = baseCropHeight / canvas.height;
+
+        let cropX = (srcWidth - cropWidth) / 2 - (pan.x * panScaleX / zoom);
+        let cropY = (srcHeight - cropHeight) / 2 - (pan.y * panScaleY / zoom);
+
+        // Clamp to source bounds
+        cropX = Math.max(0, Math.min(cropX, srcWidth - cropWidth));
+        cropY = Math.max(0, Math.min(cropY, srcHeight - cropHeight));
 
         // Clear canvas
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw video frame
+        // Draw cropped video frame
         ctx.drawImage(
           videoElement,
-          sourceX,
-          sourceY,
-          sourceWidth,
-          sourceHeight,
+          cropX,
+          cropY,
+          cropWidth,
+          cropHeight,
           0,
           0,
           canvas.width,

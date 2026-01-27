@@ -257,7 +257,11 @@ src/components/
 │   ├── ConversationList.tsx
 │   ├── MessageThread.tsx
 │   ├── MessageInput.tsx
-│   └── NewConversationModal.tsx
+│   ├── NewConversationModal.tsx
+│   ├── FriendMatchupMessageBubble.tsx   # Renders matchup messages (invite/active/result states)
+│   ├── CreateFriendMatchupModal.tsx     # Create 1v1 challenge flow (settings → video → upload)
+│   ├── RespondToMatchupModal.tsx        # Accept challenge flow (preview → video → upload)
+│   └── FriendMatchupDetailModal.tsx     # View matchup details and vote
 ├── navigation/          # Navigation components
 │   ├── Sidebar.tsx
 │   └── MobileNav.tsx
@@ -1241,6 +1245,11 @@ const EMOJI_MAP: Record<string, string> = {
   - Methods: getPromptsByCategory, getTodaysPosts, createPost (with X-Timezone header), updatePost, deletePost, getAggregate, getFeed, trackAggregateView, getAllStreaks, getOverallStreak, getCalendar, getWakeTimeInsight, getSleepTimeInsight, getSleepDurationInsight
 - `upload.ts` - S3 presigned URL generation
 - `friendships.ts` - Friend request/accept/reject
+- `friendMatchups.ts` - Friend 1v1 matchup challenges in DMs
+  - Types: FriendMatchup, FriendMatchupStatus, FriendMatchupVisibility, CreateFriendMatchupRequest
+  - Methods: create, get, respond, decline, vote
+  - Used with WebSocket events (matchup.created, matchup.confirmed, matchup.declined, matchup.result)
+  - **Voting durations**: `0` (1 min test), `24` (1 day), `72` (3 days), `168` (1 week)
 - `teams.ts`, `leagues.ts`, `positions.ts`, `sports.ts` - Sports data
 
 **Utility Functions** (`src/lib/`):
@@ -1294,14 +1303,41 @@ const { items, nextCursor, hasMore } = await feedApi.getMixedFeed({
 
 ## Real-time Features (WebSocket)
 
-**Location**: `src/contexts/WebSocketContext.tsx`
-
-WebSocket connection for real-time messaging:
+**WebSocketContext** (`src/contexts/WebSocketContext.tsx`):
+- Manages WebSocket connection lifecycle
 - Auto-connects on authentication
-- Handles: new messages, typing indicators, read receipts
 - Auto-reconnects on disconnect
-- Event types: `message_sent`, `typing_start`, `typing_stop`, `message_read`
-- Used by messaging components (`ConversationView`, `MessageInput`)
+- Handles: new messages, typing indicators, read receipts
+
+**MessagingContext** (`src/contexts/MessagingContext.tsx`):
+- Manages messaging state via `useReducer`
+- Subscribes to WebSocket events and dispatches state updates
+- Handles friend matchup WebSocket events for real-time updates
+
+**Event Types**:
+- `message_sent` - New message in conversation
+- `typing_start`, `typing_stop` - Typing indicators
+- `message_read` - Read receipts
+- `matchup.created` - Friend matchup challenge sent (add invite message)
+- `matchup.confirmed` - Challenge accepted (update status to active, add system message, includes votingEndsAt)
+- `matchup.declined` - Challenge declined (update status, S3 video cleanup on backend)
+- `matchup.result` - Voting ended via background job (update status to completed, add results message, includes winnerId, initiatorVotes, responderVotes)
+
+**State Management Pattern**:
+```typescript
+// MessagingContext reducer actions
+type MessagingAction =
+  | { type: 'SET_CONVERSATIONS'; conversations: Conversation[] }
+  | { type: 'ADD_MESSAGE'; conversationId: number; message: Message }
+  | { type: 'UPDATE_MATCHUP_STATUS'; matchupId: number; status: FriendMatchupStatus; votingEndsAt?: string; winnerId?: number; initiatorVotes?: number; responderVotes?: number }
+  // ... etc
+```
+
+**Duplicate Message Prevention**:
+- `ADD_MESSAGE` reducer checks for existing message ID before adding
+- Prevents duplicates when both WebSocket event and API response add the same message
+
+**Used by**: `ConversationView`, `MessageInput`, `FriendMatchupMessageBubble`
 
 ## Styling Guidelines
 
@@ -1359,6 +1395,41 @@ hover:bg-bg-col/50 hover:border-l-4 hover:border-red-500/50
 - When adding new functionality, add required imports to the top of the file immediately
 - Do not add imports inside function bodies unless there is a specific technical reason (document why if you do)
 
+**File Size & Organization Guidelines**:
+
+- **Target file size**: Keep component files under 300 lines
+- **Signs a file needs splitting**:
+  - File exceeds 400 lines
+  - Multiple distinct UI sections that could be subcomponents
+  - Repeated JSX patterns that could be extracted
+  - Complex state logic that could move to a custom hook
+- **Refactoring approach**:
+  1. Extract repeated patterns into helper functions or subcomponents
+  2. Move complex state/effects into custom hooks (`src/hooks/`)
+  3. Split large components into focused subcomponents in same directory
+  4. Keep API logic in `src/api/` files, not inline in components
+
+**Custom Hooks Pattern**:
+
+When component state logic gets complex, extract to a custom hook:
+```typescript
+// Before: 50+ lines of state/effects in component
+const [items, setItems] = useState([]);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState(null);
+// ... complex fetch/update logic
+
+// After: Clean component, reusable hook
+const { items, loading, error, loadMore } = useUnifiedFeed();
+```
+
+**Existing hooks** (`src/hooks/`):
+- `useUnifiedFeed.ts` - Feed state and pagination
+- `useMatchupVoting.ts` - Matchup vote handling
+- `useContentReactions.ts` - Polymorphic reactions
+- `useContentComments.ts` - Polymorphic comments
+- `useImageCrop.ts` - Image cropping state
+
 ## Testing
 
 **Frontend**: No test framework currently configured
@@ -1405,6 +1476,7 @@ NODE_ENV=development
 - Lifestyle: `/api/v1/lifestyle-posts`, `/api/v1/lifestyle-feed`, `/api/v1/lifestyle-streaks`, `/api/v1/users/{user_id}/lifestyle/calendar`, `/api/v1/lifestyle/insights/*`
 - Lifestyle Interactions: `/api/v1/lifestyle-posts/{id}/reactions`, `/api/v1/lifestyle-posts/{id}/comments`
 - Social: `/api/v1/friendships`, `/api/v1/conversations`
+- Friend Matchups: `/api/v1/friend-matchups`, `/api/v1/friend-matchups/{id}/respond`, `/api/v1/friend-matchups/{id}/decline`, `/api/v1/friend-matchups/{id}/vote`
 - Upload: `/api/v1/upload`
 
 ## Mobile Implementation Reference

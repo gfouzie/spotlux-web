@@ -153,6 +153,12 @@ const MessagesPage = () => {
     }
   };
 
+  const handleMessagesRefresh = () => {
+    if (activeConversationId) {
+      loadMessages(activeConversationId);
+    }
+  };
+
   const isDesktop = useMediaQuery('(min-width: 1024px)');
 
   const sharedProps = {
@@ -175,6 +181,7 @@ const MessagesPage = () => {
     onNewMessage: handleNewMessage,
     onCreateConversation: handleCreateConversation,
     onCloseModal: () => setShowNewConversationModal(false),
+    onMessagesRefresh: handleMessagesRefresh,
   };
 
   if (isDesktop) {

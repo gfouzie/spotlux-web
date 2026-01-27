@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useUnifiedFeed } from '@/hooks/useUnifiedFeed';
 import HighlightItem from './HighlightItem';
-import MatchupItem from './MatchupItem';
 import LifestyleItem from './LifestyleItem';
+import UnifiedMatchupView from '@/components/matchup/UnifiedMatchupView';
 import LoadingState from '@/components/common/LoadingState';
 import Alert from '@/components/common/Alert';
 
@@ -154,10 +154,19 @@ export default function UnifiedFeedPage() {
                   <HighlightItem highlight={item.data} isActive={isActive} />
                 )}
                 {item.type === 'matchup' && (
-                  <MatchupItem matchup={item.data} isActive={isActive} />
+                  <UnifiedMatchupView
+                    matchup={item.data}
+                    isActive={isActive}
+                  />
                 )}
                 {item.type === 'lifestyle' && (
                   <LifestyleItem aggregate={item.data} isActive={isActive} />
+                )}
+                {item.type === 'friend_matchup' && (
+                  <UnifiedMatchupView
+                    friendMatchup={item.data}
+                    isActive={isActive}
+                  />
                 )}
               </>
             )}

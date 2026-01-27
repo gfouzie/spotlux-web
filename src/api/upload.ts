@@ -63,6 +63,13 @@ interface LifestyleImagePresignedUrlRequest extends BasePresignedUrlRequest {
 }
 
 /**
+ * Friend matchup video upload request
+ */
+interface FriendMatchupVideoPresignedUrlRequest extends BasePresignedUrlRequest {
+  uploadType: 'friend_matchup_video';
+}
+
+/**
  * Discriminated union of all presigned URL request types
  */
 export type PresignedUrlRequest =
@@ -72,7 +79,8 @@ export type PresignedUrlRequest =
   | HighlightReelThumbnailPresignedUrlRequest
   | HighlightThumbnailPresignedUrlRequest
   | MessageImagePresignedUrlRequest
-  | LifestyleImagePresignedUrlRequest;
+  | LifestyleImagePresignedUrlRequest
+  | FriendMatchupVideoPresignedUrlRequest;
 
 /**
  * Presigned URL response interface
@@ -137,6 +145,13 @@ interface LifestyleImageUploadCompleteRequest extends BaseUploadCompleteRequest 
 }
 
 /**
+ * Friend matchup video upload completion request
+ */
+interface FriendMatchupVideoUploadCompleteRequest extends BaseUploadCompleteRequest {
+  uploadType: 'friend_matchup_video';
+}
+
+/**
  * Discriminated union of all upload completion request types
  */
 export type UploadCompleteRequest =
@@ -145,7 +160,8 @@ export type UploadCompleteRequest =
   | HighlightReelThumbnailUploadCompleteRequest
   | HighlightThumbnailUploadCompleteRequest
   | MessageImageUploadCompleteRequest
-  | LifestyleImageUploadCompleteRequest;
+  | LifestyleImageUploadCompleteRequest
+  | FriendMatchupVideoUploadCompleteRequest;
 
 /**
  * Profile picture upload response interface
@@ -512,6 +528,52 @@ export const uploadApi = {
     );
 
     // Return the file URL for use in the lifestyle post
+    return {
+      fileUrl: presignedData.fileUrl,
+      s3Key: presignedData.s3Key,
+    };
+  },
+
+  /**
+   * Upload friend matchup video using presigned URL flow
+   * Returns the file URL for use in friend matchup content
+   */
+  uploadFriendMatchupVideo: async (
+    file: File
+  ): Promise<{ fileUrl: string; s3Key: string }> => {
+    // Step 1: Request presigned URL from backend
+    const presignedRequest: PresignedUrlRequest = {
+      filename: file.name,
+      contentType: file.type,
+      uploadType: 'friend_matchup_video',
+    };
+
+    const presignedData = await authRequest<PresignedUrlResponse>(
+      `${config.apiBaseUrl}/api/v1/upload/presigned-url`,
+      {
+        method: 'POST',
+        body: JSON.stringify(presignedRequest),
+      }
+    );
+
+    // Step 2: Upload directly to S3
+    await uploadToS3(file, presignedData);
+
+    // Step 3: Notify backend of completion
+    const completeRequest: UploadCompleteRequest = {
+      s3Key: presignedData.s3Key,
+      uploadType: 'friend_matchup_video',
+    };
+
+    await authRequest<ProfilePictureUploadResponse>(
+      `${config.apiBaseUrl}/api/v1/upload/complete`,
+      {
+        method: 'POST',
+        body: JSON.stringify(completeRequest),
+      }
+    );
+
+    // Return the file URL for use in the friend matchup
     return {
       fileUrl: presignedData.fileUrl,
       s3Key: presignedData.s3Key,

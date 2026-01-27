@@ -20,6 +20,20 @@ export type WebSocketEvent =
   | { type: 'message.deleted'; messageId: number; deletedAt: string }
   | { type: 'typing.start'; userId: number; conversationId: number }
   | { type: 'typing.stop'; userId: number; conversationId: number }
+  | {
+      type: 'matchup.confirmed';
+      message: MessageWithSender;
+      matchupId: number;
+      status: string;
+      votingEndsAt: string;
+      responderVideoUrl?: string;
+    }
+  | {
+      type: 'matchup.declined';
+      message: MessageWithSender;
+      matchupId: number;
+      status: string;
+    }
   | { type: 'error'; message: string };
 
 export type WebSocketEventHandler = (event: WebSocketEvent) => void;

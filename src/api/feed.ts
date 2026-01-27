@@ -5,6 +5,7 @@ import { Highlight } from './highlights';
 import { HighlightMatchup } from '@/types/matchup';
 import { FeedItem } from '@/types/feed';
 import { LifestyleDailyAggregateFeedItem } from './lifestyle';
+import { FriendMatchupFeedItem } from './friendMatchups';
 
 /**
  * Query parameters for fetching feed highlights
@@ -94,10 +95,11 @@ export const feedApi = {
 
     const response = await authRequest<{
       items: Array<{
-        type: 'highlight' | 'matchup' | 'lifestyle';
+        type: 'highlight' | 'matchup' | 'lifestyle' | 'friend_matchup';
         highlight: Highlight | null;
         matchup: HighlightMatchup | null;
         lifestyle: LifestyleDailyAggregateFeedItem | null;
+        friendMatchup: FriendMatchupFeedItem | null;
       }>;
       nextCursor: string | null;
       hasMore: boolean;
@@ -127,6 +129,12 @@ export const feedApi = {
           type: 'lifestyle' as const,
           id: `lifestyle-${item.lifestyle.id}`,
           data: item.lifestyle,
+        };
+      } else if (item.type === 'friend_matchup' && item.friendMatchup) {
+        return {
+          type: 'friend_matchup' as const,
+          id: `friend_matchup-${item.friendMatchup.id}`,
+          data: item.friendMatchup,
         };
       }
       throw new Error('Invalid feed item received from backend');

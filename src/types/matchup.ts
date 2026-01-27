@@ -26,6 +26,15 @@ export interface FeaturedPrompt {
 }
 
 /**
+ * Creator info for highlight in matchup feed
+ */
+export interface HighlightCreator {
+  id: number;
+  username: string;
+  profileImageUrl: string | null;
+}
+
+/**
  * HighlightMatchup interface matching the backend HighlightMatchupRead schema
  */
 export interface HighlightMatchup {
@@ -40,13 +49,13 @@ export interface HighlightMatchup {
     id: number;
     videoUrl: string;
     prompt?: { id: number; name: string };
-    creator?: { username: string };
+    creator?: HighlightCreator;
   };
   highlightB?: {
     id: number;
     videoUrl: string;
     prompt?: { id: number; name: string };
-    creator?: { username: string };
+    creator?: HighlightCreator;
   };
 }
 

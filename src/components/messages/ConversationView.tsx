@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   ConversationWithDetails,
   MessageWithSender,
@@ -7,6 +8,7 @@ import {
 import ConversationHeader from './ConversationHeader';
 import MessageThread from './MessageThread';
 import MessageInput from './MessageInput';
+import CreateFriendMatchupModal from './CreateFriendMatchupModal';
 
 interface ConversationViewProps {
   conversation: ConversationWithDetails | undefined;
@@ -21,6 +23,7 @@ interface ConversationViewProps {
   isLoadingMore?: boolean;
   onLoadMore?: () => void;
   onBackToList?: () => void;
+  onMessagesRefresh?: () => void;
 }
 
 const ConversationView = ({
@@ -36,7 +39,10 @@ const ConversationView = ({
   isLoadingMore = false,
   onLoadMore,
   onBackToList,
+  onMessagesRefresh,
 }: ConversationViewProps) => {
+  const [showChallengeModal, setShowChallengeModal] = useState(false);
+
   if (!conversation) {
     return (
       <div className="bg-card-col flex items-center justify-center h-full">
@@ -47,6 +53,11 @@ const ConversationView = ({
       </div>
     );
   }
+
+  const handleChallengeCreated = () => {
+    setShowChallengeModal(false);
+    onMessagesRefresh?.();
+  };
 
   return (
     <div className="bg-card-col flex flex-col h-full overflow-hidden">
@@ -64,6 +75,7 @@ const ConversationView = ({
           onLoadMore={onLoadMore}
           onMarkAsRead={onMarkAsRead}
           isOtherUserTyping={isOtherUserTyping}
+          onMatchupUpdated={onMessagesRefresh}
         />
       </div>
 
@@ -71,6 +83,16 @@ const ConversationView = ({
         onSendMessage={onSendMessage}
         onTypingChange={onTypingChange}
         disabled={!isConnected}
+        onChallengeClick={() => setShowChallengeModal(true)}
+      />
+
+      <CreateFriendMatchupModal
+        isOpen={showChallengeModal}
+        onClose={() => setShowChallengeModal(false)}
+        conversationId={conversation.id}
+        responderId={conversation.otherUser.id}
+        responderUsername={conversation.otherUser.username}
+        onCreated={handleChallengeCreated}
       />
     </div>
   );

@@ -17,6 +17,7 @@ import {
   ConversationWithDetails,
   MessageWithSender,
 } from '@/api/conversations';
+import { FriendMatchupStatus } from '@/api/friendMatchups';
 
 // Messaging state interface
 interface MessagingState {
@@ -83,6 +84,16 @@ type MessagingAction =
       type: 'SET_LOADING_MORE';
       conversationId: number;
       isLoadingMore: boolean;
+    }
+  | {
+      type: 'UPDATE_MATCHUP_STATUS';
+      matchupId: number;
+      status: FriendMatchupStatus;
+      votingEndsAt: string;
+      responderVideoUrl?: string;
+      winnerId?: number | null;
+      initiatorVotes?: number;
+      responderVotes?: number;
     };
 
 // Messaging context interface
@@ -188,6 +199,12 @@ const messagingReducer = (
     }
     case 'ADD_MESSAGE': {
       const existing = state.messages[action.conversationId] || [];
+
+      // Prevent duplicate messages (can happen when WebSocket and API both add same message)
+      const isDuplicate = existing.some((msg) => msg.id === action.message.id);
+      if (isDuplicate) {
+        return state;
+      }
 
       // Update the conversation's lastMessage and lastMessageAt
       const updatedConversations = state.conversations.map((conv) => {
@@ -331,6 +348,37 @@ const messagingReducer = (
           },
         },
       };
+    case 'UPDATE_MATCHUP_STATUS': {
+      // Update friendMatchup.status for all messages with matching friendMatchupId
+      const updatedMessages: Record<number, MessageWithSender[]> = {};
+
+      Object.entries(state.messages).forEach(([convIdStr, msgs]) => {
+        const convId = parseInt(convIdStr);
+        const updated = msgs.map((msg): MessageWithSender => {
+          if (msg.friendMatchupId === action.matchupId && msg.friendMatchup) {
+            return {
+              ...msg,
+              friendMatchup: {
+                ...msg.friendMatchup,
+                status: action.status,
+                votingEndsAt: action.votingEndsAt,
+                responderVideoUrl: action.responderVideoUrl || msg.friendMatchup.responderVideoUrl,
+                winnerId: action.winnerId !== undefined ? action.winnerId : msg.friendMatchup.winnerId,
+                initiatorVotes: action.initiatorVotes ?? msg.friendMatchup.initiatorVotes,
+                responderVotes: action.responderVotes ?? msg.friendMatchup.responderVotes,
+              },
+            };
+          }
+          return msg;
+        });
+        updatedMessages[convId] = updated;
+      });
+
+      return {
+        ...state,
+        messages: updatedMessages,
+      };
+    }
     default:
       return state;
   }
@@ -443,6 +491,70 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
             conversationId: event.conversationId,
             userId: event.userId,
             isTyping: false,
+          });
+        }
+        break;
+
+      case 'matchup.confirmed':
+        // Update the original invite message's matchup status to 'active'
+        if (event.matchupId) {
+          dispatch({
+            type: 'UPDATE_MATCHUP_STATUS',
+            matchupId: event.matchupId,
+            status: (event.status || 'active') as FriendMatchupStatus,
+            votingEndsAt: event.votingEndsAt || '',
+            responderVideoUrl: event.responderVideoUrl,
+          });
+        }
+        // Add the system message to the conversation when matchup is confirmed
+        if (event.message) {
+          dispatch({
+            type: 'ADD_MESSAGE',
+            conversationId: event.message.conversationId,
+            message: event.message,
+          });
+        }
+        break;
+
+      case 'matchup.declined':
+        // Update the original invite message's matchup status to 'declined'
+        if (event.matchupId) {
+          dispatch({
+            type: 'UPDATE_MATCHUP_STATUS',
+            matchupId: event.matchupId,
+            status: (event.status || 'declined') as FriendMatchupStatus,
+            votingEndsAt: '',
+          });
+        }
+        // Add the system message to the conversation
+        if (event.message) {
+          dispatch({
+            type: 'ADD_MESSAGE',
+            conversationId: event.message.conversationId,
+            message: event.message,
+          });
+        }
+        break;
+
+      case 'matchup.result':
+        // Update the matchup status to 'completed' with winner info
+        if (event.matchupId) {
+          dispatch({
+            type: 'UPDATE_MATCHUP_STATUS',
+            matchupId: event.matchupId,
+            status: (event.status || 'completed') as FriendMatchupStatus,
+            votingEndsAt: '',
+            winnerId: event.winnerId,
+            initiatorVotes: event.initiatorVotes,
+            responderVotes: event.responderVotes,
+          });
+        }
+        // Add the result message to the conversation
+        if (event.message) {
+          dispatch({
+            type: 'ADD_MESSAGE',
+            conversationId: event.message.conversationId,
+            message: event.message,
           });
         }
         break;

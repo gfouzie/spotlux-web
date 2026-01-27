@@ -8,18 +8,20 @@ import {
   validateImageFile,
 } from '@/lib/compression/imageCompression';
 import Button from '@/components/common/Button';
-import { Send, MediaImage, Xmark } from 'iconoir-react';
+import { Send, MediaImage, Xmark, Trophy } from 'iconoir-react';
 
 interface MessageInputProps {
   onSendMessage: (content: string, imageUrl?: string | null) => void;
   onTypingChange: (isTyping: boolean) => void;
   disabled?: boolean;
+  onChallengeClick?: () => void;
 }
 
 const MessageInput = ({
   onSendMessage,
   onTypingChange,
   disabled = false,
+  onChallengeClick,
 }: MessageInputProps) => {
   const [content, setContent] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -203,6 +205,19 @@ const MessageInput = ({
           className="hidden"
           disabled={disabled || isUploading}
         />
+
+        {/* Challenge button */}
+        {onChallengeClick && (
+          <button
+            onClick={onChallengeClick}
+            disabled={disabled || isUploading}
+            className="h-12 w-12 cursor-pointer flex items-center justify-center rounded-lg hover:bg-bg-col/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 text-accent-col"
+            title="Challenge to 1v1"
+            type="button"
+          >
+            <Trophy width={20} height={20} />
+          </button>
+        )}
 
         {/* Image button */}
         <button

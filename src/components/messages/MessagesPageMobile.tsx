@@ -29,6 +29,7 @@ interface MessagesPageMobileProps {
   onNewMessage: () => void;
   onCreateConversation: (friendId: number) => void;
   onCloseModal: () => void;
+  onMessagesRefresh?: () => void;
 }
 
 const MessagesPageMobile = ({
@@ -52,6 +53,7 @@ const MessagesPageMobile = ({
   onNewMessage,
   onCreateConversation,
   onCloseModal,
+  onMessagesRefresh,
 }: MessagesPageMobileProps) => {
   const activeConversation = conversations.find(
     (conv) => conv.id === activeConversationId
@@ -87,6 +89,7 @@ const MessagesPageMobile = ({
             isLoadingMore={isLoadingMore}
             onLoadMore={onLoadMoreMessages}
             onBackToList={onBackToList}
+            onMessagesRefresh={onMessagesRefresh}
           />
         </div>
       ) : (

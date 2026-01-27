@@ -13,6 +13,7 @@ interface MessageThreadProps {
   hasMore?: boolean;
   onMarkAsRead?: (messageId: number) => void;
   isOtherUserTyping?: boolean;
+  onMatchupUpdated?: () => void;
 }
 
 const MessageThread = ({
@@ -23,6 +24,7 @@ const MessageThread = ({
   hasMore = false,
   onMarkAsRead,
   isOtherUserTyping = false,
+  onMatchupUpdated,
 }: MessageThreadProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -190,6 +192,7 @@ const MessageThread = ({
           key={message.id || Math.random()}
           message={message}
           currentUserId={currentUserId}
+          onMatchupUpdated={onMatchupUpdated}
         />
       ))}
 

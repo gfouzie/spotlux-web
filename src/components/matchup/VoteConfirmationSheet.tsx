@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Modal from '@/components/common/Modal';
 
-interface CommentModalProps {
+interface VoteConfirmationSheetProps {
   isOpen: boolean;
-  votedFor: 'A' | 'B';
+  username: string;
+  profileImageUrl?: string | null;
   onSubmit: (comment: string) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -14,17 +15,20 @@ interface CommentModalProps {
 }
 
 /**
- * Modal for collecting optional comment after voting
- * User can submit vote (with or without comment) or cancel to not vote
+ * VoteConfirmationSheet - Post-vote comment modal
+ *
+ * Shows after user votes, allowing optional comment submission.
+ * Displays who they voted for with profile image.
  */
-export default function CommentModal({
+export default function VoteConfirmationSheet({
   isOpen,
-  votedFor,
+  username,
+  profileImageUrl,
   onSubmit,
   onCancel,
   isSubmitting = false,
   error = null,
-}: CommentModalProps) {
+}: VoteConfirmationSheetProps) {
   const [comment, setComment] = useState('');
 
   // Reset comment when modal opens
@@ -48,9 +52,24 @@ export default function CommentModal({
       isOpen={isOpen}
       onClose={onCancel}
       title={
-        <div className="text-center w-full">
-          <p className="text-text-col/60 text-sm mb-1">You chose</p>
-          <p className="text-text-col text-xl font-medium">Highlight {votedFor}</p>
+        <div className="flex flex-col items-center w-full gap-3">
+          <p className="text-text-col/60 text-sm">You voted for</p>
+          <div className="flex items-center gap-3">
+            {profileImageUrl ? (
+              <img
+                src={profileImageUrl}
+                alt={username}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-accent-col/20 flex items-center justify-center">
+                <span className="text-accent-col text-lg font-medium">
+                  {username.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+            <p className="text-text-col text-xl font-medium">@{username}</p>
+          </div>
         </div>
       }
       size="md"
@@ -68,11 +87,11 @@ export default function CommentModal({
     >
       {/* Comment Input */}
       <div className="mb-4">
-        <label htmlFor="comment-input" className="block text-text-col text-sm mb-2">
+        <label htmlFor="vote-comment-input" className="block text-text-col text-sm mb-2">
           Why did you choose this one? (optional)
         </label>
         <textarea
-          id="comment-input"
+          id="vote-comment-input"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="Share your thoughts..."
