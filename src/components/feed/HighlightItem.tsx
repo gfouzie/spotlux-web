@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Highlight } from '@/api/highlights';
 import { useHighlightReactions } from '@/hooks/useHighlightReactions';
 import { useHighlightComments } from '@/hooks/useHighlightComments';
 import { EmojiId } from '@/api/reactions';
+import { trackEngagement } from '@/api/engagement';
 import ReactionPanel from './ReactionPanel';
 import ReactionModal from './ReactionModal';
 import CommentButton from './CommentButton';
@@ -32,6 +33,14 @@ export default function HighlightItem({ highlight, isActive }: HighlightItemProp
   const [isMuted, setIsMuted] = useState(false);
   const [showReactionModal, setShowReactionModal] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+
+  // Watch time tracking state
+  const watchStartTimeRef = useRef<number | null>(null);
+  const totalWatchTimeRef = useRef<number>(0);
+  const videoDurationRef = useRef<number>(0);
+  const hasTrackedRef = useRef<boolean>(false);
+  const lastTrackedHighlightIdRef = useRef<number | null>(null);
 
   // Reactions hook
   const {
@@ -54,6 +63,40 @@ export default function HighlightItem({ highlight, isActive }: HighlightItemProp
     loadMore: loadMoreComments,
   } = useHighlightComments(highlight.id);
 
+  // Track watch time when video is playing
+  const recordWatchSession = useCallback(() => {
+    if (watchStartTimeRef.current !== null) {
+      const sessionDuration = Date.now() - watchStartTimeRef.current;
+      totalWatchTimeRef.current += sessionDuration;
+      watchStartTimeRef.current = null;
+    }
+  }, []);
+
+  // Send engagement data to backend
+  const sendEngagementData = useCallback(() => {
+    // Record any ongoing session
+    recordWatchSession();
+
+    // Guard: prevent double-send for same highlight (race condition protection)
+    if (lastTrackedHighlightIdRef.current === highlight.id) {
+      return;
+    }
+
+    // Only send if user watched for at least 500ms and haven't sent already
+    // Note: if video failed to load, we still track dwell time (videoDuration = 1 as placeholder)
+    const hasValidDuration = videoDurationRef.current > 0 || videoError;
+
+    if (totalWatchTimeRef.current >= 500 && hasValidDuration && !hasTrackedRef.current) {
+      trackEngagement({
+        highlightId: highlight.id,
+        watchDurationMs: totalWatchTimeRef.current,
+        videoDurationMs: videoDurationRef.current || 1, // Use 1ms placeholder if video failed
+      });
+      hasTrackedRef.current = true;
+      lastTrackedHighlightIdRef.current = highlight.id;
+    }
+  }, [highlight.id, recordWatchSession, videoError]);
+
   // Handle video playback based on isActive prop
   useEffect(() => {
     const video = videoRef.current;
@@ -61,10 +104,59 @@ export default function HighlightItem({ highlight, isActive }: HighlightItemProp
 
     if (isActive) {
       video.play().catch(console.error);
+      // Start tracking watch time
+      watchStartTimeRef.current = Date.now();
     } else {
       video.pause();
+      // Record the watch session when paused
+      recordWatchSession();
     }
-  }, [isActive]);
+  }, [isActive, highlight.id, recordWatchSession]);
+
+  // Capture video duration when metadata loads
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleLoadedMetadata = () => {
+      videoDurationRef.current = Math.round(video.duration * 1000);
+    };
+
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    // Also check if already loaded (for cached videos)
+    if (video.duration && !isNaN(video.duration)) {
+      videoDurationRef.current = Math.round(video.duration * 1000);
+    }
+
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [highlight.id]); // Re-run when highlight changes to attach listener to new video
+
+  // Send engagement data when component unmounts or highlight changes
+  useEffect(() => {
+    return () => {
+      sendEngagementData();
+    };
+  }, [sendEngagementData]);
+
+  // Reset tracking state when highlight changes
+  useEffect(() => {
+    totalWatchTimeRef.current = 0;
+    watchStartTimeRef.current = null;
+    videoDurationRef.current = 0;
+    hasTrackedRef.current = false;
+    setVideoError(false);
+  }, [highlight.id]);
+
+  // Handle video load errors
+  const handleVideoError = useCallback(() => {
+    console.error(`Video failed to load for highlight ${highlight.id}`);
+    setVideoError(true);
+    // Still track dwell time even if video fails
+    watchStartTimeRef.current = Date.now();
+  }, [highlight.id]);
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
@@ -88,6 +180,7 @@ export default function HighlightItem({ highlight, isActive }: HighlightItemProp
         muted={isMuted}
         loop
         playsInline
+        onError={handleVideoError}
       />
 
       {/* Creator overlay at bottom */}

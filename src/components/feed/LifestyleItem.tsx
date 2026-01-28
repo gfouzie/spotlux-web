@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { LifestyleDailyAggregateFeedItem } from '@/api/lifestyle';
 import LifestyleFeedPost from '@/components/lifestyle/LifestyleFeedPost';
 import { formatDate } from '@/lib/dateUtils';
 import { useReactions } from '@/hooks/useReactions';
 import { useComments } from '@/hooks/useComments';
 import { EmojiId } from '@/api/reactions';
+import { trackLifestyleEngagement } from '@/api/engagement';
 import ReactionPanel from './ReactionPanel';
 import ReactionModal from './ReactionModal';
 import CommentButton from './CommentButton';
@@ -22,7 +23,7 @@ interface LifestyleItemProps {
  * Displays user's daily posts in a horizontal carousel
  * Includes reactions and comments for the currently visible post
  */
-export default function LifestyleItem({ aggregate, isActive: _isActive }: LifestyleItemProps) {
+export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProps) {
   // Backend sends posts DESC (newest first), reverse for chronological display
   const postsChronological = [...aggregate.posts].reverse();
   const totalSlides = postsChronological.length;
@@ -31,6 +32,12 @@ export default function LifestyleItem({ aggregate, isActive: _isActive }: Lifest
   const [currentSlide, setCurrentSlide] = useState(totalSlides - 1);
   const carouselRef = useRef<HTMLDivElement>(null);
   const hasScrolledRef = useRef(false);
+
+  // Engagement tracking state (using refs to avoid re-renders)
+  const dwellStartTimeRef = useRef<number | null>(null);
+  const totalDwellTimeRef = useRef<number>(0);
+  const slidesViewedRef = useRef<Set<number>>(new Set());
+  const hasTrackedRef = useRef<boolean>(false);
 
   // Modal states
   const [showReactionModal, setShowReactionModal] = useState(false);
@@ -59,6 +66,67 @@ export default function LifestyleItem({ aggregate, isActive: _isActive }: Lifest
     unlikeComment,
     loadMore: loadMoreComments,
   } = useComments('lifestyle-posts', currentPostId);
+
+  // Track dwell time when item is active
+  const recordDwellSession = useCallback(() => {
+    if (dwellStartTimeRef.current !== null) {
+      const sessionDuration = Date.now() - dwellStartTimeRef.current;
+      totalDwellTimeRef.current += sessionDuration;
+      dwellStartTimeRef.current = null;
+    }
+  }, []);
+
+  // Send engagement data to backend
+  const sendEngagementData = useCallback(() => {
+    // Record any ongoing session
+    recordDwellSession();
+
+    // Only send if user spent at least 500ms and haven't sent already
+    if (totalDwellTimeRef.current >= 500 && totalSlides > 0 && !hasTrackedRef.current) {
+      trackLifestyleEngagement({
+        aggregateId: aggregate.id,
+        dwellTimeMs: totalDwellTimeRef.current,
+        slidesViewed: slidesViewedRef.current.size,
+        totalSlides: totalSlides,
+      });
+      hasTrackedRef.current = true;
+    }
+  }, [aggregate.id, totalSlides, recordDwellSession]);
+
+  // Handle active state changes for dwell time tracking
+  useEffect(() => {
+    if (isActive) {
+      // Start tracking dwell time
+      dwellStartTimeRef.current = Date.now();
+      // Mark current slide as viewed
+      slidesViewedRef.current.add(currentSlide);
+    } else {
+      // Record the dwell session when deactivated
+      recordDwellSession();
+    }
+  }, [isActive, currentSlide, recordDwellSession]);
+
+  // Track slide views when user navigates carousel
+  useEffect(() => {
+    if (isActive) {
+      slidesViewedRef.current.add(currentSlide);
+    }
+  }, [currentSlide, isActive]);
+
+  // Send engagement data when component unmounts or aggregate changes
+  useEffect(() => {
+    return () => {
+      sendEngagementData();
+    };
+  }, [sendEngagementData]);
+
+  // Reset tracking state when aggregate changes
+  useEffect(() => {
+    totalDwellTimeRef.current = 0;
+    dwellStartTimeRef.current = null;
+    slidesViewedRef.current = new Set();
+    hasTrackedRef.current = false;
+  }, [aggregate.id]);
 
   // Scroll to the last slide on mount (only once to prevent jarring updates)
   useEffect(() => {

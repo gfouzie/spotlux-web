@@ -208,9 +208,9 @@ src/components/
 ├── dashboard/           # Dashboard views
 ├── feed/                # Unified feed components
 │   ├── UnifiedFeedPage.tsx     # Main feed page with infinite scroll
-│   ├── HighlightItem.tsx       # Full-screen highlight with reactions/comments/mute
+│   ├── HighlightItem.tsx       # Full-screen highlight with reactions/comments/mute/engagement tracking
 │   ├── MatchupItem.tsx         # Wrapper for MatchupCard in feed
-│   ├── LifestyleItem.tsx       # Lifestyle aggregate carousel
+│   ├── LifestyleItem.tsx       # Lifestyle aggregate carousel with engagement tracking
 │   ├── VideoOverlay.tsx        # Video metadata overlay (creator, prompt, stats)
 │   ├── ReactionPanel.tsx       # Top 3 reactions + smiley button (polymorphic - any content type)
 │   ├── ReactionModal.tsx       # Full emoji grid modal (polymorphic - any content type)
@@ -822,6 +822,10 @@ Full-screen highlight with all interactive features:
 - **Reactions** - ReactionPanel (top 3) + ReactionModal (full grid)
 - **Comments** - CommentButton + CommentModal
 - **Video overlay** - Creator info, prompt, stats
+- **Engagement tracking** - Watch time sent via fire-and-forget when user scrolls away
+  - Tracks actual video play time (pauses when video pauses)
+  - Race condition protection via `lastTrackedHighlightIdRef`
+  - Video error handling - still tracks dwell time if video fails to load
 
 ```typescript
 export default function HighlightItem({ highlight, isActive }: HighlightItemProps) {
@@ -1237,6 +1241,11 @@ const EMOJI_MAP: Record<string, string> = {
   - Handles transient matchup key generation (composite IDs for id=0 matchups)
   - Auto-converts backend format to discriminated union FeedItem types
   - `resetFeedHistory()` - DEV TOOL to clear all viewed content
+- `engagement.ts` - Engagement tracking API (fire-and-forget pattern)
+  - Types: `VideoEngagementData`, `LifestyleEngagementData`, `MatchupEngagementData`
+  - Methods: `trackVideoEngagement()`, `trackLifestyleEngagement()`, `trackMatchupEngagement()`
+  - Uses `fetch` with `keepalive: true` to survive page navigation
+  - Endpoints: `/engagement/video`, `/engagement/lifestyle`, `/engagement/matchup`
 - `promptCategories.ts` - Prompt category CRUD
 - `prompts.ts` - Prompt management
 - `conversations.ts` - Messaging/DM API (create, send, mark as read)

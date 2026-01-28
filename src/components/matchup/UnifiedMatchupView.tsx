@@ -6,6 +6,7 @@ import { HighlightMatchup } from '@/types/matchup';
 import { FriendMatchupFeedItem } from '@/api/friendMatchups';
 import { useMatchupVoting } from '@/hooks/useMatchupVoting';
 import { friendMatchupsApi } from '@/api/friendMatchups';
+import { trackMatchupEngagement } from '@/api/engagement';
 import MatchupUserTabs from './MatchupUserTabs';
 import VoteSwipeOverlay from './VoteSwipeOverlay';
 import VoteConfirmationSheet from './VoteConfirmationSheet';
@@ -58,6 +59,16 @@ export default function UnifiedMatchupView({
   const [hasVoted, setHasVoted] = useState(false);
   const [isVotingFriend, setIsVotingFriend] = useState(false);
   const [voteError, setVoteError] = useState<string | null>(null);
+
+  // Engagement tracking state (using refs to avoid re-renders)
+  const dwellStartTimeRef = useRef<number | null>(null);
+  const totalDwellTimeRef = useRef<number>(0);
+  const watchStartTimeARef = useRef<number | null>(null);
+  const watchStartTimeBRef = useRef<number | null>(null);
+  const totalWatchTimeARef = useRef<number>(0);
+  const totalWatchTimeBRef = useRef<number>(0);
+  const hasTrackedRef = useRef<boolean>(false);
+  const votedRef = useRef<boolean>(false);
 
   // Extract user data from either matchup type
   const isEloMatchup = !!matchup;
@@ -112,6 +123,113 @@ export default function UnifiedMatchupView({
     highlightBId: matchup?.highlightBId ?? 0,
   });
 
+  // --- Engagement Tracking Logic ---
+
+  // Record dwell time session
+  const recordDwellSession = useCallback(() => {
+    if (dwellStartTimeRef.current !== null) {
+      const sessionDuration = Date.now() - dwellStartTimeRef.current;
+      totalDwellTimeRef.current += sessionDuration;
+      dwellStartTimeRef.current = null;
+    }
+  }, []);
+
+  // Record watch time for side A
+  const recordWatchSessionA = useCallback(() => {
+    if (watchStartTimeARef.current !== null) {
+      const sessionDuration = Date.now() - watchStartTimeARef.current;
+      totalWatchTimeARef.current += sessionDuration;
+      watchStartTimeARef.current = null;
+    }
+  }, []);
+
+  // Record watch time for side B
+  const recordWatchSessionB = useCallback(() => {
+    if (watchStartTimeBRef.current !== null) {
+      const sessionDuration = Date.now() - watchStartTimeBRef.current;
+      totalWatchTimeBRef.current += sessionDuration;
+      watchStartTimeBRef.current = null;
+    }
+  }, []);
+
+  // Send engagement data to backend
+  const sendEngagementData = useCallback(() => {
+    // Record any ongoing sessions
+    recordDwellSession();
+    recordWatchSessionA();
+    recordWatchSessionB();
+
+    // Only track ELO matchups (not friend matchups) and only if we have highlight IDs
+    if (!isEloMatchup || !matchup?.highlightAId || !matchup?.highlightBId) return;
+
+    // Only send if user spent at least 500ms and haven't sent already
+    if (totalDwellTimeRef.current >= 500 && !hasTrackedRef.current) {
+      trackMatchupEngagement({
+        highlightAId: matchup.highlightAId,
+        highlightBId: matchup.highlightBId,
+        dwellTimeMs: totalDwellTimeRef.current,
+        watchedAMs: totalWatchTimeARef.current,
+        watchedBMs: totalWatchTimeBRef.current,
+        voted: votedRef.current,
+      });
+      hasTrackedRef.current = true;
+    }
+  }, [isEloMatchup, matchup?.highlightAId, matchup?.highlightBId, recordDwellSession, recordWatchSessionA, recordWatchSessionB]);
+
+  // Handle active state changes for dwell time tracking
+  useEffect(() => {
+    if (isActive) {
+      // Start tracking dwell time
+      dwellStartTimeRef.current = Date.now();
+      // Start tracking watch time for current side
+      if (selectedSide === 'a') {
+        watchStartTimeARef.current = Date.now();
+      } else {
+        watchStartTimeBRef.current = Date.now();
+      }
+    } else {
+      // Record sessions when deactivated
+      recordDwellSession();
+      recordWatchSessionA();
+      recordWatchSessionB();
+    }
+  }, [isActive, recordDwellSession, recordWatchSessionA, recordWatchSessionB, selectedSide]);
+
+  // Track watch time when switching sides
+  useEffect(() => {
+    if (!isActive) return;
+
+    // Record previous side and start new side
+    if (selectedSide === 'a') {
+      recordWatchSessionB();
+      watchStartTimeARef.current = Date.now();
+    } else {
+      recordWatchSessionA();
+      watchStartTimeBRef.current = Date.now();
+    }
+  }, [selectedSide, isActive, recordWatchSessionA, recordWatchSessionB]);
+
+  // Send engagement data when component unmounts or matchup changes
+  useEffect(() => {
+    return () => {
+      sendEngagementData();
+    };
+  }, [sendEngagementData]);
+
+  // Reset tracking state when matchup changes
+  useEffect(() => {
+    totalDwellTimeRef.current = 0;
+    dwellStartTimeRef.current = null;
+    totalWatchTimeARef.current = 0;
+    totalWatchTimeBRef.current = 0;
+    watchStartTimeARef.current = null;
+    watchStartTimeBRef.current = null;
+    hasTrackedRef.current = false;
+    votedRef.current = false;
+  }, [matchup?.highlightAId, matchup?.highlightBId]);
+
+  // --- End Engagement Tracking Logic ---
+
   // Play/pause videos based on isActive and selectedSide
   useEffect(() => {
     const videoA = videoRefA.current;
@@ -162,6 +280,7 @@ export default function UnifiedMatchupView({
       }
 
       setHasVoted(true);
+      votedRef.current = true; // Track for engagement
       setShowConfirmation(false);
       setPendingVoteSide(null);
 
