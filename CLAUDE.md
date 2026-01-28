@@ -680,21 +680,21 @@ Modal-based image cropper with:
   - Manages zoom, pan, canvas rendering
   - Exports cropped image as Blob
 
-- **useContentReactions.ts** - Polymorphic reactions for any content type (highlights, lifestyle posts)
-  - Fetches aggregated reaction data for highlights OR lifestyle posts
+- **useContentReactions.ts** - Polymorphic reactions for any content type (highlights, lifestyle aggregates)
+  - Fetches aggregated reaction data for highlights OR lifestyle aggregates
   - Handles optimistic updates for add/remove reactions
   - Auto-rollback on API errors
   - State: `reactions`, `userReaction`, `totalCount`, `isLoading`, `error`
   - Methods: `addReaction(emojiId)`, `removeReaction()`, `refetch()`
-  - Usage: `useContentReactions('highlight', highlightId)` or `useContentReactions('lifestyle_post', postId)`
+  - Usage: `useContentReactions('highlights', highlightId)` or `useContentReactions('lifestyle-aggregates', aggregateId)`
 
-- **useContentComments.ts** - Polymorphic comments for any content type (highlights, lifestyle posts)
+- **useContentComments.ts** - Polymorphic comments for any content type (highlights, lifestyle aggregates)
   - Fetches paginated comments with hot ranking
   - Handles optimistic updates for add/delete/like/unlike
   - Auto-rollback on API errors
   - State: `comments`, `totalCount`, `hasMore`, `isLoading`, `error`
   - Methods: `addComment(text)`, `deleteComment(id)`, `likeComment(id)`, `unlikeComment(id)`, `loadMore()`
-  - Usage: `useContentComments('highlight', highlightId)` or `useContentComments('lifestyle_post', postId)`
+  - Usage: `useContentComments('highlights', highlightId)` or `useContentComments('lifestyle-aggregates', aggregateId)`
 
 - **useLifestyleFeedData.ts** - Lifestyle feed state management
   - Manages lifestyle feed items, cursor-based pagination
@@ -1121,12 +1121,14 @@ if (!isLoading && items.length === 0 && !hasMore) {
 
 ## Polymorphic Comments & Reactions
 
-The comments and reactions system uses a **polymorphic architecture** - the same UI components, hooks, and patterns work for BOTH highlights AND lifestyle posts.
+The comments and reactions system uses a **polymorphic architecture** - the same UI components, hooks, and patterns work for BOTH highlights AND lifestyle aggregates.
+
+**Note**: Reactions and comments are attached to the **daily aggregate** (the container that groups all posts for a day), not individual lifestyle posts. This makes more sense UX-wise since users interact with the aggregate as a single unit in the feed.
 
 ### Content Types
 
 ```typescript
-type ContentType = 'highlight' | 'lifestyle_post';
+type ContentType = 'highlights' | 'lifestyle-aggregates';
 ```
 
 ### Shared Components
@@ -1143,16 +1145,16 @@ These components accept `contentType` and `contentId` props and work identically
 ```tsx
 // For highlights
 <ReactionPanel
-  contentType="highlight"
+  contentType="highlights"
   contentId={highlight.id}
   reactions={reactions}
   onOpenModal={() => setShowReactionModal(true)}
 />
 
-// For lifestyle posts (identical API)
+// For lifestyle aggregates (identical API)
 <ReactionPanel
-  contentType="lifestyle_post"
-  contentId={post.id}
+  contentType="lifestyle-aggregates"
+  contentId={aggregate.id}
   reactions={reactions}
   onOpenModal={() => setShowReactionModal(true)}
 />
@@ -1162,12 +1164,12 @@ These components accept `contentType` and `contentId` props and work identically
 
 ```typescript
 // Reactions - same hook, different content type
-const highlightReactions = useContentReactions('highlight', highlightId);
-const lifestyleReactions = useContentReactions('lifestyle_post', postId);
+const highlightReactions = useContentReactions('highlights', highlightId);
+const lifestyleReactions = useContentReactions('lifestyle-aggregates', aggregateId);
 
 // Comments - same hook, different content type
-const highlightComments = useContentComments('highlight', highlightId);
-const lifestyleComments = useContentComments('lifestyle_post', postId);
+const highlightComments = useContentComments('highlights', highlightId);
+const lifestyleComments = useContentComments('lifestyle-aggregates', aggregateId);
 ```
 
 ### Emoji System
@@ -1194,7 +1196,7 @@ const EMOJI_MAP: Record<string, string> = {
 | Content Type | Reactions | Comments |
 |--------------|-----------|----------|
 | Highlight | `/highlights/{id}/reactions` | `/highlights/{id}/comments` |
-| Lifestyle Post | `/lifestyle-posts/{id}/reactions` | `/lifestyle-posts/{id}/comments` |
+| Lifestyle Aggregate | `/lifestyle-aggregates/{id}/reactions` | `/lifestyle-aggregates/{id}/comments` |
 
 > **Mobile Implementation**: See [spotlux-backend/mobile-implementation/content-comments-reactions.md](../spotlux-backend/mobile-implementation/content-comments-reactions.md) for complete specs.
 
@@ -1229,12 +1231,12 @@ const EMOJI_MAP: Record<string, string> = {
 - `users.ts` - User profile operations (registration with timezone field)
 - `highlights.ts` - Highlight CRUD operations
 - `highlightReels.ts` - Reel management (create, update, delete, reorder)
-- `reactions.ts` - Content reactions (polymorphic - works for highlights AND lifestyle posts)
+- `reactions.ts` - Content reactions (polymorphic - works for highlights AND lifestyle aggregates)
   - Includes `EMOJI_IDS` constant and `EMOJI_MAP` for string ID to Unicode emoji conversion
-  - Endpoints: `/highlights/{id}/reactions`, `/lifestyle-posts/{id}/reactions`
-- `comments.ts` - Content comments (polymorphic - works for highlights AND lifestyle posts)
+  - Endpoints: `/highlights/{id}/reactions`, `/lifestyle-aggregates/{id}/reactions`
+- `comments.ts` - Content comments (polymorphic - works for highlights AND lifestyle aggregates)
   - Includes comment CRUD and like/unlike operations
-  - Endpoints: `/highlights/{id}/comments`, `/lifestyle-posts/{id}/comments`
+  - Endpoints: `/highlights/{id}/comments`, `/lifestyle-aggregates/{id}/comments`
 - `matchups.ts` - Matchup voting, results, current featured prompt
 - `feed.ts` - Unified feed endpoint
   - `getMixedFeed({ limit, cursor, sport })` - Returns `{ items, nextCursor, hasMore }`
@@ -1483,7 +1485,7 @@ NODE_ENV=development
 - Highlight Interactions: `/api/v1/highlights/{id}/reactions`, `/api/v1/highlights/{id}/comments`
 - Matchups: `/api/v1/highlight-matchups`, `/api/v1/highlight-matchups/vote`
 - Lifestyle: `/api/v1/lifestyle-posts`, `/api/v1/lifestyle-feed`, `/api/v1/lifestyle-streaks`, `/api/v1/users/{user_id}/lifestyle/calendar`, `/api/v1/lifestyle/insights/*`
-- Lifestyle Interactions: `/api/v1/lifestyle-posts/{id}/reactions`, `/api/v1/lifestyle-posts/{id}/comments`
+- Lifestyle Interactions: `/api/v1/lifestyle-aggregates/{id}/reactions`, `/api/v1/lifestyle-aggregates/{id}/comments`
 - Social: `/api/v1/friendships`, `/api/v1/conversations`
 - Friend Matchups: `/api/v1/friend-matchups`, `/api/v1/friend-matchups/{id}/respond`, `/api/v1/friend-matchups/{id}/decline`, `/api/v1/friend-matchups/{id}/vote`
 - Upload: `/api/v1/upload`

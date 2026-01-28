@@ -21,7 +21,7 @@ interface LifestyleItemProps {
 /**
  * Full-screen lifestyle aggregate item in unified feed
  * Displays user's daily posts in a horizontal carousel
- * Includes reactions and comments for the currently visible post
+ * Includes reactions and comments for the aggregate (whole day)
  */
 export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProps) {
   // Backend sends posts DESC (newest first), reverse for chronological display
@@ -43,18 +43,15 @@ export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProp
   const [showReactionModal, setShowReactionModal] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
 
-  // Get the current post ID for reactions/comments
-  const currentPostId = postsChronological[currentSlide]?.id ?? null;
-
-  // Reactions hook for current post
+  // Reactions hook for aggregate (shared across all posts in the day)
   const {
     reactions,
     isLoading: reactionsLoading,
     addReaction,
     removeReaction,
-  } = useReactions('lifestyle-posts', currentPostId);
+  } = useReactions('lifestyle-aggregates', aggregate.id);
 
-  // Comments hook for current post
+  // Comments hook for aggregate (shared across all posts in the day)
   const {
     comments,
     totalCount: commentCount,
@@ -65,7 +62,7 @@ export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProp
     likeComment,
     unlikeComment,
     loadMore: loadMoreComments,
-  } = useComments('lifestyle-posts', currentPostId);
+  } = useComments('lifestyle-aggregates', aggregate.id);
 
   // Track dwell time when item is active
   const recordDwellSession = useCallback(() => {
@@ -263,11 +260,11 @@ export default function LifestyleItem({ aggregate, isActive }: LifestyleItemProp
         </div>
       </div>
 
-      {/* Right side action panel (for reactions and comments on current post) */}
+      {/* Right side action panel (for reactions and comments on aggregate) */}
       <div className="absolute bottom-20 right-4 z-20 flex flex-col gap-3">
         {/* Reactions */}
         <ReactionPanel
-          highlightId={currentPostId ?? 0}
+          highlightId={aggregate.id}
           reactions={reactions}
           isLoading={reactionsLoading}
           onReact={handleReact}
