@@ -1,10 +1,17 @@
 'use client';
 
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
-import { ChatLines, Tools, FolderSettings } from 'iconoir-react';
+import { ChatLines, Tools, FolderSettings, StatsUpSquare } from 'iconoir-react';
 import Link from 'next/link';
 
 const internalToolsCards = [
+  {
+    name: 'Metrics Dashboard',
+    href: '/metrics',
+    icon: StatsUpSquare,
+    description:
+      'Analytics and metrics for founders - sessions, retention, engagement',
+  },
   {
     name: 'Prompts',
     href: '/internal-tools/prompts',
